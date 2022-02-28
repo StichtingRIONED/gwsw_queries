@@ -1,0 +1,54 @@
+# Test op juiste typering BIM-objecten (20170307)
+# Kwaliteitsniveau als opmerking bij type opgenomen
+# Alleen binnen conformiteitsklassen in gebruik
+# aangepast op separate CFK in primaire dataset (20190814)
+
+where
+{
+	?t rdfs:comment ?c .
+	filter (contains(?c, "[cfk fout]")) # marker, binnen de geldende cfk is dit een fout type
+	
+    SERVICE <{{&endpoint}}> # endpoint wordt de te valideren dataset 
+	{
+		?s sesame:directType ?t . # zijn er instanties van het foute type?
+		
+		BIND ("{{&version}}" AS ?aft)
+		BIND ( IF(contains(str(?t), ?aft), strafter(str(?t), ?aft), str(?t)) as ?sTyp)
+		BIND (?sTyp AS ?sAsp)
+
+		OPTIONAL # label moet er zijn
+		{
+			?s rdfs:label ?lab .
+		}
+		BIND (IF (BOUND(?lab), ?lab, "Onbekend") as ?sLab)
+		BIND ("Objecttype te globaal voor deze CFK [type = onvoldoende]" as ?typ) # incl. marker voor rapport SomMldTyp (sync a) (20190831)
+		BIND ("Vervolg-validaties zijn hierdoor niet betrouwbaar" AS ?msg)
+		
+		OPTIONAL # Put-geometrie
+		{
+		   ?s :hasAspect
+		   [
+			  rdf:type :Putorientatie ;
+			  :hasAspect
+			  [ 
+				rdf:type :Punt ;
+				:hasValue ?punt ;
+			  ]
+		   ]
+		}
+		OPTIONAL
+		{
+			?s :hasAspect ?ori .
+			?ori rdf:type :Leidingorientatie .
+		
+			optional # Leiding heeft eigen geo
+			{
+				?ori :hasAspect
+				[ 
+					rdf:type :Lijn ;
+					:hasValue ?lijn ;
+				]
+			}
+		}
+	}
+}

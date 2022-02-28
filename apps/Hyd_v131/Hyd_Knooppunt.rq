@@ -1,0 +1,114 @@
+# Hyd_Knooppunt.spq
+# Tbv conversie naar GWSW.hydx (20170901)
+# Alleen de rechtstreeks met leidingen verbonden putten/bouwwerken
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.3.1/totaal/>
+
+SELECT DISTINCT ?uri ?Stelsel ?naam ?type ?Punt ?Maaiveldhoogte  ?materiaal ?vorm ?breedte ?lengte ?Maaiveldschematisering
+
+WHERE
+{ 
+   { ?uri rdf:type :Rioolput . }
+   UNION
+   { ?uri rdf:type :Kolk . }
+   UNION
+   { ?uri rdf:type :Bouwwerk . }
+   
+   ?uri sesame:directType ?type .
+    
+   FILTER (!(isBlank(?uri)))
+   FILTER (!(isBlank(?type)))
+    
+   ?uri rdfs:label ?naam .
+
+   optional
+   {   
+      ?uri :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+      ] .
+   }
+   ?uri :hasAspect ?ori .
+   
+   { ?ori rdf:type :Putorientatie . }
+   UNION
+   { ?ori rdf:type :Bouwwerkorientatie . }
+   
+   # alleen de putten die verbonden zijn (evt. wel via compartimenten)
+   # distinct nodig: put kan zowel aan begin/eind gekoppeld zijn
+	
+   { ?ori :hasConnection [ rdf:type :BeginpuntLeiding ;] . }
+   UNION
+   { ?ori :hasConnection [ rdf:type :EindpuntLeiding ;] . }
+   UNION
+   { ?uri :hasAspect [ rdf:type :UitlaatPunt ;] . } # Uitlaatconstructie verbonden via punt
+   
+   ?ori :hasAspect
+   [ 
+       rdf:type :Punt ;
+       :hasValue ?Punt ;
+   ] .
+   optional {?ori :hasConnection
+   [
+     rdf:type :Maaiveldorientatie ;
+     :hasAspect
+     [
+		rdf:type :Maaiveldhoogte ;
+		:hasValue ?Maaiveldhoogte ;
+     ];
+   ] .}
+   optional 
+   {
+		?uri :hasAspect ?mat .
+		
+		{ ?mat rdf:type :MateriaalPut . }
+		UNION
+		{ ?mat rdf:type :MateriaalBouwwerk . }
+		
+		?mat :hasReference ?materiaal ;
+	}
+   optional 
+   {
+		?uri :hasAspect ?vrm .
+		
+		{ ?vrm rdf:type :VormPut . }
+		UNION
+		{ ?vrm rdf:type :VormBouwwerk . }
+		
+		?vrm :hasReference ?vorm ;
+	}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :DiameterPut ;
+       :hasValue ?breedte ; # Diameter als breedte vermelden
+   ] .}
+   optional 
+   {
+		?uri :hasAspect ?br .
+		
+		{ ?br rdf:type :BreedtePut . }
+		UNION
+		{ ?br rdf:type :BreedteBouwwerk . }
+		
+		?br :hasValue ?breedte ;
+	}
+   optional 
+   {
+		?uri :hasAspect ?len .
+		
+		{ ?len rdf:type :LengtePut . }
+		UNION
+		{ ?len rdf:type :LengteBouwwerk . }
+		
+		?len :hasValue ?lengte ;
+	}
+	optional {?uri :hasAspect 
+    [
+       rdf:type :Maaiveldschematisering ;
+       :hasReference ?Maaiveldschematisering ;
+    ] .}
+
+}

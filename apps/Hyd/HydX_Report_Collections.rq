@@ -1,0 +1,64 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+select distinct ?Collectie ?LabelElement ?CodeElement ?Definitie ?CodeKolom
+
+where
+{
+ ?coll rdfs:subClassOf :VerzamelingSoorten .
+ ?coll rdfs:subClassOf ?o1 .
+ ?o1 owl:oneOf ?list .
+ 
+ #voer eerst rdf:rest uit, met object vervolgens rdf:first (rest*: doe voor alle rest-relaties)
+ ?list rdf:rest*/rdf:first ?elem .
+ ?elem rdfs:label ?LabelElement .
+ FILTER (lang(?LabelElement) = "nl")
+ ?elem skos:notation ?CodeElement .
+ 
+ optional # Groepeer de bijbehorende veldcodes (met "optional" wordt de query ook veel sneller)
+ {
+  SELECT ?coll (GROUP_CONCAT(?code; separator = " / ") as ?CodeKolom)
+  WHERE
+  {
+    OPTIONAL
+    {
+        ?c2 sesame:directSubClassOf ?c1 .
+        ?c1 owl:allValuesFrom ?coll .
+        ?c3 sesame:directSubClassOf ?c4 .
+        ?c4 owl:allValuesFrom ?c2 .
+        ?c3 skos:notation ?code .
+    }
+  }
+  GROUP BY ?coll 
+ }
+ optional
+ {
+	?c2 sesame:directSubClassOf ?c1 .
+    ?c1 owl:allValuesFrom ?coll .
+    ?c3 sesame:directSubClassOf ?c4 .
+    ?c4 owl:allValuesFrom ?c2 .
+    ?c3 skos:notation ?CodeKolom .
+ }
+ filter (bound(?CodeKolom)) # handhaaf wel de optional, dan blijft de query snel (vreemd?)
+ 
+ optional # Verzamel de definities
+ {
+  SELECT ?elem (GROUP_CONCAT(?def; separator = " / ") as ?Definitie)
+  WHERE
+  {
+    OPTIONAL
+    {
+        { ?elem skos:definition ?def . }
+		UNION
+		{ ?elem rdfs:isDefinedBy ?def . }
+    }
+  }
+  GROUP BY ?elem
+ } 
+ BIND ("{{&version}}" AS ?aft)
+ BIND (strafter(str(?elem), ?aft) AS ?NameElement)
+ ?coll rdfs:label ?Collectie .
+}

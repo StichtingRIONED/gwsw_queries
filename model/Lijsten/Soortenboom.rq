@@ -1,0 +1,82 @@
+# GWSW_Lijsten Soortenboom
+
+# Restrictie-superclasses overslaan (v1.5.2) (20220119) 
+# SuperClass6 toegevoegd (20200520)
+# Van versie 1.4 naar 1.5 (20190718)
+# Van versie 1.3.1 naar 1.4 (20190429)
+# 20150821 GraphDB: Deze opmerking vervalt, extra check op :hasDateStart + geen inference toegepast
+#                   Gebruik :superClassOf, subClassOf wordt in CE's gebruikt, te veel OPTIONAL
+#                   Tot 5 niveau's, bij meer niveaus lukte de export als cvs niet
+# 20150914: distinct toegevoegd, anders dubbeling als SuperClass een multiparent heeft
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+
+select DISTINCT ?Class ?SuperClass1 ?SuperClass2 ?SuperClass3 ?SuperClass4 ?SuperClass5 ?SuperClass6
+
+FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
+where
+{
+ ?Class1 :hasDateStart ?dat1 ; # alleen GWSW-classes (geen blank nodes)
+         rdf:type owl:Class .
+  
+# vanaf het laagste niveau terugwerken
+#  FILTER NOT EXISTS 
+#  { ?SubClass1 :superClassOf ?Class .
+#    # ?Class :hasDateStart ?dat .
+#  }
+  
+ OPTIONAL
+ {
+    ?Class1 rdfs:subClassOf ?Class2 .
+    ?Class2 :hasDateStart ?dat2 ; # let op, nw variabele voor ?dat, anders slaat Optional 'm over
+            rdf:type owl:Class . # sla de restricties over (v1.5.2) (20220119)
+    OPTIONAL
+    {
+   	  ?Class2 rdfs:subClassOf ?Class3 .
+      ?Class3 :hasDateStart ?dat3 ;
+              rdf:type owl:Class .
+      OPTIONAL
+      {
+        ?Class3 rdfs:subClassOf ?Class4 .
+        ?Class4 :hasDateStart ?dat4 ;
+                rdf:type owl:Class . 
+        OPTIONAL
+        {
+          ?Class4 rdfs:subClassOf ?Class5 .
+          ?Class5 :hasDateStart ?dat5 ;
+                  rdf:type owl:Class . 
+          OPTIONAL
+          {
+            ?Class5 rdfs:subClassOf ?Class6 .
+            ?Class6 :hasDateStart ?dat6 ;
+                    rdf:type owl:Class . 
+	        OPTIONAL
+            {
+              ?Class6 rdfs:subClassOf ?Class7 .
+              ?Class7 :hasDateStart ?dat7 ;
+                      rdf:type owl:Class .
+            }
+          }
+		}
+      }
+    }
+  }
+# BIND ("#" AS ?aft)
+# BIND ("gwsw.nl/" AS ?aft)
+  BIND ("1.5/totaal/" AS ?aft)
+
+  BIND (strafter(str(?Class1), ?aft) AS ?Class)
+  BIND (strafter(str(?Class2), ?aft) AS ?SuperClass1)
+  BIND (strafter(str(?Class3), ?aft) AS ?SuperClass2)
+  BIND (strafter(str(?Class4), ?aft) AS ?SuperClass3)
+  BIND (strafter(str(?Class5), ?aft) AS ?SuperClass4)
+  BIND (strafter(str(?Class6), ?aft) AS ?SuperClass5)
+  BIND (strafter(str(?Class7), ?aft) AS ?SuperClass6)
+}

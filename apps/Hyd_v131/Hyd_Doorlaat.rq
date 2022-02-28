@@ -1,0 +1,80 @@
+# Hyd_Doorlaat.spq
+# Tbv conversie naar GWSW.hydx (20170901)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.3.1/totaal/>
+
+SELECT ?naam ?bUri ?eUri ?BinnenonderkantOnderdeel ?BreedteOpening ?HoogteOpening ?VormOpening ?ContractiecoefficientDoorlaatprofiel ?MaximaleCapaciteitDoorlaat ?Stromingsrichting
+
+WHERE
+{ 
+    ?uri rdf:type :Doorlaat .
+	
+	FILTER (!isBlank(?uri))
+	
+	optional
+	{
+		?uri rdfs:label ?naam .
+	}
+	?uri :hasAspect ?ori .
+	
+    ?ori rdf:type :Onderdeelorientatie ;
+         :hasPart [
+		  	rdf:type :BeginpuntOnderdeel ;
+        	:hasConnection ?bpunt ; 
+			:hasAspect [
+				rdf:type :BinnenonderkantOnderdeel ;
+				:hasValue ?BinnenonderkantOnderdeel ; ]	] .
+         
+        { ?bpunt :isAspectOf ?bUri }
+        UNION
+        { ?bpunt :isPartOf [ :isAspectOf ?bUri ] . }
+
+	optional
+    {
+        ?ori :hasPart [
+		  	rdf:type :EindpuntOnderdeel ;
+        	:hasConnection ?epunt ; ] .
+		
+        { ?epunt :isAspectOf ?eUri }
+        UNION
+        { ?epunt :isPartOf [ :isAspectOf ?eUri ] . }
+    }
+   optional {?uri :hasAspect 
+   [
+       rdf:type :DiameterOpening ;
+       :hasValue ?BreedteOpening ; # Diameter als breedte vermelden
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :BreedteOpening ;
+       :hasValue ?BreedteOpening ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :HoogteOpening ;
+       :hasValue ?HoogteOpening ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :VormOpening ;
+       :hasReference ?VormOpening ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :ContractiecoefficientDoorlaatprofiel ;
+       :hasValue ?ContractiecoefficientDoorlaatprofiel ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :MaximaleCapaciteitDoorlaat ;
+       :hasValue ?MaximaleCapaciteitDoorlaat ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :Stromingsrichting ;
+       :hasReference ?Stromingsrichting ;
+   ] .}
+}

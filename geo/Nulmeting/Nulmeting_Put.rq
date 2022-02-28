@@ -1,0 +1,26 @@
+# Validatie: Overzicht violations - lijstvorm
+# 20150818
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX vali: <http://data.gwsw.nl/vali#>
+
+select ?TypeMelding ?Type ?Naam ?Kenmerk ?Opmerking ?Geometrie
+
+where 
+{
+    ?s rdf:type vali:Violation .
+    ?s rdfs:label ?TypeMelding .
+    ?s vali:sTyp ?Type .
+    ?s vali:sLab ?Naam . 
+    ?s vali:punt ?Geometrie . 
+	
+    optional 
+    {
+        ?s vali:sAsp ?Kenmerk . 
+    }
+    optional 
+    {
+        ?s rdfs:comment ?Opmerking . 
+    }
+}

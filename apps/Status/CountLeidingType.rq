@@ -1,0 +1,15 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX : <{{&version}}>
+
+SELECT ?type (COUNT (?obj) AS ?count)
+WHERE
+{ 
+	?obj rdf:type :Leiding ; 
+	sesame:directType ?styp .
+    FILTER (!(isBlank(?styp)))
+	
+    BIND ("{{&version}}" AS ?aft)
+ 	BIND ( IF(CONTAINS(str(?styp), ?aft), strafter(str(?styp), ?aft), str(?styp)) as ?type)
+}
+GROUP BY ?type
+ORDER BY ASC (?type)

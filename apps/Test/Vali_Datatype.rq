@@ -1,0 +1,78 @@
+# Validatie: test het xsd:datatype
+# 20150923 - 20170901
+
+select distinct ?typ ?sTyp ?sLab ?sAsp ?msg ?punt ?lijn
+
+where 
+{ 
+    # Controleer xsd-datatype (niet de Dt_ types)
+    
+	?dt1 owl:onProperty :hasValue . 
+	?dt1 owl:allValuesFrom ?dt2 .
+    
+	filter (!contains(str(?dt2), "Dt_"))
+        
+	?dt3 rdfs:subClassOf ?dt1 .
+    ?asp sesame:directType ?dt3 .
+    ?asp :hasValue ?Val .
+    
+    filter (datatype(?Val) != ?dt2)
+	filter (datatype(?Val) != xsd:integer || ?dt2 != xsd:decimal) # integer wel toestaan (20170901)
+
+	# er valt iets te melden
+	
+    BIND ("gwsw.nl/1.3.1/totaal/" AS ?aft)
+    BIND ("#" AS ?aftXML) # datatype XMLSchema (20170228)
+
+	# initialiseer ?sAsp
+    
+    ?dt3 rdfs:label ?sAsp .
+
+	# initialiseer ?sLab, ?sTyp (initialiseren tbv triples INSERT in validatie-database)
+
+    OPTIONAL 
+    {
+        ?sub :hasAspect ?asp .
+		?sub sesame:directType ?s1 .
+        filter (!isblank(?s1))
+        
+        OPTIONAL
+        {
+    		?sub rdfs:label ?s2 .
+    	}
+    }
+    BIND ( IF(BOUND(?s1), IF(contains(str(?s1), ?aft), strafter(str(?s1), ?aft), str(?s1)), "") as ?sTyp)
+	BIND ( IF(BOUND(?s2), ?s2, "") as ?sLab) 
+
+	# initialiseer ?msg
+
+    BIND (CONCAT("Waarde \"", str(?Val), "\", datatype \"", strafter(str(datatype(?Val)), ?aft), "\" wijkt af van definitie: \"", strafter(str(?dt2), ?aftXML), "\"") as ?msg)
+    
+    # initialiseer ?typ
+    BIND ("Datatype niet correct" as ?typ)
+		
+	OPTIONAL
+	{
+	   ?sub :hasAspect 
+	   [
+		  rdf:type :Putorientatie ;
+		  :hasAspect
+		  [ 
+			rdf:type :Punt ;
+			:hasValue ?punt ;
+		  ]
+	   ]
+	}
+	OPTIONAL
+	{
+	   ?sub :hasAspect 
+	   [
+		  rdf:type :Leidingorientatie ;
+		  :hasAspect
+		  [ 
+			rdf:type :Lijn ;
+			:hasValue ?lijn ;
+		  ]
+	   ]
+	}
+}

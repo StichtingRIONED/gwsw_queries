@@ -1,0 +1,130 @@
+# Geoserver: Hyd_Knooppunt.spq (20170910)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.3.1/totaal/>
+
+SELECT ?Stelsel ?naam ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?Maaiveldschematisering ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
+
+WHERE
+{ 
+   { ?knp rdf:type :Rioolput . }
+   UNION
+   { ?knp rdf:type :Kolk . }
+   UNION
+   { ?knp rdf:type :Bouwwerk . }
+   
+   ?knp sesame:directType ?type .
+    
+   FILTER (!(isBlank(?knp)))
+   FILTER (!(isBlank(?type)))
+    
+   ?knp rdfs:label ?naam .
+
+   optional
+   {   
+      ?knp :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+      ] .
+   }
+   ?knp :hasAspect ?ori .
+    
+   { ?ori rdf:type :Putorientatie .} 
+   UNION
+   { ?ori rdf:type :Bouwwerkorientatie .} 
+    
+   ?ori :hasAspect
+   [ 
+       rdf:type :Punt ;
+       :hasValue ?Punt ; # geen geometrie = geen resultaat
+   ] .
+   optional {?ori :hasConnection
+   [
+     rdf:type :Maaiveldorientatie ;
+     :hasAspect
+     [
+	rdf:type :Maaiveldhoogte ;
+	:hasValue ?Maaiveldhoogte ;
+     ];
+   ] .}
+   	optional {?knp :hasAspect 
+    [
+       rdf:type :Maaiveldschematisering ;
+       :hasReference ?Maaiveldschematisering ;
+    ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :MateriaalPut ;
+       :hasReference ?MateriaalPut ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :VormPut ;
+       :hasReference ?VormPut ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :DiameterPut ;
+       :hasValue ?BreedtePut ; # Diameter als breedte vermelden
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :BreedtePut ;
+       :hasValue ?BreedtePut ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :LengtePut ;
+       :hasValue ?LengtePut ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :HoogtePut ;
+       :hasValue ?HoogtePut ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :AantalWoningen ;
+       :hasValue ?AantalWoningen ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :Aantal_ieBedrijven ;
+       :hasValue ?Aantal_ieBedrijven ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :Aantal_ieRecreatie ;
+       :hasValue ?Aantal_ieRecreatie ;
+   ] .}
+   optional
+   {
+        SELECT ?knp (sum(?ao) as ?AfvoerendOppervlak) # sommeer de types ao (tzt compartimenten erbij)
+        WHERE
+        {
+           optional {?knp :hasAspect 
+           [
+               rdf:type :AfvoerendOppervlak ;
+               :hasValue ?ao ;
+           ] .}
+        }
+        GROUP BY ?knp
+    }
+   optional {?knp :hasAspect 
+   [
+       rdf:type :LateraalDebietDWA ;
+       :hasValue ?LateraalDebietDWA ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :LateraalDebietHWA ;
+       :hasValue ?LateraalDebietHWA ;
+   ] .}
+   optional {?knp :hasAspect 
+   [
+       rdf:type :LateraalAfvoerendOppervlak ;
+       :hasValue ?LateraalAfvoerendOppervlak ;
+   ] .}
+}

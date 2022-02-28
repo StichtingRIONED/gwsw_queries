@@ -1,0 +1,76 @@
+# Test op onderschrijding minimum
+# 20150923 / 20151120
+# Inference niet nodig, ontologie kan via service
+
+select distinct ?typ ?sTyp ?sLab ?sAsp ?msg ?punt ?lijn
+
+where 
+{ 
+    # Zoek de dt_class met de restricties
+    
+    ?dt1 xsd:minInclusive ?val .
+    ?dt2 rdf:first ?dt1 .
+    ?dt4 owl:withRestrictions ?dt2 .
+    ?dt5 owl:equivalentClass ?dt4 .
+    ?dt5 rdfs:label ?sAsp .
+    ?dt6 owl:allValuesFrom ?dt5 .
+	?dt7 rdfs:subClassOf ?dt6 .
+    
+    ?asp rdf:type ?dt7 .
+    ?asp :hasValue ?Val .
+    FILTER (isNumeric(?Val)) # via aparte validatie-query
+
+    ?s :hasAspect ?asp .
+   	?s sesame:directType ?t .
+    FILTER (!(isBlank(?t)))
+
+    FILTER (?Val < ?val)
+    
+    # er is iets te melden
+
+    BIND (CONCAT("Waarde [", str(?Val), "] te klein, minimum = ", str(?val)) as ?msg)
+
+    #BIND ("#" AS ?aft)
+    BIND ("{{&version}}" AS ?aft)
+
+	# initialiseer ?sLab
+
+    OPTIONAL # label hoeft er niet te zijn
+    {
+    	?s rdfs:label ?s1 .
+    }
+	BIND ( IF(BOUND(?s1), ?s1, "") as ?sLab) # Wel initialiseren anders komen triples niet goed door via INSERT validatie-database
+
+	# initialiseer ?sTyp
+
+    BIND ( IF(contains(str(?t), ?aft), strafter(str(?t), ?aft), str(?t)) as ?sTyp)
+
+	# initialiseer ?typ
+    
+    BIND ("Waarde te klein" AS ?typ)
+		
+	OPTIONAL
+	{
+	   ?s :hasAspect 
+	   [
+		  rdf:type :Putorientatie ;
+		  :hasAspect
+		  [ 
+			rdf:type :Punt ;
+			:hasValue ?punt ;
+		  ]
+	   ]
+	}
+	OPTIONAL
+	{
+	   ?s :hasAspect 
+	   [
+		  rdf:type :Leidingorientatie ;
+		  :hasAspect
+		  [ 
+			rdf:type :Lijn ;
+			:hasValue ?lijn ;
+		  ]
+	   ]
+	}
+}

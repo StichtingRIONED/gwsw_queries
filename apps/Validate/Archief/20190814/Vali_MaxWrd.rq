@@ -1,0 +1,178 @@
+# Test op overschrijding maximum
+# 20150923 / 20151120
+
+# Inference niet nodig, ontologie kan via service
+
+# 20160222: Check op datatype wel nodig, allvaluesfrom verwijst naar datatype met onder/bovengrens
+#           In aparte query ondergebracht
+# 20151214: let op - nog controleren/corrigeren !!!!!!!!!!!!!!!
+#           check op datatype niet nodig? Elk concept heeft een allvaluesfrom - restrictie?
+#           in dat geval is de specifieke query voor datatype-check voldoende (geen dubbele meldingen doen)
+
+select distinct ?typ ?sTyp ?sLab ?sAsp ?msg ?punt ?lijn
+
+where 
+{ 
+    # Zoek de dt_class met de restricties
+    
+    ?dt1 xsd:maxInclusive ?val1 .
+    ?dt2 rdf:first ?dt1 .
+    ?dt3 rdf:rest ?dt2 .
+    ?dt4 owl:withRestrictions ?dt3 .
+    ?dt5 owl:equivalentClass ?dt4 .
+    ?dt5 rdfs:label ?sAsp .
+    ?dt6 owl:allValuesFrom ?dt5 .
+	?dt7 rdfs:subClassOf ?dt6 .
+    
+    #} 
+    
+    ?asp rdf:type ?dt7 .
+    ?asp :hasValue ?Val .
+    FILTER (isNumeric(?Val)) # via aparte validatie-query
+
+    ?s :hasAspect ?asp .
+   	?s sesame:directType ?t .
+    FILTER (!(isBlank(?t)))
+
+    # Test: Type/lokale specificaties
+
+    #OPTIONAL
+    #{
+    #    select ?asp ?s ?val2
+    #    {
+    #         ?s sesame:directType :Duiker .
+    #         ?asp sesame:directType :LengteLeiding .
+    #         BIND (100 AS ?val2)
+    #    }
+	#}
+    #OPTIONAL
+    #{
+    #    select ?asp ?s ?val2
+    #    {
+    #         ?s sesame:directType :Drukleiding .
+    #         ?asp sesame:directType :LengteLeiding .
+    #         BIND (500 AS ?val2)
+    #    }
+	#}
+    # BIND (IF(BOUND(?val2), ?val2, ?val1) AS ?val)
+	
+	# Alternatief, sneller maar wel ingewikkelder
+
+    #OPTIONAL
+    #{
+    #    ?s sesame:directType :Duiker .
+    #    ?asp sesame:directType :LengteLeiding .
+    #    BIND (100 AS ?val2)
+	#}
+    #OPTIONAL
+    #{
+    #    ?s sesame:directType :Drukleiding .
+    #    ?asp sesame:directType :LengteLeiding .
+    #    BIND (500 AS ?val3)
+	#}
+
+	BIND (IF(BOUND(?val3), ?val3, IF(BOUND(?val2), ?val2, ?val1)) AS ?val)
+
+    FILTER (?Val > ?val)
+
+    # er is iets te melden
+    
+    # BIND (IF(isNumeric(?Val) && (?Val > ?val), CONCAT("Waarde ", str(?Val), " groter dan maximum ", str(?val)), "") as ?msg1)
+    # BIND (IF(?msg1 = "" && !isNumeric(?Val), CONCAT("Waarde ", str(?Val), " niet numeriek"), "") as ?msg2)
+    # BIND (CONCAT(?msg1, ?msg2) AS ?msg)
+
+    BIND (CONCAT("Waarde [", str(?Val), "] te groot, maximum = ", str(?val)) as ?msg)
+ 
+    #BIND ("#" AS ?aft)
+    BIND ("{{&version}}" AS ?aft)
+
+	# initialiseer ?sLab
+
+    OPTIONAL # label hoeft er niet te zijn
+    {
+    	?s rdfs:label ?s1 .
+    }
+	BIND ( IF(BOUND(?s1), ?s1, "") as ?sLab) # Wel initialiseren anders komen triples niet goed door in validatie-database
+
+	# initialiseer ?sTyp
+
+    BIND ( IF(contains(str(?t), ?aft), strafter(str(?t), ?aft), str(?t)) as ?sTyp)
+
+	# initialiseer ?typ
+    
+    BIND ("Waarde te groot" AS ?typ)
+
+	# proef met sommeren van het totaal aantal objecttypes (ter bepaling relatief aantal fouten)
+	# werkt heel vertragend (1 sec tov 30 sec) bij Barneveld
+	#{
+    #	 SELECT ?t (count(*) as ?sTypAt) # tel het aantal triples
+    #    WHERE
+    #    {
+	#	    ?s sesame:directType ?t .
+    #    }
+	#    GROUP BY ?t
+    #}
+	
+	OPTIONAL
+	{
+	   ?s :hasAspect 
+	   [
+		  rdf:type :Putorientatie ;
+		  :hasAspect
+		  [ 
+			rdf:type :Punt ;
+			:hasValue ?punt ;
+		  ]
+	   ]
+	}
+	OPTIONAL # Leiding-geometrie
+	{
+		FILTER (!BOUND(?punt)) # hou het snel (20170817)
+		
+	    ?s :hasAspect ?ori .
+	    ?ori rdf:type :Leidingorientatie .
+    
+        optional # Leiding heeft eigen geo
+        {
+            ?ori :hasAspect
+            [ 
+                rdf:type :Lijn ;
+                :hasValue ?geo0 ;
+            ]
+        }
+		BIND (?geo0 as ?geo1) # Schakel deze in om ?Lijn WEL te construeren uit beginpunt/eindpunt
+		# BIND (if (!BOUND(?geo0), "", ?geo0) as ?geo1) # Schakel deze in om ?Lijn NIET te construeren uit beginpunt/eindpunt
+
+        optional # Geen eigen geo, zoek via bPunt, ePunt
+        {
+			FILTER (!BOUND(?geo1)) # hou het snel (20170817)
+			
+            ?ori :hasPart ?bpnt .
+            ?bpnt rdf:type :BeginpuntLeiding .
+            ?ori :hasPart ?epnt .
+            ?epnt rdf:type :EindpuntLeiding .
+
+            ?bpnt :hasConnection
+            [ 
+              :hasAspect
+              [ 
+                rdf:type :Punt ;
+                :hasValue ?bgeo ;
+              ]
+            ] .
+            bind (strafter(strbefore(str(?bgeo), "</gml:pos>"), "<gml:pos>") as ?bxy)
+            ?epnt :hasConnection
+            [ 
+              :hasAspect
+              [ 
+                rdf:type :Punt ;
+                :hasValue ?egeo ;
+              ]
+            ] .
+            bind (strafter(strbefore(str(?egeo), "</gml:pos>"), "<gml:pos>") as ?exy) # lees inhoud gml:pos
+
+            bind (concat("<gml:LineString xmlns:gml=\"http://www.opengis.net/gml\"><gml:posList srsDimension=\"2\">", str(?bxy), " ", str(?exy), "</gml:posList></gml:LineString>") as ?geo2)
+        }
+        BIND (COALESCE (?geo1, ?geo2) as ?lijn)
+	}
+}

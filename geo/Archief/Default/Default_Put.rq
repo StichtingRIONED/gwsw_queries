@@ -1,0 +1,53 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+PREFIX : <{{&version}}>
+
+SELECT ?Stelsel ?Naam ?Type ?TypeNaam ?Geometrie
+
+WHERE
+{ 
+   {
+   	  ?put rdf:type :Rioolput ;
+	       :hasAspect 
+		   [
+			  rdf:type :Putorientatie ;
+			  :hasAspect
+			  [ 
+				rdf:type :Punt ;
+				:hasValue ?Geometrie ;
+			  ] ;
+		   ] .
+   }
+   UNION
+   {
+   	  ?put rdf:type :Bouwwerk ;
+	       :hasAspect 
+		   [
+			  rdf:type :Bouwwerkorientatie ;
+			  :hasAspect
+			  [ 
+				rdf:type :Punt ;
+				:hasValue ?Geometrie ;
+			  ] ;
+		   ] .
+   }
+   FILTER (!(isBlank(?put)))
+   
+   ?put sesame:directType ?Type .
+   FILTER (!(isBlank(?Type)))
+   
+   ?put rdfs:label ?Naam .    
+   ?Type rdfs:label ?TypeNaam . # De URI hoeft niet dekkend te zijn
+   FILTER (lang(?TypeNaam) = "nl") # let op! (niet meer nodig in GWSW 2.0 - prefLabel)
+    
+    optional
+    {
+      ?put :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+      ] .
+    }
+}

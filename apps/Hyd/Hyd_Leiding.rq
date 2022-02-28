@@ -1,0 +1,118 @@
+# Hyd_Leiding.spq
+# Tbv conversie naar GWSW.hydx (20170901)
+# Wanddikte en SDR_waarde toegevoegd (20190903)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+SELECT ?uri ?Stelsel ?naam ?type ?bUri ?eUri ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?SDR_waarde
+
+WHERE
+{ 
+    {   ?uri rdf:type :VrijvervalRioolleiding .
+		?uri sesame:directType ?type .
+    }
+    UNION
+    { 	?uri rdf:type :VrijvervalTransportleiding . 
+		BIND("VrijvervalTransportleiding" AS ?type) .
+	}
+    UNION
+    { 	?uri rdf:type :OpenLeiding . 
+		BIND("OpenLeiding" AS ?type) .
+	}
+   FILTER (!(isBlank(?uri)))
+   FILTER (!(isBlank(?type)))
+    
+   ?uri rdfs:label ?naam .
+
+   optional
+   {   
+      ?uri :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+      ] .
+   }
+   ?uri :hasAspect ?ori .
+   ?ori rdf:type :Leidingorientatie .
+   
+    optional
+    {
+        ?ori :hasPart ?bpnt .
+        ?bpnt rdf:type :BeginpuntLeiding .
+ 
+        optional {?bpnt :hasAspect
+        [ 
+           rdf:type :BobBeginpuntLeiding ;
+           :hasValue ?BobBeginpuntLeiding ;
+        ] .}
+        ?bpnt :hasConnection ?bpunt .
+        
+        { ?bpunt :isAspectOf ?bUri }
+        UNION
+        { ?bpunt :isPartOf [ :isAspectOf ?bUri ] . }
+	}
+	
+	optional
+	{
+        ?ori :hasPart ?epnt .
+        ?epnt rdf:type :EindpuntLeiding .
+
+        optional {?epnt :hasAspect
+        [ 
+           rdf:type :BobEindpuntLeiding ;
+           :hasValue ?BobEindpuntLeiding ;
+        ] .}
+		?epnt :hasConnection ?epunt .
+        
+        { ?epunt :isAspectOf ?eUri }
+        UNION
+        { ?epunt :isPartOf [ :isAspectOf ?eUri ] . }
+   }
+   optional {?uri :hasAspect 
+   [
+       rdf:type :MateriaalLeiding ;
+       :hasReference ?MateriaalLeiding ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :VormLeiding ;
+       :hasReference ?VormLeiding ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :DiameterLeiding ;
+       :hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :BreedteLeiding ;
+       :hasValue ?BreedteLeiding ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :HoogteLeiding ;
+       :hasValue ?HoogteLeiding ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :LengteLeiding ;
+       :hasValue ?LengteLeiding ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :Wanddikte ;
+       :hasValue ?Wanddikte ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :SDR_waarde ;
+       :hasValue ?SDR_waarde ;
+   ] .}
+#   optional {?uri :hasAspect 
+#   [
+#       rdf:type :AfvoerendOppervlak ;
+#       :hasValue ?AfvoerendOppervlak ;
+#   ] .}
+}

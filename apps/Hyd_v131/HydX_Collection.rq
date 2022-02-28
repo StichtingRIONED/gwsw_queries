@@ -1,0 +1,24 @@
+# Collecties HydX
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.4/totaal/> # HydX-formaat op basis van GWSW 1.4 (per 20171220)
+
+select ?coll ?elem ?code
+
+where
+{
+ ?coll rdfs:subClassOf :VerzamelingSoorten .
+ ?coll rdfs:subClassOf ?o1 .
+ ?o1 owl:oneOf ?list .
+ 
+ #voer eerst rdf:rest uit, met object vervolgens rdf:first (rest*: doe voor alle rest-relaties)
+ ?list rdf:rest*/rdf:first ?elem .
+ ?elem skos:notation ?code .
+
+ #BIND ("1.3.1/totaal/" AS ?aft)
+ #BIND (strafter(str(?elem), ?aft) AS ?NameElement)
+ #?coll rdfs:label ?Collectie .
+}

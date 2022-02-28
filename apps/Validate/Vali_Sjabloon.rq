@@ -1,0 +1,32 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX sesame: <http://www.openrdf.org/schema/sesame#>
+PREFIX vali: <http://data.gwsw.nl/vali#>
+PREFIX : <{{&version}}>
+
+# Insert triples met meldingen
+# Via SERVICE verwijzen naar de te controleren database
+# Inserts in aparte meldingen-database
+# ?typ = type validatie
+# ?msg = algemeen commentaar
+# ?sLab = het label van het primaire onderwerp
+# ?sTyp = het type van het primaire onderwerp
+# ?sAsp = het aspect bij het primaire onderwerp
+# ?punt = geometrie van putten
+# ?lijn = geometrie van leidingen
+
+INSERT
+{
+    [ 
+	  rdf:type vali:Violation ;
+	  rdfs:label ?typ ;
+      vali:sLab ?sLab ;
+      vali:sTyp ?sTyp ;
+      vali:sAsp ?sAsp ;
+	  vali:punt ?punt ;
+	  vali:lijn ?lijn ;
+      rdfs:comment ?msg ;
+    ]
+}
+{{&query}}

@@ -1,0 +1,11 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?GmlValue
+WHERE 
+{ 
+	?s gwsw:hasValue ?GmlValue .
+    FILTER (datatype(?GmlValue) = geo:gmlLiteral)
+}
+limit 1

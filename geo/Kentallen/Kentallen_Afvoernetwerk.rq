@@ -1,0 +1,60 @@
+# Kentallen_Afvoernetwerk (20220202 - 20220221)
+# Toon de gebieden (vlakken) die als deel een Afvoerpunt hebben
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?Afvoernetwerk ?Afvoerpunt ?Gebied ?uri ?type ?Buitengrens 
+
+WHERE
+{ 
+   {
+      ?conn rdf:type gwsw:BeginpuntAfvoerrelatie ;
+         gwsw:hasConnection ?punt .
+   }
+   UNION
+   {
+      ?conn rdf:type gwsw:EindpuntAfvoerrelatie ;
+         gwsw:hasConnection ?punt .
+   }
+   # SERVICE <{{&endpoint}}> # endpoint van gekoppelde dataset 
+   # SERVICE <http://localhost:7200/repositories/Heusden> # endpoint van gekoppelde dataset 
+   #SERVICE <https://sparql.gwsw.nl/repositories/Heusden> # debug 
+	{
+      ?punt rdf:type gwsw:Afvoerpunt ;
+            gwsw:isPartOf ?geb .
+
+      ?geb gwsw:hasAspect [
+         rdf:type gwsw:Gebiedsorientatie ; # Alles met gebiedsoriëntatie doet mee (20200515)
+         gwsw:hasAspect [
+         rdf:type gwsw:Buitengrens ;
+         gwsw:hasValue ?Buitengrens ; ] ] .
+         
+      FILTER (!(isBlank(?geb)))
+
+      # { ?geb rdf:type gwsw:Rioleringsgebied . }
+      # UNION 
+      # { ?geb rdf:type gwsw:Zuiveringsgebied . }
+      
+      ?geb sesame:directType ?type .
+
+      FILTER (!(isBlank(?type)))
+
+      ?punt rdfs:label ?Afvoerpunt .
+      ?geb rdfs:label ?Gebied .
+   }
+   # ?type rdfs:label ?typeNaam . # De URI hoeft niet dekkend te zijn
+   # FILTER (lang(?typeNaam) = "nl") # let op! (niet meer nodig in GWSW 2.0 - prefLabel)
+
+   optional { ?punt gwsw:isPartOf 
+	[ 
+      rdf:type gwsw:Afvoernetwerk ;
+      rdfs:label ?Afvoernetwerk ;
+	] . }
+   #BIND (strafter(str(?geb), "#") AS ?uri)
+   BIND (?geb AS ?uri) # Toon de URI met de gekoppelde afvoerder
+}

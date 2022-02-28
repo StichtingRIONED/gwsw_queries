@@ -1,0 +1,36 @@
+    <FeatureType>
+	  <Name>{{nam_0}}</Name>  <!-- 20190310 -->
+      <Title>{{tit_0}}</Title>
+      <Abstract>Repository GWSW, serviced by RIONED</Abstract>
+      <Keywords/>
+      {{&DefaultCRS}}
+     <ows:WGS84BoundingBox>
+        <ows:LowerCorner>3.045 50.669</ows:LowerCorner>
+        <ows:UpperCorner>7.58 53.656</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+	 <MetadataURL xlink:href="http://geodata.gwsw.nl/{{&path}}?request=MetaWFS"/>
+    </FeatureType>
+    <FeatureType>
+	    <Name>{{nam_1}}</Name>
+      <Title>{{tit_1}}</Title>
+      <Abstract>Repository GWSW, serviced by RIONED</Abstract>
+      <Keywords/>
+      {{&DefaultCRS}}
+      <ows:WGS84BoundingBox>
+        <ows:LowerCorner>3.045 50.669</ows:LowerCorner>
+        <ows:UpperCorner>7.58 53.656</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+	    <MetadataURL xlink:href="http://geodata.gwsw.nl/{{&path}}?request=MetaWFS"/>
+    </FeatureType>
+	<FeatureType>
+      <Name>{{nam_2}}</Name>
+      <Title>{{tit_2}}</Title>
+      <Abstract>Repository GWSW, serviced by RIONED</Abstract>
+      <Keywords/>
+      {{&DefaultCRS}}
+      <ows:WGS84BoundingBox>
+        <ows:LowerCorner>3.045 50.669</ows:LowerCorner>
+        <ows:UpperCorner>7.58 53.656</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+	    <MetadataURL xlink:href="http://geodata.gwsw.nl/{{&path}}?request=MetaWFS"/>
+     </FeatureType>

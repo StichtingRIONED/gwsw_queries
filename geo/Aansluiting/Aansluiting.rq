@@ -1,0 +1,61 @@
+# Aansluitingen (per inlaat) bij geo-thema Aansluiting (20190318)
+# Verbinding met put/leiding optioneel gemaakt (20200501)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+PREFIX : <{{&version}}>
+
+SELECT DISTINCT ?Stelsel ?naam ?type ?Punt ?Begindatum ?sluitAanOp ?typeObj 
+
+WHERE
+{ 
+   ?inlaat rdf:type :Inlaat .
+   
+   ?inlaat   :isPartOf  ?aansl .
+   ?aansl rdf:type   :Aansluiting ;
+          rdfs:label ?naam ;
+		  sesame:directType ?type .
+		  
+   #?typeUri rdfs:label ?typeLab .
+   #BIND(CONCAT(?typeLab, " (zie ", str(?typeUri), " )") as ?type)
+		  
+   ?inlaat :hasAspect ?ori .
+   ?ori :hasAspect
+   [ 
+        rdf:type :Punt ;
+        :hasValue ?Punt ;
+   ] .
+    
+   optional # Sluit aan op put/leiding
+   {
+       ?inlaat :isPartOf ?obj .
+
+       {?obj rdf:type :Rioolput . }
+       UNION
+       {?obj rdf:type :Leiding . }
+
+       ?obj sesame:directType ?typeObj .
+
+       FILTER (!(isBlank(?obj)))
+       FILTER (!(isBlank(?typeObj)))
+
+       ?obj rdfs:label ?sluitAanOp .
+   }
+   
+   optional {?aansl :isPartOf 
+     [ 
+	    rdf:type :Stelsel ;
+		sesame:directType ?Stelsel ;
+        #rdfs:label ?StelselLab ;
+	 ] . 
+	 #BIND(CONCAT(?StelselLab, " (zie ", str(?StelselUri), " )") as ?Stelsel)
+   }
+   optional {?aansl :hasAspect 
+   [
+       rdf:type :Begindatum ;
+       :hasValue ?Begindatum ;
+   ] .}
+}

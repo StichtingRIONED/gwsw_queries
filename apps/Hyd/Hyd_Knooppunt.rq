@@ -1,0 +1,166 @@
+# Hyd_Knooppunt.spq (versie 1.4)
+# Tbv conversie naar GWSW.hydx (20170901 - 20190429)
+# Op basis nieuwe topologie-type :Knooppunt
+# Alleen via :Knooppunt koppelen naar leidingen en onderdelen
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+SELECT DISTINCT ?uri ?uriCps ?Stelsel ?naam ?naamComp ?type ?Punt ?puntCps ?Maaiveldhoogte  ?materiaal ?vorm ?breedte ?lengte ?Maaiveldschematisering ?BergendOppervlak ?Grondwaterniveau
+
+WHERE
+{ 
+   ?ori rdf:type :Knooppunt .
+   ?ori :isAspectOf ?uri .
+   ?uri sesame:directType ?type .
+   ?uri rdfs:label ?naam1 .
+	
+   { ?ori :hasConnection [ rdf:type :BeginpuntLeiding ;] . }
+   UNION
+   { ?ori :hasConnection [ rdf:type :EindpuntLeiding ;] . }
+   UNION
+   { ?ori :hasConnection [ rdf:type :BeginpuntOnderdeel ;] . }
+   UNION
+   { ?ori :hasConnection [ rdf:type :EindpuntOnderdeel ;] . }
+   
+   optional # compartimenten hoeven geen punt te hebben 
+   {
+       ?ori :hasAspect
+	   [ 
+	      rdf:type :Punt ;
+          :hasValue ?punt1 ;
+       ] . 
+   }
+   optional # zoek evt hoofdconstructie
+   {
+		?ori rdf:type :Compartimentorientatie . # geldt alleen voor compartimenten
+		BIND (?naam1 as ?naamComp) .
+		?uri :isPartOf ?uriCps .
+		
+		?uriCps rdfs:label ?naam2 .
+		?uriCps :hasAspect 
+		[
+			rdf:type :Knooppunt ; # Put, bouwwerk, ...
+			:hasAspect 
+			[ 
+				rdf:type :Punt ;
+				:hasValue ?punt2 ;
+			] ;
+		] .
+   }
+   BIND (COALESCE (?punt1, ?punt2) as ?Punt)
+   BIND (COALESCE (?naam2, ?naam1) as ?naam)
+   BIND (IF(BOUND(?punt1), "", "Ja") AS ?puntCps)
+   
+   optional 
+   {
+		?uri :hasAspect ?vrm .
+		
+		{ ?vrm rdf:type :VormPut . }
+		UNION
+		{ ?vrm rdf:type :VormCompartiment . }
+		UNION
+		{ ?vrm rdf:type :VormBouwwerk . }
+		
+		?vrm :hasReference ?vorm ;
+	}
+   optional 
+   {
+	   ?uri :hasAspect 
+	   [
+		   rdf:type :DiameterPut ;
+		   :hasValue ?breedte ; # Diameter als breedte vermelden
+	   ] .}
+   optional 
+   {
+		?uri :hasAspect ?br .
+		
+		{ ?br rdf:type :BreedtePut . }
+		UNION
+		{ ?br rdf:type :BreedteCompartiment . }
+		UNION
+		{ ?br rdf:type :BreedteBouwwerk . }
+		
+		?br :hasValue ?breedte ;
+	}
+   optional 
+   {
+		?uri :hasAspect ?len .
+		
+		{ ?len rdf:type :LengtePut . }
+		UNION
+		{ ?len rdf:type :LengteCompartiment . }
+		UNION
+		{ ?len rdf:type :LengteBouwwerk . }
+		
+		?len :hasValue ?lengte ;
+	}
+	
+# Gebruik vanaf hier evt het compositie-object
+
+   BIND (IF(BOUND(?uriCps), ?uriCps, ?uri) AS ?uri_) 
+	
+   optional
+   {   
+     ?uri_ :isPartOf 
+     [ rdf:type :Stelsel ;
+       rdfs:label ?Stelsel ;
+     ] .
+   }
+   optional 
+   {
+	    ?uri_ :hasAspect ?oriCps . # Alleen put en bouwwerk verbinden aan maaiveld
+	   
+		{ ?oriCps rdf:type :Putorientatie . }
+		UNION
+		{ ?oriCps rdf:type :Bouwwerkorientatie . }
+		
+		optional
+	    {
+			?oriCps :hasConnection
+			[
+			  rdf:type :Maaiveldorientatie ;
+			  :hasAspect
+			  [
+				rdf:type :Maaiveldhoogte ;
+				:hasValue ?Maaiveldhoogte ;
+			  ];
+			] .
+		}
+   		optional # Grondwaterniveau (20190501)
+	    {
+			?oriCps :hasConnection
+			[
+			  rdf:type :Grondwatermeetpunt ;
+			  :hasAspect
+			  [
+				rdf:type :Grondwaterniveau ;
+				:hasValue ?Grondwaterniveau ;
+			  ];
+			] .
+		}
+	}
+   optional 
+   {
+		?uri_ :hasAspect ?mat .
+		
+		{ ?mat rdf:type :MateriaalPut . }
+		UNION
+		{ ?mat rdf:type :MateriaalBouwwerk . }
+		
+		?mat :hasReference ?materiaal ;
+	}
+	optional {?uri_ :hasAspect 
+    [
+       rdf:type :Maaiveldschematisering ;
+       :hasReference ?Maaiveldschematisering ;
+    ] .}
+	optional {?uri_ :hasAspect 
+    [
+       rdf:type :BergendOppervlak ;
+       :hasValue ?BergendOppervlak ;
+    ] .}
+
+}

@@ -1,0 +1,80 @@
+# GWSW_Lijsten Collecties (20220118) (20200520) (20190429)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+
+select ?Aspect ?Collection ?Element ?LabelElement ?NumberElement ?CodeElement
+
+FROM <http://www.ontotext.com/explicit> # GraphDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
+where
+{
+ ?coll rdfs:subClassOf :VerzamelingSoorten .
+# ?coll rdfs:label ?labelCollection .
+
+# FILTER(CONTAINS(str(?coll), "Coll"))
+
+ ?coll rdfs:subClassOf ?o1 .
+ ?o1 owl:oneOf ?list .
+
+ #voer eerst rdf:rest uit, met object vervolgens rdf:first (rest*: doe voor alle rest-relaties)
+ ?list rdf:rest*/rdf:first ?elem .
+  
+# GraphDB: niet gebruiken, anders geen Labels
+# OPTIONAL
+# {
+ { 
+ SELECT ?elem (GROUP_CONCAT(?Label; separator = " / ") as ?LabelElement)
+  WHERE
+  {
+   ?elem rdfs:label ?Label .
+  }
+  GROUP BY ?elem
+ }
+# }
+    
+# Groepeer de codes en noem optioneel DataType (fact-coll) (20150907)
+
+{ 
+  SELECT ?elem (GROUP_CONCAT(?code; separator = " / ") as ?CodeElement)
+  WHERE
+  {
+    OPTIONAL
+    {
+      ?elem skos:notation ?cod .
+      BIND (str(?cod) as ?co) .
+      BIND (strafter(str(datatype(?cod)), "Dt_Notation_") AS ?dattyp) .
+      BIND (IF (?dattyp != "", CONCAT(?co, " (", ?dattyp, ")"), ?co) as ?code) .
+    }
+    # ?elem skos:hiddenLabel ?id2 . # dummy: nodig voor GraphDB (hiddenLabel vervallen vanaf 1.5.2)
+    ?elem rdfs:label ?id2 . # dummy: nodig voor GraphDB
+  }
+  GROUP BY ?elem 
+ }
+ #OPTIONAL
+ #{
+ #   ?elem skos:notation ?code .
+ #   BIND (str(?code) as ?cod) .
+ #   BIND (strafter(str(datatype(?code)), "Dt_Notation_") AS ?dattyp) .
+ #   BIND (IF (?dattyp != "", CONCAT(?cod, " (", ?dattyp, ")"), ?cod) as ?CodeElement) .
+ #}
+ OPTIONAL
+ {
+  # ?elem :hasClassId ?NumberElement .
+	?elem skos:hiddenLabel ?NumberElement . # relatie hasClassId gewijzigd in hiddenLabel (20150910)
+ }
+# BIND ("#" AS ?aft)
+# BIND ("gwsw.nl/" AS ?aft)
+  BIND ("1.5/totaal/" AS ?aft)
+
+# BIND (str(?labelCollection) AS ?Collection)  # zonder taal-aanduiding
+ BIND (strafter(str(?coll), ?aft) AS ?Collection) # (20200520)
+ BIND (strafter(str(?elem), ?aft) AS ?Element)
+ BIND (strafter(str(?coll), ?aft) AS ?coll1)
+ BIND (strbefore(str(?coll1), "Coll") AS ?Aspect)
+}

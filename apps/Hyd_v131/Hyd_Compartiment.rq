@@ -1,0 +1,101 @@
+# Hyd_Compartiment.spq
+# Gegevens compartimenten (20170817-20170818)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.3.1/totaal/>
+
+SELECT ?uri ?uriKnp ?Stelsel ?naam ?naamComp ?Punt ?oriPut ?Maaiveldhoogte ?materiaal ?VormCompartiment ?BreedteCompartiment ?LengteCompartiment ?BergendOppervlak ?Maaiveldschematisering
+
+WHERE
+{ 
+   ?uri sesame:directType :Compartiment .
+   ?uri rdfs:label ?naamComp .
+   ?uri :isPartOf ?uriKnp .
+    
+   ?uriKnp rdfs:label ?naam .
+
+   optional
+   {   
+      ?uriKnp :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+      ] .
+   }
+
+   OPTIONAL
+   {
+       ?uri :hasAspect ?ori1 .
+       ?ori1 rdf:type :Compartimentorientatie ;
+           :hasAspect
+       [ 
+           rdf:type :Punt ;
+           :hasValue ?punt1 ;
+       ] .
+   }
+   OPTIONAL
+   {
+       ?uriKnp :hasAspect ?ori2 .
+   
+        { ?ori2 rdf:type :Putorientatie . }
+        UNION
+        { ?ori2 rdf:type :Bouwwerkorientatie . }
+
+        ?ori2 :hasAspect
+           [ 
+               rdf:type :Punt ;
+               :hasValue ?punt2 ;
+           ] .
+        ?ori2 :hasConnection
+            [
+            	rdf:type :Maaiveldorientatie ;
+            	:hasAspect
+                [
+            		rdf:type :Maaiveldhoogte ;
+            		:hasValue ?Maaiveldhoogte ;
+        		];
+         	] .
+   }
+   BIND (IF(BOUND(?punt1), "", "Ja") AS ?oriPut)
+   BIND (COALESCE (?punt1, ?punt2) as ?Punt)
+
+   optional {
+		?uriKnp :hasAspect ?mat .
+		
+		{ ?mat rdf:type :MateriaalPut . }
+		UNION
+		{ ?mat rdf:type :MateriaalBouwwerk . }
+		
+		?mat :hasReference ?materiaal ;
+   }
+   optional {?uri :hasAspect 
+   [
+       rdf:type :VormCompartiment ;
+       :hasReference ?VormCompartiment ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :BreedteCompartiment ;
+       :hasValue ?BreedteCompartiment ;
+   ] .}
+   optional {?uri :hasAspect 
+   [
+       rdf:type :LengteCompartiment ;
+       :hasValue ?lengte ;
+   ] .}
+   BIND (COALESCE (?lengte, ?BreedteCompartiment) as ?LengteCompartiment) # Comp altijd rechthoekig
+
+   optional {?uri :hasAspect 
+   [
+       rdf:type :BergendOppervlak ;
+       :hasValue ?BergendOppervlak ;
+   ] .}
+   
+   optional {?uriKnp :hasAspect 
+   [
+       rdf:type :Maaiveldschematisering ;
+       :hasReference ?Maaiveldschematisering ;
+   ] .}
+
+}

@@ -1,0 +1,190 @@
+# Kentallen_Afvoerpunt (20220202)
+# 
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?Afvoernetwerk ?Afvoerpunt ?uri ?type ?Punt ?aanvoernaam ?aanvoertype ?AantalInwoners ?AantalVe ?AantalVeBedrijven ?AantalVeInwoners ?AantalVeRecreatie ?Afvoercapaciteit ?AfvoerendOppervlak ?AfvoerendOppervlak_NietAangesloten ?DWADebiet ?DWADebietBedrijven ?DWADebietInwoners ?DWADebietRecreatie ?Ledigingstijd ?NettoBerging ?NettoBergingRandvoorzieningen ?NiveauBerging ?NormatievePompovercapaciteit ?Ontwerpcapaciteit ?Pompovercapaciteit ?VerlorenBerging ?Vultijd
+#SELECT DISTINCT ?Afvoerpunt ?uri ?type ?Punt ?Afvoernetwerk ?aanvoernaam ?aanvoertype ?NettoBerging
+
+WHERE
+{ 
+   {
+      ?conn rdf:type gwsw:BeginpuntAfvoerrelatie ;
+         gwsw:hasConnection ?punt .
+   }
+   UNION
+   {
+      ?conn rdf:type gwsw:EindpuntAfvoerrelatie ;
+         gwsw:hasConnection ?punt .
+   }
+   {
+    # SERVICE <{{&endpoint}}> # endpoint van gekoppelde dataset 
+    SERVICE <http://localhost:7200/repositories/Heusden> # endpoint van gekoppelde dataset 
+    #SERVICE <https://sparql.gwsw.nl/repositories/Heusden> # debug 
+    {
+        ?punt rdf:type gwsw:Afvoerpunt ;
+            rdf:type gwsw:Afvoerpunt ;
+            sesame:directType ?type .
+            
+        FILTER (!(isBlank(?punt)))
+        FILTER (!(isBlank(?type)))
+            
+        ?punt rdfs:label ?Afvoerpunt ;
+        
+        gwsw:hasAspect 
+        [ 
+            rdf:type gwsw:Punt ;
+            gwsw:hasValue ?Punt ;
+        ] .
+        optional
+        {   
+            ?punt gwsw:isPartOf 
+            [ 
+                rdfs:label ?_aanvoernaam ;
+                sesame:directType ?_aanvoertype ;
+            ] .
+            FILTER (?_aanvoertype != gwsw:Afvoernetwerk)
+
+            BIND (?_aanvoernaam as ?aanvoernaam)
+            BIND (?_aanvoertype as ?aanvoertype)
+        }
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:AantalInwoners ;
+            gwsw:hasValue ?AantalInwoners ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:AantalVe ;
+            gwsw:hasValue ?AantalVe ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:AantalVeBedrijven ;
+            gwsw:hasValue ?AantalVeBedrijven ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:AantalVeInwoners ;
+            gwsw:hasValue ?AantalVeInwoners ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:AantalVeRecreatie ;
+            gwsw:hasValue ?AantalVeRecreatie ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:Afvoercapaciteit ;
+            gwsw:hasValue ?Afvoercapaciteit ;
+        ] .}
+            optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:AfvoerendOppervlak ;
+            gwsw:hasValue ?AfvoerendOppervlak ;
+        ] .}   
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:AfvoerendOppervlak_NietAangesloten ;
+            gwsw:hasValue ?AfvoerendOppervlak_NietAangesloten ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:DWADebiet ;
+            gwsw:hasValue ?DWADebiet ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:DWADebietBedrijven ;
+            gwsw:hasValue ?DWADebietBedrijven ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:DWADebietInwoners ;
+            gwsw:hasValue ?DWADebietInwoners ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:DWADebietRecreatie ;
+            gwsw:hasValue ?DWADebietRecreatie ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:Ledigingstijd ;
+            gwsw:hasValue ?Ledigingstijd ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:NettoBerging ;
+            gwsw:hasValue ?NettoBerging ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:NettoBergingRandvoorzieningen ;
+            gwsw:hasValue ?NettoBergingRandvoorzieningen ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:NiveauBerging ;
+            gwsw:hasValue ?NiveauBerging ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:NormatievePompovercapaciteit ;
+            gwsw:hasValue ?NormatievePompovercapaciteit ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:Ontwerpcapaciteit ;
+            gwsw:hasValue ?Ontwerpcapaciteit ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:Pompovercapaciteit ;
+            gwsw:hasValue ?Pompovercapaciteit ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:VerlorenBerging ;
+            gwsw:hasValue ?VerlorenBerging ;
+        ] .}
+        optional {?punt gwsw:hasAspect 
+        [
+            rdf:type gwsw:Vultijd ;
+            gwsw:hasValue ?Vultijd ;
+        ] .}
+    }
+   }
+   UNION
+   {
+      SERVICE <http://localhost:7200/repositories/WS_WaterschappenAfvalwaterKeten> # endpoint wordt gekoppelde dataset 
+      {
+      ?punt #rdf:type gwsw:Afvoerpunt ;
+            sesame:directType ?type .
+            
+        FILTER (!(isBlank(?punt)))
+        FILTER (!(isBlank(?type)))
+            
+        ?punt rdfs:label ?Afvoerpunt ;
+        
+        gwsw:hasAspect 
+        [ 
+            rdf:type gwsw:Punt ;
+            gwsw:hasValue ?Punt ;
+        ] .
+      }
+   }
+   optional {?punt gwsw:isPartOf # moet tzt ?conn worden (minimale eigenschappen van punt hanteren)
+    [ 
+    rdf:type gwsw:Afvoernetwerk ;
+    rdfs:label ?Afvoernetwerk ;
+    ] . }
+
+   #BIND (strafter(str(?punt), "#") AS ?uri)
+   BIND (?punt AS ?uri) # Toon de URI met de gekoppelde afvoerder
+}

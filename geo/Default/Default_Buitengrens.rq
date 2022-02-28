@@ -1,0 +1,38 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?Systeem ?systeemtype ?naam ?uri ?type ?Buitengrens
+
+WHERE
+{ 
+   ?geb gwsw:hasAspect [
+        rdf:type gwsw:TopologischElement ; # gebiedsoriëntatie, bouwwerkoriëntatie, ...
+        gwsw:hasAspect [
+        rdf:type gwsw:Buitengrens ;
+        gwsw:hasValue ?Buitengrens ; ] ] .
+   FILTER (!(isBlank(?geb)))
+  
+   ?geb sesame:directType ?type .
+   FILTER (!(isBlank(?type)))   
+
+   ?geb rdfs:label ?naam .
+
+   optional
+   {
+      ?geb gwsw:isPartOf 
+      [ rdf:type gwsw:Systeem ; 
+        rdfs:label ?Systeem ; # systeem/stelsel/gebied
+         sesame:directType ?systeemtype ;
+     ] .
+   }
+   
+   # De uri verwijst naar de GWSW-definitie, daar is de naam enz. te vinden
+   #?Type rdfs:label ?TypeNaam . # De URI hoeft niet dekkend te zijn
+   #FILTER (lang(?TypeNaam) = "nl") # let op! (niet meer nodig in GWSW 2.0 - prefLabel)
+
+   BIND (strafter(str(?geb), "#") AS ?uri)
+}

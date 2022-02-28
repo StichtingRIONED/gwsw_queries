@@ -1,0 +1,99 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+select ?Bestandsnaam ?Kolomnaam ?Definitie ?Eenheid ?Code ?Verplicht ?Opmerking ?ReferentieObject ?Ref_Eenheid
+where 
+{ 
+     # Bestanden binnen map
+
+     ?bst rdfs:subClassOf [
+		owl:onProperty :isPartOf ;
+		owl:onClass :GWSWhydx; ] .
+
+     # Regels binnen bestand
+    
+     ?rec rdfs:subClassOf [
+		owl:onProperty :isPartOf ;
+		owl:onClass ?bst; ] .
+
+     # Kolommen binnen regel
+    
+     ?col rdfs:subClassOf ?c3 .
+	 ?c3 owl:onProperty :isAspectOf ;
+		 owl:onClass ?rec .
+
+     optional
+     {
+        ?c3 owl:qualifiedCardinality ?verpl .
+     }
+     BIND (IF (BOUND(?verpl), "ja", "nee") as ?Verplicht)
+    
+     optional
+     {
+       ?col skos:definition ?Definitie .
+     }
+     optional
+     {
+       ?col skos:notation ?Code .
+     }
+     optional
+     {
+       ?col rdfs:comment ?Opmerking .
+     }
+     optional
+     {
+       ?col :hasUnit ?uom0 .
+     }
+     optional
+     {
+        ?col sesame:directSubClassOf [ # formaat csv kolom
+			owl:onProperty :hasValue ;
+			owl:allValuesFrom ?typ0 ; ] .
+     }
+     bind (if (?uom0 = "-", ?typ0, ?uom0) as ?uom) # numeriek zonder eenheid
+    
+     # Gerefereerde concepten
+
+     optional
+     {
+	     ?col rdfs:subClassOf [
+			owl:onProperty :hasReference ;
+			owl:allValuesFrom ?refer ; ] .
+        
+         optional
+         { 
+            ?refer :hasUnit ?uom2 .
+         }
+		 optional
+         {
+            ?refer sesame:directSubClassOf ?c5 . # referentie: alleen eerste niveau subclass
+            ?c5 owl:allValuesFrom ?typ1 .
+            #filter (!isBlank(?typ1))
+
+            optional # doorzoeken igv datatype (dt_...)
+            {
+            	?typ1 owl:equivalentClass ?c6 .
+            	?c6 owl:onDatatype ?typ2 .
+            }
+         }
+     }  
+     BIND (COALESCE (?uom2, ?typ2, ?typ1, ?uom, ?typ0, "string") as ?typVal) # de eerst geldende
+
+     BIND ("{{&version}}" AS ?aft)
+    
+     # Vanaf versie 1.4.1
+	 ?bst skos:altLabel ?Bestandsnaam .
+    
+	 # T/m versie 1.4 was ?naam een individual
+	 #?naam sesame:directType ?bst . # verwijzing naar csv-naam
+     #?naam rdfs:label ?Bestandsnaam .
+    
+     BIND ( IF(CONTAINS(str(?col), ?aft), strafter(str(?col), ?aft), str(?col)) as ?Kolomnaam)
+     BIND ( IF(CONTAINS(str(?refer), ?aft), strafter(str(?refer), ?aft), str(?refer)) as ?ReferentieObject)
+     BIND ( IF(CONTAINS(str(?uom), ?aft), strafter(str(?uom), ?aft), IF (CONTAINS(str(?uom), '#'), strafter(str(?uom), '#'), str(?uom))) as ?eenheid)
+     BIND ( IF(CONTAINS(str(?typVal), ?aft), strafter(str(?typVal), ?aft), IF (CONTAINS(str(?typVal), '#'), strafter(str(?typVal), '#'), str(?typVal))) as ?Ref_Eenheid)
+     BIND (COALESCE(?eenheid, ?Ref_Eenheid) as ?Eenheid)
+}

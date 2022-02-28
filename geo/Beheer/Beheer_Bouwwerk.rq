@@ -1,0 +1,66 @@
+# Beheer_Bouwwerk.rq
+
+# Geometrie gespecialiseerd naar Punt (20200128)
+# Alle bouwwerken meenemen, ook Gemaal (geen pompput) en Uitlaatconstructie: op kleine schaal zichtbaar in PDOK (20200128)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.4/totaal/>
+PREFIX : <{{&version}}> 
+
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?BreedteBouwwerk ?LengteBouwwerk
+
+WHERE
+{ 
+
+# (20200128)
+#   { ?bwk rdf:type :Reservoir . }
+#   UNION
+#   { ?bwk rdf:type :RWZI .}
+   ?bwk rdf:type :Bouwwerk .   
+
+   ?bwk sesame:directType ?type .
+    
+   FILTER (!(isBlank(?bwk)))
+   FILTER (!(isBlank(?type)))
+    
+   ?bwk rdfs:label ?naam .
+   
+   optional
+   {   
+      ?bwk :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ;
+      ] .
+   }
+   ?bwk :hasAspect ?ori .
+   ?ori rdf:type :Bouwwerkorientatie .
+   
+   ?ori :hasAspect
+   [ 
+# (20200128)
+#	   rdf:type :Geometrie ;
+#	   :hasValue ?Geometrie ;
+  	   rdf:type :Punt ;
+	   :hasValue ?Punt ;
+   ] .
+   optional {?bwk :hasAspect 
+   [
+       rdf:type :Begindatum ;
+       :hasValue ?Begindatum ;
+   ] .}
+   optional {?bwk :hasAspect 
+   [
+       rdf:type :BreedteBouwwerk ;
+       :hasValue ?BreedteBouwwerk ;
+   ] .}
+   optional {?bwk :hasAspect 
+   [
+       rdf:type :LengteBouwwerk ;
+       :hasValue ?LengteBouwwerk ;
+   ] .}
+    BIND (strafter(str(?bwk), "#") AS ?uri)
+}

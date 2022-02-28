@@ -1,0 +1,93 @@
+# Test op overschrijding maximum (20150923)
+# aangepast op separate CFK in primaire dataset (20190814)
+
+# Inference niet nodig, ontologie kan via service
+
+# 20160222: Check op datatype wel nodig, allvaluesfrom verwijst naar datatype met onder/bovengrens
+#           In aparte query ondergebracht
+# 20151214: let op - nog controleren/corrigeren !!!!!!!!!!!!!!!
+#           check op datatype niet nodig? Elk concept heeft een allvaluesfrom - restrictie?
+#           in dat geval is de specifieke query voor datatype-check voldoende (geen dubbele meldingen doen)
+
+where
+{
+	select distinct ?typ ?sTyp ?sLab ?sAsp ?msg ?punt ?lijn
+
+	where 
+	{ 
+		# Zoek de dt_class met de restricties
+		
+		?dt1 xsd:maxInclusive ?val .
+		?dt2 rdf:first ?dt1 .
+		?dt3 rdf:rest ?dt2 .
+		?dt4 owl:withRestrictions ?dt3 . # verwijzing naar CE
+		?dt5 owl:equivalentClass ?dt4 . 
+		?dt5 rdfs:label ?sAsp .
+		?dt6 owl:allValuesFrom ?dt5 . # verwijzing naar datatype (bijv. Dt_LengtePut)
+		?dt7 rdfs:subClassOf ?dt6 . # verwijzing naar CE
+		
+		SERVICE <{{&endpoint}}> # endpoint wordt de te valideren dataset 
+		{
+			?asp rdf:type ?dt7 .
+			?asp :hasValue ?Val .
+			FILTER (isNumeric(?Val)) # via aparte validatie-query
+
+			?s :hasAspect ?asp .
+			?s sesame:directType ?t .
+			FILTER (!(isBlank(?t)))
+
+			FILTER (?Val > ?val)
+
+			# er is iets te melden
+			
+			BIND (CONCAT("Waarde [", str(?Val), "] te groot, maximum = ", str(?val)) as ?msg)
+		 
+			BIND ("{{&version}}" AS ?aft)
+
+			# initialiseer ?sLab
+
+			OPTIONAL # label hoeft er niet te zijn
+			{
+				?s rdfs:label ?s1 .
+			}
+			BIND ( IF(BOUND(?s1), ?s1, "") as ?sLab) # Wel initialiseren anders komen triples niet goed door in validatie-database
+
+			# initialiseer ?sTyp
+
+			BIND ( IF(contains(str(?t), ?aft), strafter(str(?t), ?aft), str(?t)) as ?sTyp)
+
+			# initialiseer ?typ
+			
+			BIND ("Waarde te groot" AS ?typ)
+
+			OPTIONAL
+			{
+			   ?s :hasAspect 
+			   [
+				  rdf:type :Putorientatie ;
+				  :hasAspect
+				  [ 
+					rdf:type :Punt ;
+					:hasValue ?punt ;
+				  ]
+			   ]
+			}
+			OPTIONAL # Leiding-geometrie
+			{
+				FILTER (!BOUND(?punt)) # hou het snel (20170817)
+				
+				?s :hasAspect ?ori .
+				?ori rdf:type :Leidingorientatie .
+			
+				optional # Leiding heeft eigen geo
+				{
+					?ori :hasAspect
+					[ 
+						rdf:type :Lijn ;
+						:hasValue ?lijn ;
+					]
+				}
+			}
+		}
+	}
+}

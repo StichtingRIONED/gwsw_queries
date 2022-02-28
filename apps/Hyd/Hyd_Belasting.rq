@@ -1,0 +1,52 @@
+# Hyd_AfvOpp.spq
+# Tbv conversie naar GWSW.hydx (20170904)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+SELECT ?uri ?typBls ?hoev
+
+WHERE
+{ 
+    { ?bls rdf:type :AfvoerendOppervlak . }
+    UNION
+    { ?bls rdf:type :Aantal_ie .}
+    UNION
+    { ?bls rdf:type :AantalWoningen .}
+    UNION
+    { ?bls rdf:type :LateraalDebietDWA .}
+    UNION
+    { ?bls rdf:type :LateraalDebietHWA .}
+    UNION
+    { ?bls rdf:type :LateraalAfvoerendOppervlak .}
+    
+   ?bls sesame:directType ?typBls .
+    
+   #FILTER (!(isBlank(?bls)))
+   FILTER (!(isBlank(?typBls)))
+
+   ?bls :isAspectOf ?uri .
+   
+# typObj wordt niet gebruikt (20180809)
+#    optional
+#    {
+#       ?uri rdf:type :Leiding .
+#       bind ("lei" as ?c1)
+#    }
+#    optional
+#    {
+#       ?uri rdf:type :Put .
+#       bind ("put" as ?c2)
+#    }
+#    optional
+#    {
+#       ?uri rdf:type :Compartiment .
+#       bind ("cmp" as ?c3)
+#    }
+#   BIND (COALESCE (?c1, ?c2, ?c3) as ?typObj)
+    
+   ?bls :hasValue ?hoev .
+   FILTER (?hoev > 0)
+}

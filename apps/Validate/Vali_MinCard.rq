@@ -1,0 +1,118 @@
+# Validatie: test de min-cardinaliteit (ook ondergrens exacte cardinaliteit)
+# aangepast op separate CFK in primaire dataset (20190814)
+# 20151118-20190815-20210526
+
+where 
+{ 
+	# variabele: relatie-type
+	
+	# Union voor binding ?p werk niet in combi met SERVICE CFK, via GWSW Apps regelen (20190814)
+	# Apart aanroepen voor predicates hasAspect, hasPart, hasInput, hasOutput, hasConnection
+
+  BIND (:{{&predicate}} AS ?p)
+
+	# Union voor binding ?card werk niet in combi met SERVICE CFK, via GWSW Apps regelen (20190814)
+	# Apart aanroepen voor predicates qualifiedCardinality, minQualifiedCardinality
+
+	BIND (owl:{{&predCard}} as ?card)
+
+  ?styp rdfs:subClassOf ?cls .
+  FILTER (!(isBlank(?styp)))
+	
+  ?cls ?card ?At .
+  FILTER (?At > 0)
+    
+	?cls owl:onProperty ?p .
+	?cls owl:onClass ?o .
+    
+	SERVICE <{{&endpoint}}> # endpoint wordt de te valideren dataset 
+	{
+
+		?bimSub sesame:directType ?styp . # gebruik eerste type
+
+		# Optional uitgeschakeld: niet van toepassing (20210526)
+    # Hier liep GraphDB 9.7.0 op vast, GraphDB 9.2.0 deed het nog
+    #OPTIONAL 
+		#{
+		?bimSub ?p ?bimObj .
+		?bimObj rdf:type ?o . # gebruik inference
+		#}
+		
+    filter (!BOUND(?bimObj))
+		
+		#BIND ("#" AS ?aft)
+		BIND ("{{&version}}" AS ?aft)
+
+		# initialiseer ?s en ?sLab (put/lei + naam)
+	   
+		OPTIONAL
+		{
+			?bimSub rdfs:label ?s0 .
+		}
+		OPTIONAL # Aspect van aspect? Zoek naam
+		{
+			?bimSub :isAspectOf ?sup1 .
+			?sup1 rdfs:label ?s1 .
+		}
+		OPTIONAL # Deel van aspect? Zoek naam
+		{
+			# Dit gaf een ongewenste lus, bij elk ontbrekend maaiveld werden alle putten opgesomd (BergenOpZoom) (20190126)
+			#?bimSub :isPartOf ?sup1 .
+			#?sup1 :isAspectOf ?sup2 .
+			
+			?bimSub :isPartOf ?_sup .
+			?_sup :isAspectOf ?sup2 .
+			?sup2 rdfs:label ?s2 .
+		}
+		BIND (COALESCE (?s0, ?s1, ?s2, "") as ?sLab) # Altijd initialiseren voor rapportage
+		BIND (if (bound(?s0), ?bimSub, if(bound(?s1), ?sup1, if(bound(?s2), ?sup2, ""))) as ?s) # De bijbehorende put/lei
+		
+		# initialiseer ?sTyp
+
+		BIND ( IF(CONTAINS(str(?styp), ?aft), strafter(str(?styp), ?aft), str(?styp)) as ?sTyp)
+		
+		# initialiseer ?sAsp
+	   
+		OPTIONAL
+		{
+			?o rdfs:label ?asp .
+			FILTER(lang(?asp) = "nl") # max 1 regel
+		}
+		BIND (IF(BOUND(?asp), ?asp, IF(CONTAINS(str(?o), ?aft), strafter(str(?o), ?aft), str(?o))) as ?sAsp)
+
+		# initialiseer ?msg
+	   
+		BIND ( IF(CONTAINS(str(?p), ?aft), strafter(str(?p), ?aft), str(?p)) as ?prop)
+		BIND (CONCAT("Aantal relaties [", str(?prop), "] te klein, minimum = 1") as ?msg)
+
+		# initialiseer ?typ
+
+		BIND (CONCAT("Ontbrekende relatie [", str(?prop), "]") as ?typ)
+			
+		OPTIONAL # Put-geometrie
+		{
+		   ?s :hasAspect 
+		   [
+			  rdf:type :Putorientatie ;
+			  :hasAspect
+			  [ 
+				rdf:type :Punt ;
+				:hasValue ?punt ;
+			  ]
+		   ]
+		}
+		OPTIONAL # Leiding-geometrie
+		{
+			FILTER (!BOUND(?punt)) # hou het snel (20170817)
+			
+			?s :hasAspect ?ori .
+			?ori rdf:type :Leidingorientatie .
+		
+			?ori :hasAspect
+			[ 
+				rdf:type :Lijn ;
+				:hasValue ?lijn ;
+			]
+		}
+	}
+}

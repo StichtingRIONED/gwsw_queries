@@ -1,0 +1,136 @@
+
+# GWSW_Lijsten Klassen (20220118) (20190429)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+
+SELECT ?Name ?Labels ?AltLabels ?Number ?Unit ?Code ?Definition (GROUP_CONCAT(?DefinBy) as ?DefinedBy) ?SuperClass
+
+FROM <http://www.ontotext.com/explicit> # GraphDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
+WHERE
+{
+# Vervalt vanaf GWSW 1.3 (wordt hiddenLabel)
+# ?b owl:onProperty :hasClassId .
+# ?b owl:hasValue ?Number .
+# ?b rdfs:subClassOf ?class .
+
+ ?class rdf:type owl:Class .
+ ?class :hasDateStart ?dat . # gwsw-klassen    
+ #?class skos:hiddenLabel ?Number . Vervallen vanaf versie 1.5.2
+ { 
+  SELECT ?class (GROUP_CONCAT(?Label; separator = " / ") as ?Labels)
+  WHERE
+  {
+   ?class rdfs:label ?Label .
+ 
+   # dit maar niet doen, igv alleen engelse labels komt de klasse niet in de lijst:
+   # FILTER (langMatches(lang(?Label), "nl")) # Filter (max 1 label) omdat meertalig anders dubbel verschijnt (bij coll ja/nee)
+   
+   
+   # 20161113: uitgeschakeld - waarom collectienaam als label?
+   # is het een collectie?
+    
+   #BIND (strlang(CONCAT(?Lab, " (coll)"), "nl") as ?LabColl) # strlang nodig, anders geen match
+   #{
+   #  ?coll rdfs:label ?LabColl .
+   #  bind (?LabColl as ?Label)
+   #}
+   #union
+   #{
+   #  bind (?Lab as ?Label)                
+   #}
+  }
+  GROUP BY ?class
+ }
+# GraphDB: Niet gebruiken (lege ?AltLabels komen dan nog steeds mee)
+# OPTIONAL # Groepeer de alt-labels
+# {
+  { 
+  SELECT ?class (GROUP_CONCAT(?AltLabel; separator = " / ") as ?AltLabels)
+  WHERE
+  {
+   OPTIONAL
+   {
+    ?class skos:altLabel ?AltLabel .
+   }
+   ?class :hasDateStart ?dat . # dummy: nodig voor GraphDB
+  }
+  GROUP BY ?class # GraphDB: groeperen incl ?lab, anders verschijnt AltLabels soms dubbel
+  }
+# }
+
+# GraphDB: Niet gebruiken (lege ?SuperClass komen dan nog steeds mee)
+# OPTIONAL # Groepeer de (multiparent) superclasses
+# {
+  { 
+  SELECT ?class (GROUP_CONCAT(?SupClass; separator = " / ") as ?SuperClass)
+  WHERE
+  {
+#   BIND ("#" AS ?aft)
+#   BIND ("gwsw.nl/" AS ?aft)
+    BIND ("1.5/totaal/" AS ?aft)
+
+    OPTIONAL
+    {
+      ?class rdfs:subClassOf ?supClass .
+    
+	  #OPTIONAL
+      #{
+        ?supClass :hasDateStart ?dat . # alleen GWSW-classes gebruiken
+        BIND (strafter(str(?supClass), ?aft) AS ?SupClass)
+      #}
+    }
+    #?class :hasDateStart ?dat . # dummy: nodig voor GraphDB
+  }
+  GROUP BY ?class # GraphDB: groeperen incl ?lab, anders verschijnt SuperClass soms dubbel
+  }
+# }
+    
+# 20150907: Meerdere codes mogelijk
+# Let op: plaatsing subquery belangrijk, niet achter "optional ?unit" bijvoorbeeld, anders blijven labels, superclass, ... leeg
+{ 
+  SELECT ?class (GROUP_CONCAT(?code; separator = " / ") as ?Code)
+  WHERE
+  {
+    OPTIONAL
+    {
+      ?class skos:notation ?cod .
+      BIND (str(?cod) as ?co) .
+      BIND (strafter(str(datatype(?cod)), "Dt_Notation_") AS ?dattyp) .
+      BIND (IF (?dattyp != "", CONCAT(?co, " (", ?dattyp, ")"), ?co) as ?code) .
+    }
+    ?class :hasDateStart ?dat2 . # dummy: nodig voor GraphDB
+  }
+  GROUP BY ?class 
+ }
+
+ OPTIONAL
+ {
+   ?class :hasUnit ?Unit .
+ }
+ OPTIONAL
+ {
+   ?class skos:definition ?Definition .
+ }
+ # GraphDB: 20150822 ?DefinedBy (a la SuperClass, ?AltLabels) via sub-query werkt nog niet
+ #          Dan worden enkele kolommen ?AltLabels, ... niet gevuld
+ #
+ OPTIONAL
+ {
+ # ?class rdfs:isDefinedBy ?DefinBy . Vervallen vanaf GWSW 1.5.2
+   ?class rdfs:seeAlso ?DefinBy .
+ }
+# BIND ("#" AS ?aft)
+# BIND ("gwsw.nl/" AS ?aft)
+  BIND ("1.5/totaal/" AS ?aft)
+
+ BIND (strafter(str(?class), ?aft) AS ?Name)
+}
+GROUP BY ?Name ?Labels ?AltLabels ?Number ?Unit ?Code ?Definition ?SuperClass
+ORDER BY ?Name

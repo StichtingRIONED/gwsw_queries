@@ -1,0 +1,177 @@
+# Geoserver: Hyd_Kunstwerk.spq (20170910)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.3.1/totaal/>
+
+SELECT ?Stelsel ?naam ?type ?begin ?eind ?Punt ?Binnenonderkant ?BreedteOpening ?HoogteOpening ?VormOpening ?Contractiecoef ?MaxCapDoorlaat  ?Pompcapaciteit ?AanslagniveauBeneden ?AfslagniveauBeneden ?AanslagniveauBoven ?AfslagniveauBoven ?Drempelbreedte ?Drempelniveau ?Buitenwaterstand ?Stromingsrichting
+
+WHERE
+{ 
+    { 
+        ?uri sesame:directType :UitlaatPunt . 
+        BIND ("Uitlaat" as ?type)
+     
+        ?uri :isAspectOf [ rdfs:label ?naam ; ] .
+		?uri :hasAspect [
+			rdf:type :Punt ;
+			:hasValue ?Punt ; ] .
+			
+		optional
+		{   
+			?uri :isAspectOf [ :isPartOf
+			[ rdf:type :Stelsel ;
+				rdfs:label ?Stelsel ;
+			] ] .
+		}
+
+        
+        # zoek de z-waarde
+        bind (strafter(str(?Punt), "<gml:pos>") as ?ws1)
+        bind (strbefore(?ws1, "</gml:pos>") as ?ws2)
+        bind (strafter(?ws2, " ") as ?ws3)
+        bind (strafter(?ws3, " ") as ?Buitenwaterstand)
+    }
+    UNION # doorlaat, pomp, overstort
+    {
+		{ 
+			?uri rdf:type :Doorlaat . 
+			BIND ("Doorlaat" as ?type)
+		}
+		UNION
+		{ 
+			?uri rdf:type :Pomp . 
+			BIND ("Pomp" as ?type)
+		}
+		UNION
+		{ 
+			?uri rdf:type :Overstortdrempel . 
+			BIND ("Overstortdrempel" as ?type)
+		}
+		FILTER (!isBlank(?uri))
+
+		{ ?uri :isPartOf [ :isPartOf ?uriKnp ;] . } # via stuwconstructie
+		UNION
+		{ ?uri :isPartOf ?uriKnp . }
+		
+		?uriKnp :hasAspect ?oriKnp .
+		?uriKnp rdfs:label ?naam .
+
+		optional
+		{   
+			?uriKnp :isPartOf
+			[ rdf:type :Stelsel ;
+				rdfs:label ?Stelsel ;
+			] .
+		}
+	
+		{ ?oriKnp rdf:type :Putorientatie . }
+		UNION
+		{ ?oriKnp rdf:type :Bouwwerkorientatie . }
+		
+		?oriKnp :hasAspect
+		[ 
+			rdf:type :Punt ;
+			:hasValue ?Punt ;
+		] .
+		?uri :hasAspect ?ori .
+		?ori rdf:type :Onderdeelorientatie ;
+
+		optional
+		{
+			?ori :hasPart [
+					rdf:type :BeginpuntOnderdeel ;
+					:hasConnection ?bpunt ; ] .
+			optional # igv doorlaat
+			{
+				?bpunt :hasAspect [
+						rdf:type :BinnenonderkantOnderdeel ;
+						:hasValue ?Binnenonderkant ; ] .
+			}
+			{ ?bpunt :isAspectOf [ rdfs:label ?begin ;] }
+			UNION
+			{ ?bpunt :isPartOf [ :isAspectOf [ rdfs:label ?begin ;] ] . }
+		}
+		optional
+		{
+			?ori :hasPart [
+				rdf:type :EindpuntOnderdeel ;
+				:hasConnection ?epunt ; ] .
+			
+			{ ?epunt :isAspectOf [ rdfs:label ?eind ;] }
+			UNION
+			{ ?epunt :isPartOf [ :isAspectOf [ rdfs:label ?eind ;] ] . }
+		}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :DiameterOpening ;
+		   :hasValue ?BreedteOpening ; # Diameter als breedte vermelden
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :BreedteOpening ;
+		   :hasValue ?BreedteOpening ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :HoogteOpening ;
+		   :hasValue ?HoogteOpening ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :VormOpening ;
+		   :hasReference ?VormOpening ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :ContractiecoefficientDoorlaatprofiel ;
+		   :hasValue ?Contractiecoef ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :MaximaleCapaciteitDoorlaat ;
+		   :hasValue ?MaxCapDoorlaat ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :Pompcapaciteit ;
+		   :hasValue ?Pompcapaciteit ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :AanslagniveauBenedenstrooms ;
+		   :hasValue ?AanslagniveauBeneden ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :AfslagniveauBenedenstrooms ;
+		   :hasValue ?AfslagniveauBeneden ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :AanslagniveauBovenstrooms ;
+		   :hasValue ?AanslagniveauBoven ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :AfslagniveauBovenstrooms ;
+		   :hasValue ?AfslagniveauBoven ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :Drempelbreedte ;
+		   :hasValue ?Drempelbreedte ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :Drempelniveau ;
+		   :hasValue ?Drempelniveau ;
+	   ] .}
+	   optional {?uri :hasAspect 
+	   [
+		   rdf:type :Stromingsrichting ;
+		   :hasReference ?Stromingsrichting ;
+	   ] .}
+	} # einde union
+}

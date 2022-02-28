@@ -1,0 +1,231 @@
+# Default_lijn voor versie 1.3.1 (geometrie bij leiding kan ontbreken) (20201127)
+# Eerste ingang = leiding (niet lijn zoals voor recentere versies) 
+# Maak optioneel een geometrie op basis bpnt en epunt
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.3.1/totaal/>
+
+SELECT distinct ?Stelsel ?stelseltype ?naam ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
+
+WHERE
+{ 
+   ?lei rdf:type :Leiding .
+   ?lei sesame:directType ?type .
+    
+   FILTER (!(isBlank(?lei)))
+   FILTER (!(isBlank(?type)))
+    
+   ?lei rdfs:label ?naam .
+    
+    optional
+    {
+      ?lei :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ;
+      ] .
+    }
+  
+    ?lei :hasAspect ?ori .
+    ?ori rdf:type :Leidingorientatie .
+   
+	  # lees lei-geo, of gekoppelde put-geo
+    # Maak zonodig gml:Linestring vanuit 2 x gml:Point
+
+    optional
+    {
+        ?ori :hasAspect
+        [ 
+            rdf:type :Lijn ;
+            :hasValue ?geo1 ;
+        ]
+    }
+    optional # Alleen voor Versie 1.3.1: maak  optioneel geometrie
+    {
+      ?ori :hasPart ?bpnt .
+      ?bpnt rdf:type :BeginpuntLeiding .
+      ?ori :hasPart ?epnt .
+      ?epnt rdf:type :EindpuntLeiding .
+      
+      ?bpnt :hasConnection
+      [ 
+        :hasAspect
+        [ 
+          rdf:type :Punt ;
+          :hasValue ?bgeo ;
+        ]
+      ] .
+      ?epnt :hasConnection
+      [ 
+        :hasAspect
+        [ 
+          rdf:type :Punt ;
+          :hasValue ?egeo ;
+        ]
+      ] .
+      bind (concat(strafter(strbefore(str(?bgeo), "</gml:pos>"), "<gml:pos>"), " ") as ?bxy) # lees inhoud gml:pos, voeg spatie toe voor zoekwerk
+      bind (strbefore(?bxy, " ") as ?bx)
+      bind (strbefore(substr(?bxy, strlen(?bx) + 2), " ") as ?by) # substr = 1-based
+
+      bind (concat(strafter(strbefore(str(?egeo), "</gml:pos>"), "<gml:pos>"), " ") as ?exy) # lees inhoud gml:pos, voeg spatie toe voor zoekwerk
+      bind (strbefore(?exy, " ") as ?ex)
+      bind (strbefore(substr(?exy, strlen(?ex) + 2), " ") as ?ey) # substr = 1-based
+
+      bind (concat("<gml:LineString xmlns:gml=\"http://www.opengis.net/gml\"><gml:posList srsDimension=\"2\">", ?bx, " ", ?by, " ", ?ex, " ", ?ey, "</gml:posList></gml:LineString>") as ?geo2)
+  }
+  BIND (COALESCE (?geo1, ?geo2) as ?Lijn) # de eerst geldende wordt ?Lijn
+
+  FILTER (BOUND(?Lijn)) # Lijn moet er zijn, ivm optioneel toegevoegde limit (count parameter in GWSW Geoserver)
+
+  optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
+  {
+    ?bpnt :hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
+
+    optional {?bpnt :hasAspect
+    [ 
+        rdf:type :BobBeginpuntLeiding ;
+        :hasValue ?BobBeginpuntLeiding ;
+    ] .}
+
+    # Hou het kort voor MDS (Delft liep vast op het vervolg)
+
+    ?bconn :isAspectOf ?_uriB . # lei in de query-resultaten voor zoekwerk (20200708)
+    ?_uriB rdfs:label ?beginpunt .
+  }
+  optional # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
+  {
+    ?epnt :hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
+
+    optional {?epnt :hasAspect
+    [ 
+        rdf:type :BobEindpuntLeiding ;
+        :hasValue ?BobEindpuntLeiding ;
+    ] .}
+    
+    # Hou het kort voor MDS (Delft liep vast op het vervolg)
+
+    ?econn :isAspectOf ?_uriE . # lei in de query-resultaten voor zoekwerk (20200708)
+    ?_uriE rdfs:label ?eindpunt .
+  }
+  optional {?lei :hasAspect 
+  [
+      rdf:type :Begindatum ;
+      :hasValue ?Begindatum ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :MateriaalLeiding ;
+      :hasReference ?MateriaalLeiding ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :VormLeiding ;
+      :hasReference ?VormLeiding ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :DiameterLeiding ;
+      :hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :BreedteLeiding ;
+      :hasValue ?BreedteLeiding ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :HoogteLeiding ;
+      :hasValue ?HoogteLeiding ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :LengteLeiding ;
+      :hasValue ?LengteLeiding ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :Wanddikte ;
+      :hasValue ?Wanddikte ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :Verbindingstype ;
+      :hasReference ?Verbindingstype ;
+  ] .}
+  optional {?lei :hasPart 
+  [
+      rdf:type :Fundering ;
+      sesame:directType ?Fundering ;
+  ] .}
+  optional {?lei :isInputOf 
+  [
+    rdf:type :Inspecteren ;
+    :hasAspect
+    [
+      rdf:type :DatumMaatregel ;
+      :hasValue ?DatumInspectie ;
+    ];
+  ] .}
+  optional {?lei :isInputOf 
+  [
+    rdf:type :Reinigen ;
+    :hasAspect
+    [
+      rdf:type :DatumMaatregel ;
+      :hasValue ?DatumReiniging ;
+    ];
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :WIONThema ;
+      :hasReference ?WIONThema ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :AantalWoningen ;
+      :hasValue ?AantalWoningen ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :Aantal_ieBedrijven ;
+      :hasValue ?Aantal_ieBedrijven ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :Aantal_ieRecreatie ;
+      :hasValue ?Aantal_ieRecreatie ;
+  ] .}
+  optional
+  {
+      SELECT ?lei (sum(?ao) as ?AfvoerendOppervlak) # sommeer de types ao
+      WHERE
+      {
+          optional {?lei :hasAspect 
+          [
+              rdf:type :AfvoerendOppervlak ;
+              :hasValue ?ao ;
+          ] .}
+      }
+      GROUP BY ?lei
+  }
+  optional {?lei :hasAspect 
+  [
+      rdf:type :LateraalDebietDWA ;
+      :hasValue ?LateraalDebietDWA ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :LateraalDebietHWA ;
+      :hasValue ?LateraalDebietHWA ;
+  ] .}
+  optional {?lei :hasAspect 
+  [
+      rdf:type :LateraalAfvoerendOppervlak ;
+      :hasValue ?LateraalAfvoerendOppervlak ;
+  ] .}
+  BIND (strafter(str(?lei), "#") AS ?uri)
+  BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
+  BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)
+}

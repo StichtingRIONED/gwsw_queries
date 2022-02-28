@@ -1,0 +1,74 @@
+# Mds_Lozing.spq
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <http://data.gwsw.nl/1.3.1/totaal/> 
+
+# inference = aan
+
+SELECT DISTINCT ?Stelsel ?type ?naam ?Punt ?Begindatum ?Drempelniveau ?Drempelbreedte
+
+WHERE
+{ 
+   {
+      ?sub sesame:directType :ExterneOverstortput .
+   }
+   UNION
+   {
+      ?sub sesame:directType :Overstortput .
+   }
+   UNION
+   {
+      ?sub rdf:type :Uitlaatconstructie .
+   }
+   ?sub sesame:directType ?type .
+
+   FILTER (!(isBlank(?type)))
+   #FILTER(lang(?type) = "nl") # max 1 regel met type-naam
+    
+   ?sub rdfs:label ?naam .
+
+   optional
+   {   
+      ?sub :isPartOf 
+         [ rdf:type :Stelsel ;
+           rdfs:label ?Stelsel ;
+         ] .
+   }
+   optional
+   {
+    ?sub :hasAspect 
+    [
+ 	rdf:type :Begindatum ;
+       :hasValue ?Begindatum ;
+    ] .
+   }
+   ?sub :hasAspect 
+        [
+   		rdf:type :Putorientatie ;
+
+		:hasAspect
+		[ 
+			rdf:type :Punt ;
+			:hasValue ?Punt ;
+		] ;
+	] .
+    optional
+    {
+        ?sub :hasPart 
+      [
+        rdf:type :Overstortdrempel ;
+        :hasAspect 
+      [
+        rdf:type :Drempelniveau ;
+        :hasValue ?Drempelniveau ;
+      ] ;
+        :hasAspect 
+      [
+        rdf:type :Drempelbreedte ;
+        :hasValue ?Drempelbreedte ;
+      ] ;
+     ]
+    }
+}

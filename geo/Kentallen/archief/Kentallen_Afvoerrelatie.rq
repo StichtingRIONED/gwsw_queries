@@ -1,0 +1,60 @@
+# Kentallen_Afvoerrealatie (20220202)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?naam ?uri ?type ?Lijn ?Afvoernetwerk ?beginpunt ?uriB ?eindpunt ?uriE ?AfvoerDWA_situatie ?NormafvoerHWA_situatie
+
+WHERE
+{ 
+   ?lei rdf:type gwsw:Afvoerrelatie .
+   ?lei sesame:directType ?type .
+
+   FILTER (!(isBlank(?lei)))
+   FILTER (!(isBlank(?type)))
+    
+   ?lei rdfs:label ?naam ;
+       gwsw:hasAspect
+   [ 
+      rdf:type gwsw:Lijn ;
+      gwsw:hasValue ?Lijn ;
+   ] .
+
+   optional {?lei gwsw:isPartOf 
+	[ 
+      rdf:type gwsw:Afvoernetwerk ;
+      rdfs:label ?Afvoernetwerk ;
+	] . }
+	  
+    optional # aansluiting begin
+    {
+        ?lei gwsw:hasPart ?bpnt .
+        ?bpnt rdf:type gwsw:BeginpuntAfvoerrelatie .
+        ?bpnt gwsw:hasConnection ?_uriB .
+        ?_uriB rdfs:label ?beginpunt .
+	}
+    optional # aansluiting eind
+    {
+		?lei gwsw:hasPart ?epnt .
+		?epnt rdf:type gwsw:EindpuntAfvoerrelatie .
+      	?epnt gwsw:hasConnection ?_uriE .
+        ?_uriE rdfs:label ?eindpunt .
+    }
+   optional {?lei gwsw:hasAspect 
+   [
+       rdf:type gwsw:AfvoerDWA_situatie ;
+       gwsw:hasValue ?AfvoerDWA_situatie ;
+   ] .}
+   optional {?lei gwsw:hasAspect 
+   [
+       rdf:type gwsw:NormafvoerHWA_situatie ;
+       gwsw:hasValue ?NormafvoerHWA_situatie ;
+   ] .}
+    BIND (strafter(str(?lei), "#") AS ?uri)
+    BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
+    BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)
+}

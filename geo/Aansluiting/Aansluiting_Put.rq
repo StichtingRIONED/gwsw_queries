@@ -1,0 +1,75 @@
+# Zoek alle putten/hulpstukken als deel van de aansluiting (20200501)
+# Vervalt (20200501): Zoek de putten en hulpstukken die op aansluitleidingen koppelen
+# Putten bij geo-thema Aansluiting (20190318-20190501)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+PREFIX : <{{&version}}>
+
+SELECT DISTINCT ?Stelsel ?naam ?type ?Punt ?Begindatum ?Maaiveldhoogte
+
+WHERE
+{ 
+   ?put :isPartOf ?aansl .
+   ?aansl rdf:type :Aansluiting . # Altijd deel van Aansluiting (20200501)
+    
+    optional {?aansl :isPartOf 
+	    [ rdf:type :Stelsel ;
+		  sesame:directType ?Stelsel ; # (20200513)
+          #rdfs:label ?Stelsel ;
+        ] . 
+    } 
+   #{?lei rdf:type :Aansluitleiding .}
+   #UNION
+   #{?lei rdf:type :Goot .}
+   #FILTER (!(isBlank(?lei)))
+   #?lei :hasAspect ?leiOri .
+   #?leiOri rdf:type :Leidingorientatie .
+   #{
+   #     ?leiOri :hasPart [
+   #			rdf:type :BeginpuntLeiding ;
+   #		:hasConnection ?ori; 
+   #		] .
+   #	}
+   #	UNION
+   # {
+   #     ?leiOri :hasPart [
+   #		rdf:type :EindpuntLeiding ;
+   #			:hasConnection ?ori; 
+   #		] .
+   #	}
+   #{?put rdf:type :Put .}
+   #UNION
+   #{?put rdf:type :Constructieonderdeel .}
+   
+   ?put :hasAspect ?ori .
+   ?ori :hasAspect
+   [ 
+        rdf:type :Punt ;
+        :hasValue ?Punt ;
+   ] .
+   ?put sesame:directType ?type .
+
+   FILTER (!(isBlank(?put)))
+   FILTER (!(isBlank(?type)))
+   
+   optional {?put rdfs:label ?naam . }
+    
+   optional {?ori :hasConnection
+   [
+     rdf:type :Maaiveldorientatie ;
+     :hasAspect
+     [
+	 rdf:type :Maaiveldhoogte ;
+	 :hasValue ?Maaiveldhoogte ;
+     ];
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :Begindatum ;
+       :hasValue ?Begindatum ;
+   ] .}
+}

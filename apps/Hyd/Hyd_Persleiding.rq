@@ -1,0 +1,44 @@
+# Hyd_Persleiding.spq
+# Zoek de verbinding met pomp en lozingspunt (- 20190530)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+# Vervalt: Altijd koppelen via Knooppunt
+#SELECT ?naam ?bPunt ?bUri ?ePunt ?eUri
+
+SELECT ?naam ?bUri ?eUri
+
+WHERE
+{ 
+	{ ?lei sesame:directType :Persleiding . }
+	UNION
+	{ ?lei sesame:directType :Drukleiding . }
+	
+	?lei rdfs:label ?naam .
+	?lei :hasAspect ?ori .
+	?ori rdf:type :Leidingorientatie .
+
+    optional
+    {
+        ?ori :hasPart ?bpnt .
+        ?bpnt rdf:type :BeginpuntLeiding .
+        ?bpnt :hasConnection ?bPunt .
+        
+        { ?bPunt :isAspectOf ?bUri }
+        UNION
+        { ?bPunt :isPartOf [ :isAspectOf ?bUri ] . }
+	}
+ 	optional
+	{
+        ?ori :hasPart ?epnt .
+        ?epnt rdf:type :EindpuntLeiding .
+		?epnt :hasConnection ?ePunt .
+        
+        { ?ePunt :isAspectOf ?eUri }
+        UNION
+        { ?ePunt :isPartOf [ :isAspectOf ?eUri ] . }
+	}
+}

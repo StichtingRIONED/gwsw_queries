@@ -1,0 +1,83 @@
+
+# Aansluiting_Leiding.rq (20180918-20190403)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+PREFIX : <{{&version}}>
+
+SELECT ?Stelsel ?naam ?type ?Lijn ?Begindatum ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding
+
+WHERE
+{ 
+   {?lei rdf:type :Aansluitleiding .}
+   UNION
+   {?lei rdf:type :Goot .}
+   
+   ?lei sesame:directType ?type .
+   #?typeUri rdfs:label ?typeLab .
+   #BIND(CONCAT(?typeLab, " (zie ", str(?typeUri), " )") as ?type)
+    
+   FILTER (!(isBlank(?lei)))
+   FILTER (!(isBlank(?type)))
+    
+   ?lei rdfs:label ?naam .
+
+   optional
+   {   
+      ?lei :isPartOf
+	  [ rdf:type :Aansluiting ; # Altijd deel van Aansluiting (20200501)
+	    :isPartOf 
+	    [ rdf:type :Stelsel ;
+		  sesame:directType ?Stelsel ;
+          #rdfs:label ?StelselLab ;
+        ] ;
+	  ] .
+ 	  #BIND(CONCAT(?StelselLab, " (zie ", str(?StelselUri), " )") as ?Stelsel)
+   }
+   ?lei :hasAspect ?ori .
+   ?ori rdf:type :Leidingorientatie .
+
+   ?ori :hasAspect # geometrie moet er zijn vanaf GWSW 1.4
+   [ 
+      rdf:type :Lijn ;
+      :hasValue ?Lijn ;
+   ] .
+   optional {?lei :hasAspect 
+   [
+       rdf:type :Begindatum ;
+       :hasValue ?Begindatum ;
+   ] .}
+   optional {?lei :hasAspect 
+   [
+       rdf:type :MateriaalLeiding ;
+       :hasReference ?MateriaalLeiding ;
+   ] .}
+   optional {?lei :hasAspect 
+   [
+       rdf:type :VormLeiding ;
+       :hasReference ?VormLeiding ;
+   ] .}
+   optional {?lei :hasAspect 
+   [
+       rdf:type :DiameterLeiding ;
+       :hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+   ] .}
+   optional {?lei :hasAspect 
+   [
+       rdf:type :BreedteLeiding ;
+       :hasValue ?BreedteLeiding ;
+   ] .}
+   optional {?lei :hasAspect 
+   [
+       rdf:type :HoogteLeiding ;
+       :hasValue ?HoogteLeiding ;
+   ] .}
+   optional {?lei :hasAspect 
+   [
+       rdf:type :LengteLeiding ;
+       :hasValue ?LengteLeiding ;
+   ] .}
+}

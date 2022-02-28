@@ -1,0 +1,68 @@
+# Hyd_Pomp.spq
+# Gegevens pompen (20170824-20190530)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+SELECT ?naam ?bUri ?eUri ?Pompcapaciteit ?AanslagniveauBenedenstrooms ?AfslagniveauBenedenstrooms ?AanslagniveauBovenstrooms ?AfslagniveauBovenstrooms
+
+WHERE
+{ 
+    ?ond sesame:directType :Pomp .
+	
+	optional 
+	{
+		?ond rdfs:label ?naam .
+	}
+	?ond :hasAspect ?ori .
+    ?ori rdf:type :Onderdeelorientatie ;
+         :hasPart 
+         [
+        	rdf:type :BeginpuntOnderdeel ;
+        	:hasConnection 
+            [
+        		:isAspectOf ?bUri ;
+    		] ] .
+
+	optional
+    {
+        ?ori :hasPart ?ePunt .
+		?ePunt rdf:type :EindpuntOnderdeel .
+		
+        # Vervalt: altijd koppelen via Knooppunt (ePunt doet niet meer mee in query-results) (20190530)
+        #optional # Eventueel opvoergemaal, connectie met cmp
+		#{
+			?ePunt :hasConnection 
+			[
+				:isAspectOf ?eUri ;
+			] .
+        #}
+    }
+   optional {?ond :hasAspect 
+   [
+       rdf:type :Pompcapaciteit ;
+       :hasValue ?Pompcapaciteit ;
+   ] .}
+   optional {?ond :hasAspect 
+   [
+       rdf:type :AanslagniveauBenedenstrooms ;
+       :hasValue ?AanslagniveauBenedenstrooms ;
+   ] .}
+   optional {?ond :hasAspect 
+   [
+       rdf:type :AfslagniveauBenedenstrooms ;
+       :hasValue ?AfslagniveauBenedenstrooms ;
+   ] .}
+   optional {?ond :hasAspect 
+   [
+       rdf:type :AanslagniveauBovenstrooms ;
+       :hasValue ?AanslagniveauBovenstrooms ;
+   ] .}
+   optional {?ond :hasAspect 
+   [
+       rdf:type :AfslagniveauBovenstrooms ;
+       :hasValue ?AfslagniveauBovenstrooms ;
+   ] .}
+}

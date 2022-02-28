@@ -1,0 +1,81 @@
+# Mds_Pomp.spq
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+PREFIX : <{{&version}}>
+
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Pompcapaciteit1 ?Pompcapaciteit2
+
+WHERE
+{ 
+   {
+   	?pmp rdf:type :Pompput .
+   }
+   UNION
+   {
+   	?pmp rdf:type :Gemaal .
+   }
+   UNION
+   {
+   	?pmp :hasPart
+    [ 
+          rdf:type :Pomp;
+    ] .
+   }
+   ?pmp sesame:directType ?type .
+    
+   FILTER (!(isBlank(?pmp)))
+   FILTER (!(isBlank(?type)))
+    
+   ?pmp rdfs:label ?naam .
+   
+   optional
+   {   
+      ?pmp :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ;
+      ] .
+   }
+   ?pmp :hasAspect ?ori .
+   
+   { ?ori rdf:type :Putorientatie . } # werkte niet voor gemalen (t/m 1.3.2)
+   UNION
+   { ?ori rdf:type :Bouwwerkorientatie . } # werkt vanaf 1.3.3 voor gemalen
+   
+   ?ori :hasAspect
+       [ 
+         rdf:type :Punt ;
+         :hasValue ?Punt ;
+       ] .
+
+   optional {?pmp :hasAspect 
+   [
+       rdf:type :Begindatum ;
+       :hasValue ?Begindatum ;
+   ] .}
+    
+   optional 
+   {
+      ?pmp :hasPart ?pomp1 .
+  	  ?pomp1 rdf:type :Pomp ;
+          :hasAspect 
+          [ rdf:type :Pompcapaciteit ;
+            :hasValue ?Pompcapaciteit1 ;
+          ] .
+      optional 
+      {
+          ?pmp :hasPart ?pomp2 .
+          ?pomp2 rdf:type :Pomp ;
+              :hasAspect 
+              [ rdf:type :Pompcapaciteit ;
+                :hasValue ?Pompcapaciteit2 ;
+              ] .
+      }
+      filter (!bound(?pomp2) || (str(?pomp2) > str(?pomp1)))
+   }
+   BIND (strafter(str(?pmp), "#") AS ?uri)
+}

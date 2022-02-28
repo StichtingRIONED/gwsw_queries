@@ -1,0 +1,202 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+PREFIX : <{{&version}}>
+
+SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?BreedteBouwwerk ?LengteBouwwerk ?BreedteCompartiment ?LengteCompartiment ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak ?aantalPompen ?aantalDrempels
+#SELECT ?Stelsel ?Naam ?Type ?TypeNaam ?Geometrie
+
+WHERE
+{ 
+   ?put :hasAspect ?ori .
+   ?ori rdf:type :TopologischElement ;
+	    :hasAspect
+	    [ 
+		    rdf:type :Punt ;
+		    :hasValue ?Punt ;
+	    ] .
+
+   FILTER (!(isBlank(?put)))
+   
+   ?put sesame:directType ?type .
+   FILTER (!(isBlank(?type)))
+
+   # ?uri_type rdfs:label ?lab_type . # de conceptnaam
+   # FILTER (lang(?lab_type) = "nl") # Niet meer nodig in GWSW 2.0 ? - prefLabel
+   # BIND (CONCAT(STR(?lab_type), " ", STR(?uri_type)) AS ?type)
+    
+   ?put rdfs:label ?naam .    
+
+   # De uri verwijst naar de GWSW-definitie, daar is de naam enz. te vinden
+   #?Type rdfs:label ?TypeNaam . # De URI hoeft niet dekkend te zijn
+   #FILTER (lang(?TypeNaam) = "nl") # let op! (niet meer nodig in GWSW 2.0 - prefLabel)
+ 
+   optional
+   {
+      ?put :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ;
+        # sesame:directType ?uri_stelseltype ;
+     ] .
+    # ?uri_stelseltype rdfs:label ?lab_stelseltype .
+    # FILTER (lang(?lab_stelseltype) = "nl") # Niet meer nodig in GWSW 2.0 ? - prefLabel
+    # BIND (CONCAT(STR(?lab_stelseltype), " ", STR(?uri_stelseltype)) AS ?stelseltype)
+   }
+   optional {?ori :hasConnection
+   [
+     rdf:type :Maaiveldorientatie ;
+     :hasAspect
+     [
+        rdf:type :Maaiveldhoogte ;
+        :hasValue ?Maaiveldhoogte ;
+     ];
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :Begindatum ;
+       :hasValue ?Begindatum ;
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :Einddatum ;
+       :hasValue ?Einddatum ;
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :MateriaalPut ;
+       :hasReference ?MateriaalPut ;
+   ] . }
+   optional {?put :hasAspect 
+   [
+       rdf:type :VormPut ;
+       :hasReference ?VormPut ;
+   ] . }
+   optional {?put :hasAspect 
+   [
+       rdf:type :DiameterPut ;
+       :hasValue ?BreedtePut ; # Diameter als breedte vermelden
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :BreedtePut ;
+       :hasValue ?BreedtePut ;
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :LengtePut ;
+       :hasValue ?LengtePut ;
+   ] .}
+      optional {?put :hasAspect 
+   [
+       rdf:type :HoogtePut ;
+       :hasValue ?HoogtePut ;
+   ] .}
+    optional {?put :hasAspect 
+   [
+       rdf:type :BreedteBouwwerk ;
+       :hasValue ?BreedteBouwwerk ;
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :LengteBouwwerk ;
+       :hasValue ?LengteBouwwerk ;
+   ] .}
+   optional {?put :hasAspect 
+   [
+     rdf:type :BreedteCompartiment ;
+     :hasValue ?BreedteCompartiment ;
+   ] .}
+   optional {?put :hasAspect 
+   [
+     rdf:type :LengteCompartiment ;
+     :hasValue ?LengteCompartiment ;
+   ] .}
+   optional {?put :hasAspect 
+   [
+       rdf:type :Wanddikte ;
+       :hasValue ?Wanddikte ;
+   ] .}
+   optional {?put :hasPart 
+   [
+       rdf:type :Fundering ;
+       sesame:directType ?Fundering ;
+   ] .}   
+   optional {?put :isInputOf 
+   [
+     rdf:type :Inspecteren ;
+     :hasAspect
+     [
+        rdf:type :DatumMaatregel ;
+        :hasValue ?DatumInspectie ;
+     ];
+   ] .}
+  optional {?put :isInputOf 
+   [
+     rdf:type :Reinigen ;
+     :hasAspect
+     [
+        rdf:type :DatumMaatregel ;
+        :hasValue ?DatumReiniging ;
+     ];
+   ] .}
+  optional {?put :hasAspect 
+   [
+       rdf:type :AantalWoningen ;
+       :hasValue ?AantalWoningen ;
+   ] .}
+  optional {?put :hasAspect 
+   [
+       rdf:type :Aantal_ieBedrijven ;
+       :hasValue ?Aantal_ieBedrijven ;
+   ] .}
+  optional {?put :hasAspect 
+   [
+       rdf:type :Aantal_ieRecreatie ;
+       :hasValue ?Aantal_ieRecreatie ;
+   ] .}
+  optional {?put :hasAspect 
+   [
+       rdf:type :AfvoerendOppervlak ;
+       :hasValue ?AfvoerendOppervlak ;
+   ] .}
+  optional {?put :hasAspect 
+   [
+       rdf:type :BergendOppervlak ;
+       :hasValue ?BergendOppervlak ;
+   ] .}
+  optional {?put :hasAspect 
+  [
+      rdf:type :LateraalDebietDWA ;
+      :hasValue ?LateraalDebietDWA ;
+  ] .}
+  optional {?put :hasAspect 
+  [
+      rdf:type :LateraalDebietHWA ;
+      :hasValue ?LateraalDebietHWA ;
+  ] .}
+  optional {?put :hasAspect 
+  [
+      rdf:type :LateraalAfvoerendOppervlak ;
+      :hasValue ?LateraalAfvoerendOppervlak ;
+  ] .}
+  optional {
+    SELECT ?put (count(*) as ?aantalDrempels) # tel het aantal triples
+    WHERE
+    {
+      ?put ?hasPart ?drp .
+      ?drp rdf:type :Overstortdrempel .
+    } GROUP BY ?put
+  }
+  optional {
+    SELECT ?put (count(*) as ?aantalPompen) # tel het aantal triples
+    WHERE
+    {
+      ?put ?hasPart ?pmp .
+      ?pmp rdf:type :Pomp .
+    } GROUP BY ?put
+  }
+  BIND (strafter(str(?put), "#") AS ?uri)
+}

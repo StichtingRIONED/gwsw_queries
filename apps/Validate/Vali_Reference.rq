@@ -1,0 +1,46 @@
+# test op reference-individual binnen collectie (20151119)
+# aangepast op separate CFK in primaire dataset (20190814)
+
+where 
+{ 
+	SERVICE <{{&endpoint}}> # endpoint wordt de te valideren dataset 
+    {
+		?p :hasReference ?o .
+		?p sesame:directType ?ta . # het type kenmerk
+	}
+    OPTIONAL
+    {
+    	?ta rdfs:subClassOf ?s2 .
+    	?s2 owl:allValuesFrom ?s3 .
+    }
+    { FILTER (!BOUND(?s3)) }
+    UNION
+    { FILTER (!EXISTS {?o rdf:type ?s3} ) }
+	
+    BIND ("{{&version}}" AS ?aft)
+
+    # initialiseer ?sTyp 
+
+	BIND ( IF(CONTAINS(str(?ta), ?aft), strafter(str(?ta), ?aft), str(?ta)) as ?sTyp)
+
+    #initialiseer ?sLab (zet het reference-type erin)
+    
+	BIND ("" as ?sLab)
+    
+    # initialiseer ?sAsp (zet de referencewaarde erin)
+    
+	OPTIONAL
+	{
+		?o rdfs:label ?asp .
+        FILTER(lang(?asp) = "nl") # max 1 regel
+	}
+    BIND (IF(BOUND(?asp), ?asp, IF(CONTAINS(str(?o), ?aft), strafter(str(?o), ?aft), str(?o))) as ?sAsp)
+   
+    # initialiseer ?msg
+    
+    BIND (IF (BOUND(?s3), "Collectie-item onbekend", "Collectie ontbreekt in deze CFK (staat mogelijk wel in het GWSW-model)") as ?msg)
+
+    # initialiseer ?typ
+
+    BIND (IF (BOUND(?s3), "Collectie-item onbekend", "Collectie ontbreekt in deze CFK (er wordt niet op getoetst)") as ?typ)
+}

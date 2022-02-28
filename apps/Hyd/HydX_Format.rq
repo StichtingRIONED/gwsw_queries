@@ -1,0 +1,55 @@
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX : <{{&version}}>
+
+select ?bst ?label ?code ?opm ?refer ?typVal
+where 
+{ 
+     # Bestanden binnen map
+
+     ?bst rdfs:subClassOf [
+     	  owl:onProperty :isPartOf ;
+          owl:onClass :GWSWhydx; ] .
+
+     # Regels binnen bestand
+    
+     ?rec rdfs:subClassOf [
+     	 owl:onProperty :isPartOf ;
+       owl:onClass ?bst; ] .
+
+     # Kolommen binnen regel
+    
+     ?col rdfs:subClassOf [
+         owl:onProperty :isAspectOf ;
+         owl:onClass ?rec; ] .
+
+     ?col rdfs:label ?label . # alleen voor de leesbaarheid
+     ?col skos:notation ?code .
+    
+     optional
+     {
+       ?col rdfs:comment ?opm .
+     }
+     optional # Gerefereerde concepten
+     {
+	     ?col rdfs:subClassOf [
+		 	 owl:onProperty :hasReference ;
+     		 owl:allValuesFrom ?refer; ] .
+
+         optional
+         {
+            ?refer sesame:directSubClassOf ?c5 . # referentie: alleen eerste niveau subclass
+            ?c5 owl:allValuesFrom ?typ1 .
+
+            optional # doorzoeken igv datatype (dt_...)
+            {
+            	?typ1 owl:equivalentClass ?c6 .
+            	?c6 owl:onDatatype ?typ2 .
+            }
+         }
+     }  
+     BIND (COALESCE (?typ2, ?typ1) as ?typVal) # de eerst geldende
+}
