@@ -14,4 +14,3 @@ De queries leveren gegevenstabellen voor allerlei toepassingen. Ze zijn onderver
 De queries werken op het SPARQL endpoint https://sparql.gwsw.nl .
 Vaak dienen dan nog wel variabelen ingevuld te worden:
 * **{{&version}}** De URL van het betreffende GWSW Datamodel, bijvoorbeeld: http://data.gwsw.nl/1.5/totaal/
-
