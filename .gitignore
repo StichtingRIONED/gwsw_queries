@@ -1,0 +1,13 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# concepts
+/apps/Test
+/geo/IMGolf
+
+# not relevant
+/hyd/*.csv
+/hyd_v131/*.csv
+/geo/Archief
+
+# system Files
+
