@@ -1,4 +1,4 @@
-# Mds_Pomp.spq
+# Beheer_Pomp.rq - Alle pomp-constructies (pompput/gemaal)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -7,7 +7,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Pompcapaciteit1 ?Pompcapaciteit2
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Pompcapaciteit1 ?Pompcapaciteit2
 
 WHERE
 { 
@@ -56,6 +56,11 @@ WHERE
    [
        rdf:type :Begindatum ;
        :hasValue ?Begindatum ;
+   ] .}
+   optional {?pmp :hasAspect 
+   [
+       rdf:type :Einddatum ;
+       :hasValue ?Einddatum ;
    ] .}
     
    optional 

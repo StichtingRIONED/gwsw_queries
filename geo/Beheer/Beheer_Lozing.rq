@@ -1,4 +1,4 @@
-# Mds_Lozing.spq
+# Beheer_Lozing.rq - Alle lozingsconstructies (overstort/uitlaat)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -9,7 +9,7 @@ PREFIX : <{{&version}}>
 
 # inference = aan
 
-SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Drempelniveau ?Drempelbreedte
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Drempelniveau ?Drempelbreedte
 
 WHERE
 { 
@@ -39,14 +39,16 @@ WHERE
         sesame:directType ?stelseltype ;
       ] .
    }
-   optional
-   {
-    ?loz :hasAspect 
-    [
- 	rdf:type :Begindatum ;
-       :hasValue ?Begindatum ;
-    ] .
-   }
+   optional { ?loz :hasAspect 
+   [
+ 	    rdf:type :Begindatum ;
+     :hasValue ?Begindatum ;
+   ] . }   
+   optional { ?loz :hasAspect 
+   [
+ 	    rdf:type :Einddatum ;
+     :hasValue ?Einddatum ;
+   ] . }
    ?loz :hasAspect 
         [
    		rdf:type :Putorientatie ;

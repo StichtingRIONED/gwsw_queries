@@ -1,4 +1,4 @@
-# Beheer_Bouwwerk.rq
+# Beheer_Bouwwerk.rq - Alle bouwwwerken
 
 # Geometrie gespecialiseerd naar Punt (20200128)
 # Alle bouwwerken meenemen, ook Gemaal (geen pompput) en Uitlaatconstructie: op kleine schaal zichtbaar in PDOK (20200128)
@@ -7,10 +7,10 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.4/totaal/>
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}> 
 
-SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?BreedteBouwwerk ?LengteBouwwerk
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?BreedteBouwwerk ?LengteBouwwerk
 
 WHERE
 { 
@@ -51,6 +51,11 @@ WHERE
    [
        rdf:type :Begindatum ;
        :hasValue ?Begindatum ;
+   ] .}
+   optional {?bwk :hasAspect 
+   [
+       rdf:type :Einddatum ;
+       :hasValue ?Einddatum ;
    ] .}
    optional {?bwk :hasAspect 
    [

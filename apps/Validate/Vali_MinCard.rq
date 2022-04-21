@@ -30,14 +30,17 @@ where
 
 		?bimSub sesame:directType ?styp . # gebruik eerste type
 
-		# Optional uitgeschakeld: niet van toepassing (20210526)
-    # Hier liep GraphDB 9.7.0 op vast, GraphDB 9.2.0 deed het nog
-    #OPTIONAL 
-		#{
-		?bimSub ?p ?bimObj .
-		?bimObj rdf:type ?o . # gebruik inference
-		#}
+		# OPTIONAL weer ingeschakeld, anders draait query niet als gehele triple "?bimSub ?p ?bimObj" ontbreekt (20220421)
+		# GraphDB 9.7.0 lijkt het nu goed op te pakken (getest met TestVali en Zundert)
 		
+		# OPTIONAL uitgeschakeld (20210526)
+    # Hier liep GraphDB 9.7.0 op vast, GraphDB 9.2.0 deed het nog
+    
+		OPTIONAL 
+		{
+		  ?bimSub ?p ?bimObj .
+		  ?bimObj rdf:type ?o . # gebruik inference
+		}
     filter (!BOUND(?bimObj))
 		
 		#BIND ("#" AS ?aft)

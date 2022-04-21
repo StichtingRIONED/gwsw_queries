@@ -1,10 +1,12 @@
-# Hyd_Leiding.spq
+# Hyd_Leiding.rq
 # Tbv conversie naar GWSW.hydx (20170901)
 # Wanddikte en SDR_waarde toegevoegd (20190903)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}>
 
 SELECT ?uri ?Stelsel ?naam ?type ?bUri ?eUri ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?SDR_waarde

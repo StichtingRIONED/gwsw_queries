@@ -1,5 +1,4 @@
-
-# Aansluiting_Leiding.rq (20180918-20190403)
+# Aansluiting_Leiding.rq (20180918-20220405)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -8,7 +7,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT ?Stelsel ?naam ?type ?Lijn ?Begindatum ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding
+SELECT ?Stelsel ?stelseltype ?naam ?type ?Lijn ?sluitAanOp ?Begindatum ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?BobBeginpuntLeiding ?datumInwinningBobBegin ?wijzeInwinningBobBegin ?BobEindpuntLeiding ?datumInwinningBobEind ?wijzeInwinningBobEind 
 
 WHERE
 { 
@@ -17,8 +16,6 @@ WHERE
    {?lei rdf:type :Goot .}
    
    ?lei sesame:directType ?type .
-   #?typeUri rdfs:label ?typeLab .
-   #BIND(CONCAT(?typeLab, " (zie ", str(?typeUri), " )") as ?type)
     
    FILTER (!(isBlank(?lei)))
    FILTER (!(isBlank(?type)))
@@ -27,14 +24,32 @@ WHERE
 
    optional
    {   
-      ?lei :isPartOf
-	  [ rdf:type :Aansluiting ; # Altijd deel van Aansluiting (20200501)
-	    :isPartOf 
-	    [ rdf:type :Stelsel ;
-		  sesame:directType ?Stelsel ;
-          #rdfs:label ?StelselLab ;
-        ] ;
-	  ] .
+      ?lei :isPartOf ?aansl .
+	  ?aansl rdf:type :Aansluiting ; # Altijd deel van Aansluiting (20200501)
+        :isPartOf 
+        [ rdf:type :Stelsel ;
+            rdfs:label ?Stelsel ;
+            sesame:directType ?stelseltype ;
+        ] .
+   
+      optional # Inlaat binnen aansluiting sluit aan op put/leiding
+      {
+        ?inlaat rdf:type :Inlaat .
+        ?inlaat :isPartOf ?aansl .
+        ?inlaat :isPartOf ?obj .
+
+        { ?obj rdf:type :Rioolput . }
+        UNION
+        { ?obj rdf:type :Leiding . }
+        
+        ?obj sesame:directType ?typeObj .
+
+        FILTER (!(isBlank(?obj)))
+        FILTER (!(isBlank(?typeObj)))
+
+        #?obj rdfs:label ?_lab .
+        BIND(STR(?obj) as ?sluitAanOp) # de URI van de put/leiding
+      }
  	  #BIND(CONCAT(?StelselLab, " (zie ", str(?StelselUri), " )") as ?Stelsel)
    }
    ?lei :hasAspect ?ori .
@@ -45,6 +60,62 @@ WHERE
       rdf:type :Lijn ;
       :hasValue ?Lijn ;
    ] .
+   optional # aansluiting begin. Hou synchroon: Beheer_Leiding
+   {
+        ?ori :hasPart ?bpnt .
+        ?bpnt rdf:type :BeginpuntLeiding .
+		
+        optional {
+            ?bpnt :hasAspect ?bobB .
+            ?bobB rdf:type :BobBeginpuntLeiding ;
+                  :hasValue ?BobBeginpuntLeiding .
+
+            optional {?bobB :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :DatumInwinning ;
+                :hasValue ?datumInwinningBobBegin ;
+                ] ;
+            ] . }
+            optional {?bobB :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :WijzeVanInwinning ;
+                :hasReference ?wijzeInwinningBobBegin ;
+                ] ;
+            ] . }
+        }
+   }
+   optional # aansluiting eind. Hou synchroon: Beheer_Leiding
+   {
+        ?ori :hasPart ?epnt .
+        ?epnt rdf:type :EindpuntLeiding .
+		
+        optional {
+            ?epnt :hasAspect ?bobE .
+            ?bobE rdf:type :BobEindpuntLeiding ;
+                  :hasValue ?BobEindpuntLeiding .
+
+            optional {?bobE :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :DatumInwinning ;
+                :hasValue ?datumInwinningBobEind ;
+                ] ;
+            ] . }
+            optional {?bobE :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :WijzeVanInwinning ;
+                :hasReference ?wijzeInwinningBobEind ;
+                ] ;
+            ] . }
+        }
+   }
    optional {?lei :hasAspect 
    [
        rdf:type :Begindatum ;
@@ -80,4 +151,5 @@ WHERE
        rdf:type :LengteLeiding ;
        :hasValue ?LengteLeiding ;
    ] .}
+
 }

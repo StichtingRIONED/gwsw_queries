@@ -1,3 +1,5 @@
+# Aansluiting_Put.rq
+
 # Zoek alle putten/hulpstukken als deel van de aansluiting (20200501)
 # Vervalt (20200501): Zoek de putten en hulpstukken die op aansluitleidingen koppelen
 # Putten bij geo-thema Aansluiting (20190318-20190501)
@@ -9,7 +11,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT DISTINCT ?Stelsel ?naam ?type ?Punt ?Begindatum ?Maaiveldhoogte
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?type ?Punt ?Begindatum ?Maaiveldhoogte
 
 WHERE
 { 
@@ -18,9 +20,9 @@ WHERE
     
     optional {?aansl :isPartOf 
 	    [ rdf:type :Stelsel ;
-		  sesame:directType ?Stelsel ; # (20200513)
-          #rdfs:label ?Stelsel ;
-        ] . 
+        rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ;
+      ] . 
     } 
    #{?lei rdf:type :Aansluitleiding .}
    #UNION

@@ -1,4 +1,4 @@
-# Beheer_Leiding.spq (20170930-20200521)
+# Beheer_Leiding.rq (20170930-20200521)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -7,7 +7,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak
+SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?datumInwinningBobBegin ?wijzeInwinningBobBegin ?BobEindpuntLeiding ?datumInwinningBobEind ?wijzeInwinningBobEind ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?datumLining ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak
 
 WHERE
 { 
@@ -44,11 +44,28 @@ WHERE
         ?bpnt rdf:type :BeginpuntLeiding .
         ?bpnt :hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
 		
-        optional {?bpnt :hasAspect
-        [ 
-           rdf:type :BobBeginpuntLeiding ;
-           :hasValue ?BobBeginpuntLeiding ;
-        ] .}
+        optional {
+            ?bpnt :hasAspect ?bobB .
+            ?bobB rdf:type :BobBeginpuntLeiding ;
+                  :hasValue ?BobBeginpuntLeiding .
+
+            optional {?bobB :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :DatumInwinning ;
+                :hasValue ?datumInwinningBobBegin ;
+                ] ;
+            ] . }
+            optional {?bobB :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :WijzeVanInwinning ;
+                :hasReference ?wijzeInwinningBobBegin ;
+                ] ;
+            ] . }
+        }
 		
 		# Hou het kort voor MDS (Delft liep vast op het vervolg)
         #?bconn :isAspectOf [ rdfs:label ?beginpunt; ] .
@@ -91,11 +108,28 @@ WHERE
 		?epnt rdf:type :EindpuntLeiding .
       	?epnt :hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
 
-        optional {?epnt :hasAspect
-        [ 
-           rdf:type :BobEindpuntLeiding ;
-           :hasValue ?BobEindpuntLeiding ;
-        ] .}
+        optional {
+            ?epnt :hasAspect ?bobE .
+            ?bobE rdf:type :BobEindpuntLeiding ;
+                  :hasValue ?BobEindpuntLeiding .
+           
+            optional {?bobE :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :DatumInwinning ;
+                :hasValue ?datumInwinningBobEind ;
+                ] ;
+            ] . }
+            optional {?bobE :hasAspect
+            [
+                rdf:type :Inwinning ;
+                :hasAspect [
+                rdf:type :WijzeVanInwinning ;
+                :hasReference ?wijzeInwinningBobEind ;
+                ] ;
+            ] . }
+        }
 				
 		# Hou het kort voor MDS (Delft liep vast op het vervolg)
         #?econn :isAspectOf [ rdfs:label ?eindpunt; ] .
@@ -185,6 +219,15 @@ WHERE
    [
        rdf:type :Fundering ;
        sesame:directType ?Fundering ;
+   ] .}
+   optional {?lei :hasPart 
+   [
+     rdf:type :Lining ;
+     :hasAspect
+     [
+	  rdf:type :Begindatum ;
+	  :hasValue ?datumLining ;
+     ];
    ] .}
    optional {?lei :isInputOf 
    [

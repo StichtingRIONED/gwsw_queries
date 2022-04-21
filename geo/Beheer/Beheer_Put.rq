@@ -1,4 +1,4 @@
-# Mds_Put.spq
+# Beheer_Put.rq
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -7,7 +7,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak
+SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak
 
 WHERE
 { 
@@ -40,14 +40,29 @@ WHERE
        :hasValue ?Punt ;
    ] .
    optional {?ori :hasConnection
-   [
-     rdf:type :Maaiveldorientatie ;
-     :hasAspect
      [
-	rdf:type :Maaiveldhoogte ;
-	:hasValue ?Maaiveldhoogte ;
-     ];
-   ] .}
+        rdf:type :Maaiveldorientatie ;
+        :hasAspect ?maaiveld ;
+     ] . 
+     ?maaiveld  rdf:type :Maaiveldhoogte ;
+                :hasValue ?Maaiveldhoogte .
+     optional {?maaiveld :hasAspect
+     [
+        rdf:type :Inwinning ;
+        :hasAspect [
+        rdf:type :DatumInwinning ;
+        :hasValue ?datumInwinningMaaiveld ;
+        ] ;
+     ] . }
+     optional {?maaiveld :hasAspect
+     [
+        rdf:type :Inwinning ;
+        :hasAspect [
+        rdf:type :WijzeVanInwinning ;
+        :hasReference ?wijzeInwinningMaaiveld ;
+        ] ;
+     ] . }
+   }
    optional {?put :hasAspect 
    [
        rdf:type :Begindatum ;
