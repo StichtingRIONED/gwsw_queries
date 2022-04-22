@@ -20,7 +20,7 @@ where
   FILTER (!(isBlank(?styp)))
 	
   ?cls ?card ?At .
-  FILTER (?At > 0)
+  FILTER (?At > 0) # Er wordt alleen op voorkomen (minimum = 1) getest. Andere minimum-waarden komen (nog) niet voor in GWSW.
     
 	?cls owl:onProperty ?p .
 	?cls owl:onClass ?o .
@@ -30,8 +30,8 @@ where
 
 		?bimSub sesame:directType ?styp . # gebruik eerste type
 
-		# OPTIONAL weer ingeschakeld, anders draait query niet als gehele triple "?bimSub ?p ?bimObj" ontbreekt (20220421)
-		# GraphDB 9.7.0 lijkt het nu goed op te pakken (getest met TestVali en Zundert)
+		# OPTIONAL weer ingeschakeld, anders draait query niet: ?bimObj moet unbounded zijn (20220421)
+		# Werkt dus wel met GraphDB 9.2.0 (weer actief sinds 20210526) (getest met TestVali en Zundert)
 		
 		# OPTIONAL uitgeschakeld (20210526)
     # Hier liep GraphDB 9.7.0 op vast, GraphDB 9.2.0 deed het nog
@@ -41,7 +41,7 @@ where
 		  ?bimSub ?p ?bimObj .
 		  ?bimObj rdf:type ?o . # gebruik inference
 		}
-    filter (!BOUND(?bimObj))
+    filter (!BOUND(?bimObj)) # ?bimObj van type ?o komt niet voor: doe de melding
 		
 		#BIND ("#" AS ?aft)
 		BIND ("{{&version}}" AS ?aft)
