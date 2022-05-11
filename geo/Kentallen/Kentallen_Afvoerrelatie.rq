@@ -1,4 +1,4 @@
-# Kentallen_Afvoerrealatie (20220202)
+# Kentallen_Afvoerrealatie (20220511) (20220202)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -12,23 +12,33 @@ SELECT ?Afvoernetwerk ?Afvoerrelatie ?uri ?type ?Lijn ?uriB ?uriE ?AfvoerDWA_sit
 
 WHERE
 { 
-   ?lei rdf:type gwsw:Afvoerrelatie .
-   ?lei sesame:directType ?type .
+   # Primaire filter wordt: deel van afvoernetwerk-uri (20220511)
+
+   #BIND (<http://sparql.gwsw.nl/id/040654#afvoernetwerk_rwzi_denbosch> AS ?an_uri)
+   BIND (<{{&an_uri}}> AS ?an_uri) .
+
+   ?lei gwsw:isPartOf ?an_uri ; 
+        rdf:type gwsw:Afvoerrelatie ;
+        sesame:directType ?type .
 
    FILTER (!(isBlank(?lei)))
-   FILTER (!(isBlank(?type)))
     
-   ?lei rdfs:label ?Afvoerrelatie ;
-       gwsw:hasAspect
+   ?lei gwsw:hasAspect # Noodzakelijk voor Geo-thema
    [ 
       rdf:type gwsw:Lijn ;
       gwsw:hasValue ?Lijn ;
    ] .
-   optional {?lei gwsw:isPartOf 
-	[ 
-      rdf:type gwsw:Afvoernetwerk ;
-      rdfs:label ?Afvoernetwerk ;
-	] . }
+
+   ?lei rdfs:label ?Afvoerrelatie .
+   ?an_uri rdfs:label ?Afvoernetwerk .
+   BIND (?lei AS ?uri) # Toon de URI met de gekoppelde afvoerder
+
+
+#   optional {?lei gwsw:isPartOf 
+#	[ 
+#      rdf:type gwsw:Afvoernetwerk ;
+#      rdfs:label ?Afvoernetwerk ;
+#	] . }
 	  
     optional # aansluiting begin
     {
@@ -54,7 +64,7 @@ WHERE
        rdf:type gwsw:NormafvoerHWA_situatie ;
        gwsw:hasValue ?NormafvoerHWA_situatie ;
    ] .}
-    BIND (strafter(str(?lei), "#") AS ?uri)
+#    BIND (strafter(str(?lei), "#") AS ?uri)
 
     #BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
     #BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)

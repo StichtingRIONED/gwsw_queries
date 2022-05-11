@@ -1,5 +1,4 @@
-# Kentallen_Afvoerpunt (20220202)
-# 
+# Kentallen_Afvoerpunt (20220511) (20220202)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -13,33 +12,41 @@ SELECT DISTINCT ?Afvoernetwerk ?Afvoerpunt ?uri ?type ?Punt ?aanvoernaam ?aanvoe
 
 WHERE
 { 
-   {
-      ?conn rdf:type gwsw:BeginpuntAfvoerrelatie ;
-         gwsw:hasConnection ?punt .
-   }
-   UNION
-   {
-      ?conn rdf:type gwsw:EindpuntAfvoerrelatie ;
-         gwsw:hasConnection ?punt .
-   }
-   # SERVICE <{{&endpoint}}> # endpoint van gekoppelde dataset 
-   # SERVICE <http://localhost:7200/repositories/Heusden> # endpoint van gekoppelde dataset 
-   #SERVICE <https://sparql.gwsw.nl/repositories/Heusden> # debug 
-   {
+    # Primaire filter wordt: deel van afvoernetwerk-uri (20220511)
+
+    #BIND (<http://sparql.gwsw.nl/id/040654#afvoernetwerk_rwzi_denbosch> AS ?an_uri)
+    BIND (<{{&an_uri}}> AS ?an_uri) .
+
+#   {
+#      ?conn rdf:type gwsw:BeginpuntAfvoerrelatie ;
+#         gwsw:hasConnection ?punt .
+#   }
+#   UNION
+#   {
+#     ?conn rdf:type gwsw:EindpuntAfvoerrelatie ;
+#         gwsw:hasConnection ?punt .
+#   }
+#   SERVICE <{{&endpoint}}> # endpoint van gekoppelde dataset 
+#   SERVICE <http://localhost:7200/repositories/Heusden> # endpoint van gekoppelde dataset 
+#   SERVICE <https://sparql.gwsw.nl/repositories/Heusden> # debug 
+#   {
+
+    ?punt gwsw:isPartOf ?an_uri  . 
+    
     ?punt rdf:type gwsw:Afvoerpunt ;
-    	rdf:type gwsw:Afvoerpunt ;
-    	sesame:directType ?type .
+          sesame:directType ?type .
         
     FILTER (!(isBlank(?punt)))
-    FILTER (!(isBlank(?type)))
-        
-    ?punt rdfs:label ?Afvoerpunt ;
     
-    gwsw:hasAspect 
+    ?punt gwsw:hasAspect # Noodzakelijk voor Geo-thema
     [ 
         rdf:type gwsw:Punt ;
         gwsw:hasValue ?Punt ;
     ] .
+
+    ?punt rdfs:label ?Afvoerpunt .
+    ?an_uri rdfs:label ?Afvoernetwerk .
+    BIND (?punt AS ?uri) # Toon de URI met de gekoppelde afvoerder
 
     optional
     {   
@@ -158,13 +165,13 @@ WHERE
         rdf:type gwsw:Vultijd ;
         gwsw:hasValue ?Vultijd ;
     ] .}
-   }
-    optional {?punt gwsw:isPartOf # moet tzt ?conn worden (minimale eigenschappen van punt hanteren)
-    [ 
-    rdf:type gwsw:Afvoernetwerk ;
-    rdfs:label ?Afvoernetwerk ;
-    ] . }
-
-   #BIND (strafter(str(?punt), "#") AS ?uri)
-   BIND (?punt AS ?uri) # Toon de URI met de gekoppelde afvoerder
+#   }
+#   optional {?punt gwsw:isPartOf # moet tzt ?conn worden (minimale eigenschappen van punt hanteren)
+#   [ 
+#   rdf:type gwsw:Afvoernetwerk ;
+#    rdfs:label ?Afvoernetwerk ;
+#    ] . }
+#
+#   #BIND (strafter(str(?punt), "#") AS ?uri)
+#   BIND (?punt AS ?uri) # Toon de URI met de gekoppelde afvoerder
 }
