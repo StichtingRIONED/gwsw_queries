@@ -29,11 +29,12 @@ WHERE
 #    SERVICE <{{&endpoint}}> # endpoint van gekoppelde dataset 
 #	 {
 
-   #{ Geen UNION: alleen de relatie punt-gebied doet mee 
-    ?punt   gwsw:isPartOf ?an_uri  ; 
-            rdf:type gwsw:Afvoerpunt ;
-            gwsw:isPartOf ?geb ;
-            rdfs:label ?Afvoerpunt .
+   #{ Geen UNION: alleen de relatie punt-gebied doet mee
+
+   ?geb    gwsw:hasPart ?punt . # gebied is het subject: zoek of het een relevant afvoerpunt bevat (20220513)
+   ?punt   rdf:type gwsw:Afvoerpunt ;
+           gwsw:isPartOf ?an_uri ;
+           rdfs:label ?Afvoerpunt .
    #}
    #UNION
    #{
