@@ -10,19 +10,29 @@ SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maai
 
 WHERE
 { 
-   ?put :hasAspect ?ori .
-   ?ori rdf:type :TopologischElement ;
-	    :hasAspect
-	    [ 
-		    rdf:type :Punt ;
-		    :hasValue ?Punt ;
-	    ] .
-
-   FILTER (!(isBlank(?put)))
-   
-   ?put sesame:directType ?type .
-   FILTER (!(isBlank(?type)))
-
+  {
+    ?put :hasAspect ?ori .
+    ?ori rdf:type :TopologischElement ;
+  }
+  UNION # ook de zelfstandige topologische elementen
+  {
+    ?put rdf:type :Afvoerpunt ;
+    BIND (?put as ?ori)
+  }
+  UNION # ook de zelfstandige topologische elementen
+  {
+    ?put rdf:type :Aanvoerpunt ;
+    BIND (?put as ?ori)
+  }
+  FILTER (!(isBlank(?put)))
+  ?put sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+  
+  ?ori :hasAspect
+  [ 
+    rdf:type :Punt ;
+    :hasValue ?Punt ;
+  ] .
    # ?uri_type rdfs:label ?lab_type . # de conceptnaam
    # FILTER (lang(?lab_type) = "nl") # Niet meer nodig in GWSW 2.0 ? - prefLabel
    # BIND (CONCAT(STR(?lab_type), " ", STR(?uri_type)) AS ?type)

@@ -12,20 +12,25 @@ SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?
 
 WHERE
 { 
-  ?lei :hasAspect ?ori .
-
-  ?ori rdf:type :TopologischElement ; # lees lei-geo (vanaf versie 1.4 altijd aanwezig)
-       :hasAspect
-       [ 
-          rdf:type :Lijn ;
-          :hasValue ?Lijn ;
-       ] .
-
+  {
+    ?lei :hasAspect ?ori .
+    ?ori rdf:type :TopologischElement ; # lees lei-geo (vanaf versie 1.4 altijd aanwezig)
+  }
+  UNION
+  {
+    ?lei rdf:type :Afvoerrelatie ; # ook de zelfstandige topologische elementen
+    BIND (?lei as ?ori)
+  }
   FILTER (!(isBlank(?lei)))
-  
   ?lei sesame:directType ?type .
   FILTER (!(isBlank(?type)))
-   
+
+  ?ori :hasAspect
+    [ 
+        rdf:type :Lijn ;
+        :hasValue ?Lijn ;
+    ] .
+
   optional { ?lei rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
   
   optional
@@ -64,9 +69,9 @@ WHERE
   }
   optional # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
   {
-  ?ori :hasPart ?epnt .
-  ?epnt rdf:type :EindpuntLeiding .
-      ?epnt :hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
+    ?ori :hasPart ?epnt .
+    ?epnt rdf:type :EindpuntLeiding .
+    ?epnt :hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
 
       optional {?epnt :hasAspect
       [ 
