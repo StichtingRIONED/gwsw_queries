@@ -1,4 +1,4 @@
-# Kentallen_Afvoernetwerk (20220511) (20220221) (20220202)
+# Kentallen_Afvoergebied (20220518, naam query gewijzigd) (20220511) (20220221) (20220202)
 # Toon de gebieden (vlakken) die als deel een Afvoerpunt hebben
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
