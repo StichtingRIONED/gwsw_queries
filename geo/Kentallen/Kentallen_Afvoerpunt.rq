@@ -45,9 +45,11 @@ WHERE
     ] .
 
     ?punt rdfs:label ?Afvoerpunt .
-    ?an_uri rdfs:label ?Afvoernetwerk .
     BIND (?punt AS ?uri) # Toon de URI met de gekoppelde afvoerder
 
+    OPTIONAL { # Naam is niet verplicht, kan in andere dataset staan (20220518)
+      ?an_uri rdfs:label ?Afvoernetwerk .
+    }
     optional
     {   
         ?punt gwsw:isPartOf 

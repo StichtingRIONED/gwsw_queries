@@ -19,7 +19,7 @@ WHERE
    ?geb sesame:directType ?type .
    FILTER (!(isBlank(?type)))   
 
-   ?geb rdfs:label ?naam .
+   optional { ?geb rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)
 
    optional
    {

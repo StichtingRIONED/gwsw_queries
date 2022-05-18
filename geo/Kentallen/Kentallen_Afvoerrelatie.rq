@@ -30,9 +30,11 @@ WHERE
    ] .
 
    ?lei rdfs:label ?Afvoerrelatie .
-   ?an_uri rdfs:label ?Afvoernetwerk .
    BIND (?lei AS ?uri) # Toon de URI met de gekoppelde afvoerder
 
+   OPTIONAL { # Naam is niet verplicht, kan in andere dataset staan (20220518)
+      ?an_uri rdfs:label ?Afvoernetwerk .
+   }
 
 #   optional {?lei gwsw:isPartOf 
 #	[ 

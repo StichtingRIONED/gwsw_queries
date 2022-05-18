@@ -49,8 +49,9 @@ WHERE
    ?geb sesame:directType ?type .
    FILTER (!(isBlank(?type)))
 
-   ?an_uri rdfs:label ?Afvoernetwerk .
-
+   OPTIONAL { # Naam is niet verplicht, kan in andere dataset staan (20220518)
+      ?an_uri rdfs:label ?Afvoernetwerk .
+   }
    ?geb gwsw:hasAspect [
       rdf:type gwsw:Gebiedsorientatie ; # Alles met gebiedsoriëntatie en buitengrens doet mee (20200515)
       gwsw:hasAspect [

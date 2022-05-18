@@ -27,7 +27,7 @@ WHERE
    # FILTER (lang(?lab_type) = "nl") # Niet meer nodig in GWSW 2.0 ? - prefLabel
    # BIND (CONCAT(STR(?lab_type), " ", STR(?uri_type)) AS ?type)
     
-   ?put rdfs:label ?naam .    
+   optional { ?put rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
 
    # De uri verwijst naar de GWSW-definitie, daar is de naam enz. te vinden
    #?Type rdfs:label ?TypeNaam . # De URI hoeft niet dekkend te zijn
