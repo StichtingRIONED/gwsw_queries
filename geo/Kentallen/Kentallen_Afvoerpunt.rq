@@ -1,4 +1,4 @@
-# Kentallen_Afvoerpunt (20220511) (20220202)
+# Kentallen_Afvoerpunt (20220202-20220523)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -7,7 +7,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?Afvoernetwerk ?Afvoerpunt ?uri ?type ?Punt ?aanvoernaam ?aanvoertype ?AantalInwoners ?AantalVe ?AantalVeBedrijven ?AantalVeInwoners ?AantalVeRecreatie ?Afvoercapaciteit ?AfvoerendOppervlak ?AfvoerendOppervlak_NietAangesloten ?DWADebiet ?DWADebietBedrijven ?DWADebietInwoners ?DWADebietRecreatie ?Ledigingstijd ?NettoBerging ?NettoBergingRandvoorzieningen ?NiveauBerging ?NormatievePompovercapaciteit ?Ontwerpcapaciteit ?Pompovercapaciteit ?VerlorenBerging ?Vultijd
+SELECT DISTINCT ?Afvoernetwerk ?Afvoerpunt ?Eigenaar ?uri ?type ?Punt ?aanvoernaam ?aanvoertype ?AantalInwoners ?AantalVe ?AantalVeBedrijven ?AantalVeInwoners ?AantalVeRecreatie ?Afvoercapaciteit ?AfvoerendOppervlak ?AfvoerendOppervlak_NietAangesloten ?DWADebiet ?DWADebietBedrijven ?DWADebietInwoners ?DWADebietRecreatie ?Ledigingstijd ?NettoBerging ?NettoBergingRandvoorzieningen ?NiveauBerging ?NormatievePompovercapaciteit ?Ontwerpcapaciteit ?Pompovercapaciteit ?VerlorenBerging ?Vultijd
 #SELECT DISTINCT ?Afvoerpunt ?uri ?type ?Punt ?Afvoernetwerk ?aanvoernaam ?aanvoertype ?NettoBerging
 
 WHERE
@@ -62,6 +62,11 @@ WHERE
         BIND (?_aanvoernaam as ?aanvoernaam)
         BIND (?_aanvoertype as ?aanvoertype)
     }
+    optional {?punt gwsw:isInputOf # 20220523
+    [
+        rdf:type gwsw:Eigenaar ;
+        rdfs:label ?Eigenaar ;
+    ] .}
     optional {?punt gwsw:hasAspect 
     [
         rdf:type gwsw:AantalInwoners ;

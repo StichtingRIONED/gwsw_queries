@@ -8,7 +8,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX gwsw: <{{&version}}>
 
 # SELECT ?Afvoernetwerk ?Afvoerrelatie ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?AfvoerDWA_situatie ?NormafvoerHWA_situatie
-SELECT ?Afvoernetwerk ?Afvoerrelatie ?uri ?type ?Lijn ?uriB ?uriE ?AfvoerDWA_situatie ?NormafvoerHWA_situatie
+SELECT ?Afvoernetwerk ?Afvoerrelatie ?Eigenaar ?uri ?type ?Lijn ?uriB ?uriE ?AfvoerDWA_situatie ?NormafvoerHWA_situatie
 
 WHERE
 { 
@@ -41,7 +41,12 @@ WHERE
 #      rdf:type gwsw:Afvoernetwerk ;
 #      rdfs:label ?Afvoernetwerk ;
 #	] . }
-	  
+
+	optional {?lei gwsw:isInputOf # 20220523
+    [
+        rdf:type gwsw:Eigenaar ;
+        rdfs:label ?Eigenaar ;
+    ] .}  
     optional # aansluiting begin
     {
         ?lei gwsw:hasPart ?bpnt .
