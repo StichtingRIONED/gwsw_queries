@@ -1,0 +1,33 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX ex: <http://sparql.gwsw.nl/bim/juinen#>
+
+SELECT ?Selection ?classT3D WHERE 
+{ 
+   BIND (str(iri(gwsw:)) AS ?iriT3D)
+   BIND (str(iri(ex:)) AS ?iriEx)
+   
+   BIND (gwsw:{{&prd}} as ?prd) .
+   BIND (gwsw:{{&obj}} as ?obj) .
+    
+   {?sub ?prd [rdf:type ?obj ] .}
+   UNION
+   {?sub ?prd ?obj . }
+
+   FILTER (contains(str(?sub), ?iriEx)) # alleen externe individuen
+
+   ?sub sesame:directType ?res .
+   ?cls rdfs:subClassOf ?res .
+   FILTER (contains(str(?cls), ?iriT3D)) # alleen T3D classes
+
+   # Filter binnen deelmodel (Totaal: geen filter, TOP doet altijd mee) (20230203)
+   ?cls skos:scopeNote ?cof .
+   BIND ("{{&cof}}" as ?selCof) 
+   FILTER ((?selCof = "Totaal") || (CONTAINS(str(?cof), "Cof_{{&cof}}")) || (CONTAINS(str(?cof), "Cof_TOP")))
+
+   BIND (concat(strafter(str(?prd), ?iriT3D), " ", strafter(str(?obj), ?iriT3D)) as ?Selection)
+   BIND (strafter(str(?cls), ?iriT3D) as ?classT3D)
+}
