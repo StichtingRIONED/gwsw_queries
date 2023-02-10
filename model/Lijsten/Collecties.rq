@@ -6,7 +6,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 
 select ?Aspect ?Collection ?Element ?LabelElement ?NumberElement ?CodeElement
 
@@ -70,7 +70,9 @@ where
  }
 # BIND ("#" AS ?aft)
 # BIND ("gwsw.nl/" AS ?aft)
-  BIND ("1.5/totaal/" AS ?aft)
+#  BIND ("1.5/totaal/" AS ?aft)
+ BIND (str(iri(:)) AS ?aft)
+
 
 # BIND (str(?labelCollection) AS ?Collection)  # zonder taal-aanduiding
  BIND (strafter(str(?coll), ?aft) AS ?Collection) # (20200520)
