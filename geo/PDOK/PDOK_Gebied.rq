@@ -1,0 +1,29 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?naam ?uri ?type ?typeNaam ?Buitengrens
+
+WHERE
+{ 
+   ?geb rdf:type gwsw:Gebied . # Alleen gebied (geen stelsel, systeem) in PDOK Stedelijkwater (20230221)
+   
+   ?geb gwsw:hasAspect [
+        rdf:type gwsw:Gebiedsorientatie ;
+        gwsw:hasAspect [
+        rdf:type gwsw:Buitengrens ;
+        gwsw:hasValue ?Buitengrens ; ] ] .  
+   FILTER (!(isBlank(?geb)))
+   
+   ?geb sesame:directType ?type .
+   FILTER (!(isBlank(?type)))
+   
+   ?geb rdfs:label ?naam .
+   ?type rdfs:label ?typeNaam . # De URI hoeft niet dekkend te zijn
+   FILTER (lang(?typeNaam) = "nl") # let op! (niet meer nodig in GWSW 2.0 - prefLabel)
+
+   BIND (strafter(str(?geb), "#") AS ?uri)
+}
