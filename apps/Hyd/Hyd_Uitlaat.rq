@@ -1,18 +1,24 @@
 # Hyd_Uitlaat.spq
-# Tbv conversie naar GWSW.hydx (20170904)
+# Tbv conversie naar GWSW.hydx (20170904/20230228)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
 SELECT ?bUri ?Punt
 
 WHERE
 { 
-    ?uri sesame:directType :UitlaatPunt .
-	
-	?uri :isAspectOf ?bUri .
+  ?uri sesame:directType :UitlaatPunt .
+
+	optional { # UitlaatPunt hoeft geen aspect te zijn, begin/eindpunt leiding heeft vrije uitstroming (20230228)
+		?uri :isAspectOf ?cpsUri .
+	}
+  BIND (IF(BOUND(?cpsUri), ?cpsUri, ?uri) AS ?bUri) 
+
 	?uri :hasAspect [
 		rdf:type :Punt ;
 		:hasValue ?Punt ; ] .

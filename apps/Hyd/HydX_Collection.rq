@@ -4,6 +4,8 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
 select ?coll ?elem ?code
@@ -17,6 +19,8 @@ where
  #voer eerst rdf:rest uit, met object vervolgens rdf:first (rest*: doe voor alle rest-relaties)
  ?list rdf:rest*/rdf:first ?elem .
  ?elem skos:notation ?code .
+
+ FILTER (datatype(?code) = iri(:Dt_Notation_HY)) # Specifiek datatype filteren (vanaf 1.6 komen alle codes mee in HydX) (20230308)
 
  #BIND ("1.4/totaal/" AS ?aft)
  #BIND (strafter(str(?elem), ?aft) AS ?NameElement)

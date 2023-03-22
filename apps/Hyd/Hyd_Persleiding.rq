@@ -1,15 +1,14 @@
 # Hyd_Persleiding.spq
-# Zoek de verbinding met pomp en lozingspunt (- 20190530)
+# Zoek de verbinding met pomp en lozingspunt (- 20190530/20230303)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
-# Vervalt: Altijd koppelen via Knooppunt
-#SELECT ?naam ?bPunt ?bUri ?ePunt ?eUri
-
-SELECT ?naam ?bUri ?eUri
+SELECT ?naam ?bUri ?bEnd ?eUri ?eEnd
 
 WHERE
 { 
@@ -30,6 +29,14 @@ WHERE
         { ?bPunt :isAspectOf ?bUri }
         UNION
         { ?bPunt :isPartOf [ :isAspectOf ?bUri ] . }
+        
+        optional { # markeer het eindpunt (20230303)
+            {?bUri rdf:type :Lozingsput . }
+            UNION
+            {?bUri rdf:type :Inspectieput . }
+            BIND ("true" as ?bEnd)
+        }
+        # ?bUri sesame:directType ?bType .
 	}
  	optional
 	{
@@ -40,5 +47,13 @@ WHERE
         { ?ePunt :isAspectOf ?eUri }
         UNION
         { ?ePunt :isPartOf [ :isAspectOf ?eUri ] . }
+        
+        optional { # markeer het eindpunt (20230303)
+            {?eUri rdf:type :Lozingsput . }
+            UNION
+            {?eUri rdf:type :Inspectieput . }
+            BIND ("true" as ?eEnd)
+        }
+        # ?eUri sesame:directType ?eType .
 	}
 }

@@ -1,12 +1,11 @@
-# Hyd_Leiding.rq
-# Tbv conversie naar GWSW.hydx (20170901)
-# Wanddikte en SDR_waarde toegevoegd (20190903)
+# Hyd_Leiding.rq (20170901/20190903/20230302)
+# Tbv conversie naar GWSW.hydx
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
 SELECT ?uri ?Stelsel ?naam ?type ?bUri ?eUri ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?SDR_waarde
@@ -54,6 +53,12 @@ WHERE
         { ?bpunt :isAspectOf ?bUri }
         UNION
         { ?bpunt :isPartOf [ :isAspectOf ?bUri ] . }
+        UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
+        {
+          FILTER NOT EXISTS {?bpunt :isAspectOf ?any1 .}
+          FILTER NOT EXISTS {?bpunt :isPartOf [ :isAspectOf ?any2 ] . }
+          BIND (?bpunt as ?bUri) 
+        }
 	}
 	
 	optional
@@ -71,6 +76,12 @@ WHERE
         { ?epunt :isAspectOf ?eUri }
         UNION
         { ?epunt :isPartOf [ :isAspectOf ?eUri ] . }
+        UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
+        {
+          FILTER NOT EXISTS {?epunt :isAspectOf ?any3 .}
+          FILTER NOT EXISTS {?epunt :isPartOf [ :isAspectOf ?any4 ] . }
+          BIND (?epunt as ?eUri) 
+        }
    }
    optional {?uri :hasAspect 
    [
@@ -102,12 +113,12 @@ WHERE
        rdf:type :LengteLeiding ;
        :hasValue ?LengteLeiding ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri :hasAspect # doet ook mee (20190903)
    [
        rdf:type :Wanddikte ;
        :hasValue ?Wanddikte ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri :hasAspect # doet ook mee (20190903)
    [
        rdf:type :SDR_waarde ;
        :hasValue ?SDR_waarde ;

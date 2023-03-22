@@ -1,4 +1,4 @@
-# Geoserver: Hyd_Knooppunt.spq (20170910)
+# Geo-thema netwerk: Hyd_Knooppunt.spq (20170910-20230302)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -14,7 +14,9 @@ WHERE
    { ?knp rdf:type :Kolk . }
    UNION
    { ?knp rdf:type :Bouwwerk . }
-   
+    UNION
+   { ?knp rdf:type :Hulpstuk . } # Hulpstuk erbij (20230302)
+  
    ?knp sesame:directType ?type .
     
    FILTER (!(isBlank(?knp)))
@@ -34,6 +36,8 @@ WHERE
    { ?ori rdf:type :Putorientatie .} 
    UNION
    { ?ori rdf:type :Bouwwerkorientatie .} 
+   UNION
+   { ?ori rdf:type :Hulpstukorientatie .} # Hulpstuk erbij (20230302)
     
    ?ori :hasAspect
    [ 
