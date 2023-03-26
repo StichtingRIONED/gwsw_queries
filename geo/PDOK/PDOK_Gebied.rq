@@ -1,3 +1,5 @@
+# Selecteer gebieden met buitengrens (20230221-20230326)
+
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
@@ -9,7 +11,12 @@ SELECT ?naam ?uri ?type ?typeNaam ?Buitengrens
 
 WHERE
 { 
-   ?geb rdf:type gwsw:Gebied . # Alleen gebied (geen stelsel, systeem) in PDOK Stedelijkwater (20230221)
+  # Te globaal, uitgeschakeld (20230326)
+  # ?geb rdf:type gwsw:Gebied . # Alleen gebied (geen stelsel, systeem) in PDOK Stedelijkwater (20230221)
+
+  { ?geb rdf:type gwsw:Rioleringsgebied . } # Ook de subtypen (20230326)
+  UNION
+  { ?geb rdf:type gwsw:Zuiveringsgebied . } # Zuiveringseenheid (20230326)
    
    ?geb gwsw:hasAspect [
         rdf:type gwsw:Gebiedsorientatie ;
