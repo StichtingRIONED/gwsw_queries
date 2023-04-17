@@ -1,0 +1,63 @@
+# GWSW/Geo-thema Waterschap: Mantelbuis (20230416)
+
+# Filter op:
+# * heeft geometrie gwsw:Lijn
+# * is (super)type gwsw:Mantelbuis
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?Lijn ?LengteLeiding ?DiameterLeiding ?MateriaalLeiding ?StatusFunctioneren ?comment ?naam
+WHERE
+{ 
+  ?obj gwsw:hasAspect ?ori .
+  ?ori rdf:type gwsw:TopologischElement . # lees lei-geo (vanaf versie 1.4 altijd aanwezig)
+  FILTER (!(isBlank(?obj)))
+  ?obj rdf:type gwsw:Mantelbuis .
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  ?ori gwsw:hasAspect
+    [ 
+        rdf:type gwsw:Lijn ;
+        gwsw:hasValue ?Lijn ;
+    ] .
+
+  optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
+
+  optional {?obj gwsw:hasAspect 
+  [
+      rdf:type gwsw:MateriaalLeiding ;
+      gwsw:hasReference ?MateriaalLeiding ;
+  ] .}
+  optional {?obj gwsw:hasAspect 
+  [
+      rdf:type gwsw:DiameterLeiding ;
+# Werkt niet altijd goed? Opgelost via COALESCE (20210521)
+#      gwsw:hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+       gwsw:hasValue ?dia ;  
+  ] .}
+  optional {?obj gwsw:hasAspect 
+  [
+      rdf:type gwsw:BreedteLeiding ;
+      gwsw:hasValue ?br ;
+  ] .}
+  BIND (COALESCE (?br, ?dia) as ?DiameterLeiding) # de eerst geldende doet mee (20210521)
+
+  optional {?obj gwsw:hasAspect 
+  [
+      rdf:type gwsw:LengteLeiding ;
+      gwsw:hasValue ?LengteLeiding ;
+  ] .}
+
+  optional {?obj gwsw:hasAspect 
+  [
+      rdf:type gwsw:StatusFunctioneren ;
+      gwsw:hasReference ?StatusFunctioneren ;
+  ] . }
+  optional {?obj rdfs:comment ?comment. }
+}

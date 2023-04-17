@@ -2,8 +2,8 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?BreedteBouwwerk ?LengteBouwwerk ?BreedteCompartiment ?LengteCompartiment ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak ?aantalPompen ?aantalDrempels
 #SELECT ?Stelsel ?Naam ?Type ?TypeNaam ?Geometrie
@@ -11,33 +11,33 @@ SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maai
 WHERE
 { 
   {
-    ?put :hasAspect ?ori .
-    ?ori rdf:type :TopologischElement ;
+    ?obj gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:TopologischElement .
   }
   UNION # ook de zelfstandige topologische elementen
   {
-    ?put rdf:type :Afvoerpunt ;
-    BIND (?put as ?ori)
+    ?obj rdf:type gwsw:Afvoerpunt .
+    BIND (?obj as ?ori)
   }
   UNION # ook de zelfstandige topologische elementen
   {
-    ?put rdf:type :Aanvoerpunt ;
-    BIND (?put as ?ori)
+    ?obj rdf:type gwsw:Aanvoerpunt .
+    BIND (?obj as ?ori)
   }
-  FILTER (!(isBlank(?put)))
-  ?put sesame:directType ?type .
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
   
-  ?ori :hasAspect
+  ?ori gwsw:hasAspect
   [ 
-    rdf:type :Punt ;
-    :hasValue ?Punt ;
+    rdf:type gwsw:Punt ;
+    gwsw:hasValue ?Punt ;
   ] .
    # ?uri_type rdfs:label ?lab_type . # de conceptnaam
    # FILTER (lang(?lab_type) = "nl") # Niet meer nodig in GWSW 2.0 ? - prefLabel
    # BIND (CONCAT(STR(?lab_type), " ", STR(?uri_type)) AS ?type)
     
-   optional { ?put rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
+   optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
 
    # De uri verwijst naar de GWSW-definitie, daar is de naam enz. te vinden
    #?Type rdfs:label ?TypeNaam . # De URI hoeft niet dekkend te zijn
@@ -45,8 +45,8 @@ WHERE
  
    optional
    {
-      ?put :isPartOf 
-      [ rdf:type :Stelsel ;
+      ?obj gwsw:isPartOf 
+      [ rdf:type gwsw:Stelsel ;
         rdfs:label ?Stelsel ;
         sesame:directType ?stelseltype ;
         # sesame:directType ?uri_stelseltype ;
@@ -55,158 +55,159 @@ WHERE
     # FILTER (lang(?lab_stelseltype) = "nl") # Niet meer nodig in GWSW 2.0 ? - prefLabel
     # BIND (CONCAT(STR(?lab_stelseltype), " ", STR(?uri_stelseltype)) AS ?stelseltype)
    }
-   optional {?ori :hasConnection
+   optional {?ori gwsw:hasConnection
    [
-     rdf:type :Maaiveldorientatie ;
-     :hasAspect
+     rdf:type gwsw:Maaiveldorientatie ;
+     gwsw:hasAspect
      [
-        rdf:type :Maaiveldhoogte ;
-        :hasValue ?Maaiveldhoogte ;
+        rdf:type gwsw:Maaiveldhoogte ;
+        gwsw:hasValue ?Maaiveldhoogte ;
      ];
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :Begindatum ;
-       :hasValue ?Begindatum ;
+       rdf:type gwsw:Begindatum ;
+       gwsw:hasValue ?Begindatum ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :Einddatum ;
-       :hasValue ?Einddatum ;
+       rdf:type gwsw:Einddatum ;
+       gwsw:hasValue ?Einddatum ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :MateriaalPut ;
-       :hasReference ?MateriaalPut ;
+       rdf:type gwsw:MateriaalPut ;
+       gwsw:hasReference ?MateriaalPut ;
    ] . }
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :VormPut ;
-       :hasReference ?VormPut ;
+       rdf:type gwsw:VormPut ;
+       gwsw:hasReference ?VormPut ;
    ] . }
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :DiameterPut ;
-       :hasValue ?BreedtePut ; # Diameter als breedte vermelden
+       rdf:type gwsw:DiameterPut ;
+       gwsw:hasValue ?BreedtePut ; # Diameter als breedte vermelden
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :BreedtePut ;
-       :hasValue ?BreedtePut ;
+       rdf:type gwsw:BreedtePut ;
+       gwsw:hasValue ?BreedtePut ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :LengtePut ;
-       :hasValue ?LengtePut ;
+       rdf:type gwsw:LengtePut ;
+       gwsw:hasValue ?LengtePut ;
    ] .}
-      optional {?put :hasAspect 
+      optional {?obj gwsw:hasAspect 
    [
-       rdf:type :HoogtePut ;
-       :hasValue ?HoogtePut ;
+       rdf:type gwsw:HoogtePut ;
+       gwsw:hasValue ?HoogtePut ;
    ] .}
-    optional {?put :hasAspect 
+    optional {?obj gwsw:hasAspect 
    [
-       rdf:type :BreedteBouwwerk ;
-       :hasValue ?BreedteBouwwerk ;
+       rdf:type gwsw:BreedteBouwwerk ;
+       gwsw:hasValue ?BreedteBouwwerk ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :LengteBouwwerk ;
-       :hasValue ?LengteBouwwerk ;
+       rdf:type gwsw:LengteBouwwerk ;
+       gwsw:hasValue ?LengteBouwwerk ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-     rdf:type :BreedteCompartiment ;
-     :hasValue ?BreedteCompartiment ;
+     rdf:type gwsw:BreedteCompartiment ;
+     gwsw:hasValue ?BreedteCompartiment ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-     rdf:type :LengteCompartiment ;
-     :hasValue ?LengteCompartiment ;
+     rdf:type gwsw:LengteCompartiment ;
+     gwsw:hasValue ?LengteCompartiment ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?obj gwsw:hasAspect 
    [
-       rdf:type :Wanddikte ;
-       :hasValue ?Wanddikte ;
+       rdf:type gwsw:Wanddikte ;
+       gwsw:hasValue ?Wanddikte ;
    ] .}
-   optional {?put :hasPart 
+   optional {?obj gwsw:hasPart 
    [
-       rdf:type :Fundering ;
+       rdf:type gwsw:Fundering ;
        sesame:directType ?Fundering ;
    ] .}   
-   optional {?put :isInputOf 
+   optional {?obj gwsw:isInputOf 
    [
-     rdf:type :Inspecteren ;
-     :hasAspect
+     rdf:type gwsw:Inspecteren ;
+     gwsw:hasAspect
      [
-        rdf:type :DatumMaatregel ;
-        :hasValue ?DatumInspectie ;
+        rdf:type gwsw:DatumMaatregel ;
+        gwsw:hasValue ?DatumInspectie ;
      ];
    ] .}
-  optional {?put :isInputOf 
+  optional {?obj gwsw:isInputOf 
    [
-     rdf:type :Reinigen ;
-     :hasAspect
+     rdf:type gwsw:Reinigen ;
+     gwsw:hasAspect
      [
-        rdf:type :DatumMaatregel ;
-        :hasValue ?DatumReiniging ;
+        rdf:type gwsw:DatumMaatregel ;
+        gwsw:hasValue ?DatumReiniging ;
      ];
    ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
    [
-       rdf:type :AantalWoningen ;
-       :hasValue ?AantalWoningen ;
+       rdf:type gwsw:AantalWoningen ;
+       gwsw:hasValue ?AantalWoningen ;
    ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
    [
-       rdf:type :Aantal_ieBedrijven ;
-       :hasValue ?Aantal_ieBedrijven ;
+       rdf:type gwsw:Aantal_ieBedrijven ;
+       gwsw:hasValue ?Aantal_ieBedrijven ;
    ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
    [
-       rdf:type :Aantal_ieRecreatie ;
-       :hasValue ?Aantal_ieRecreatie ;
+       rdf:type gwsw:Aantal_ieRecreatie ;
+       gwsw:hasValue ?Aantal_ieRecreatie ;
    ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
    [
-       rdf:type :AfvoerendOppervlak ;
-       :hasValue ?AfvoerendOppervlak ;
+       rdf:type gwsw:AfvoerendOppervlak ;
+       gwsw:hasValue ?AfvoerendOppervlak ;
    ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
    [
-       rdf:type :BergendOppervlak ;
-       :hasValue ?BergendOppervlak ;
+       rdf:type gwsw:BergendOppervlak ;
+       gwsw:hasValue ?BergendOppervlak ;
    ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :LateraalDebietDWA ;
-      :hasValue ?LateraalDebietDWA ;
+      rdf:type gwsw:LateraalDebietDWA ;
+      gwsw:hasValue ?LateraalDebietDWA ;
   ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :LateraalDebietHWA ;
-      :hasValue ?LateraalDebietHWA ;
+      rdf:type gwsw:LateraalDebietHWA ;
+      gwsw:hasValue ?LateraalDebietHWA ;
   ] .}
-  optional {?put :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :LateraalAfvoerendOppervlak ;
-      :hasValue ?LateraalAfvoerendOppervlak ;
+      rdf:type gwsw:LateraalAfvoerendOppervlak ;
+      gwsw:hasValue ?LateraalAfvoerendOppervlak ;
   ] .}
   optional {
-    SELECT ?put (count(*) as ?aantalDrempels) # tel het aantal triples
+    SELECT ?obj (count(*) as ?aantalDrempels) # tel het aantal triples
     WHERE
     {
-      ?put ?hasPart ?drp .
-      ?drp rdf:type :Overstortdrempel .
-    } GROUP BY ?put
+      ?obj ?hasPart ?drp .
+      ?drp rdf:type gwsw:Overstortdrempel .
+    } GROUP BY ?obj
   }
   optional {
-    SELECT ?put (count(*) as ?aantalPompen) # tel het aantal triples
+    SELECT ?obj (count(*) as ?aantalPompen) # tel het aantal triples
     WHERE
     {
-      ?put ?hasPart ?pmp .
-      ?pmp rdf:type :Pomp .
-    } GROUP BY ?put
+      ?obj ?hasPart ?pmp .
+      ?pmp rdf:type gwsw:Pomp .
+    } GROUP BY ?obj
   }
-  BIND (strafter(str(?put), "#") AS ?uri)
+  BIND (?obj AS ?uri) # De complete IRI in de uitvoer (20230416)
+  #BIND (strafter(str(?obj), "#") AS ?uri)
 }

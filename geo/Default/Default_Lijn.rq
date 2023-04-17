@@ -4,8 +4,8 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
 #SELECT ?Stelsel ?Naam ?Type ?TypeNaam ?Geometrie
@@ -13,198 +13,207 @@ SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?
 WHERE
 { 
   {
-    ?lei :hasAspect ?ori .
-    ?ori rdf:type :TopologischElement ; # lees lei-geo (vanaf versie 1.4 altijd aanwezig)
+    ?obj gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:TopologischElement . # lees lei-geo (vanaf versie 1.4 altijd aanwezig)
   }
   UNION
   {
-    ?lei rdf:type :Afvoerrelatie ; # ook de zelfstandige topologische elementen
-    BIND (?lei as ?ori)
+    ?obj rdf:type gwsw:Afvoerrelatie . # ook de zelfstandige topologische elementen
+    BIND (?obj as ?ori)
   }
-  FILTER (!(isBlank(?lei)))
-  ?lei sesame:directType ?type .
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
 
-  ?ori :hasAspect
+  ?ori gwsw:hasAspect
     [ 
-        rdf:type :Lijn ;
-        :hasValue ?Lijn ;
+        rdf:type gwsw:Lijn ;
+        gwsw:hasValue ?Lijn ;
     ] .
 
-  optional { ?lei rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
+  optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
   
   optional
   {
-    ?lei :isPartOf 
-    [ rdf:type :Stelsel ;
+    ?obj gwsw:isPartOf 
+    [ rdf:type gwsw:Stelsel ;
       rdfs:label ?Stelsel ;
       sesame:directType ?stelseltype ;
     ] .
   }
   # Bijgewerkt: ?ori en ?lijn werden dubbel bepaald (20210521)
-  #?lei :hasAspect ?ori .
-  #?ori rdf:type :Leidingorientatie .
-  #?ori :hasAspect # geometrie moet er zijn vanaf GWSW 1.4
+  #?obj gwsw:hasAspect ?ori .
+  #?ori rdf:type gwsw:Leidingorientatie .
+  #?ori gwsw:hasAspect # geometrie moet er zijn vanaf GWSW 1.4
   #[ 
-  #  rdf:type :Lijn ;
-  #  :hasValue ?Lijn ;
+  #  rdf:type gwsw:Lijn ;
+  #  gwsw:hasValue ?Lijn ;
   #] .
 
   optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
   {
-    ?ori :hasPart ?bpnt .
-    ?bpnt rdf:type :BeginpuntLeiding .
-    ?bpnt :hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
+    ?ori gwsw:hasPart ?bpnt .
+    ?bpnt rdf:type gwsw:BeginpuntLeiding .
+    ?bpnt gwsw:hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
 
-    optional {?bpnt :hasAspect
+    optional {?bpnt gwsw:hasAspect
     [ 
-        rdf:type :BobBeginpuntLeiding ;
-        :hasValue ?BobBeginpuntLeiding ;
+        rdf:type gwsw:BobBeginpuntLeiding ;
+        gwsw:hasValue ?BobBeginpuntLeiding ;
     ] .}
 
     # Hou het kort voor MDS (Delft liep vast op het vervolg)
 
-    ?bconn :isAspectOf ?_uriB . # lei in de query-resultaten voor zoekwerk (20200708)
+    ?bconn gwsw:isAspectOf ?_uriB . # lei in de query-resultaten voor zoekwerk (20200708)
     ?_uriB rdfs:label ?beginpunt .
   }
   optional # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
   {
-    ?ori :hasPart ?epnt .
-    ?epnt rdf:type :EindpuntLeiding .
-    ?epnt :hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
+    ?ori gwsw:hasPart ?epnt .
+    ?epnt rdf:type gwsw:EindpuntLeiding .
+    ?epnt gwsw:hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
 
-      optional {?epnt :hasAspect
+      optional {?epnt gwsw:hasAspect
       [ 
-          rdf:type :BobEindpuntLeiding ;
-          :hasValue ?BobEindpuntLeiding ;
+          rdf:type gwsw:BobEindpuntLeiding ;
+          gwsw:hasValue ?BobEindpuntLeiding ;
       ] .}
       
   # Hou het kort voor MDS (Delft liep vast op het vervolg)
 
-      ?econn :isAspectOf ?_uriE . # lei in de query-resultaten voor zoekwerk (20200708)
+      ?econn gwsw:isAspectOf ?_uriE . # lei in de query-resultaten voor zoekwerk (20200708)
       ?_uriE rdfs:label ?eindpunt .
   }
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :Begindatum ;
-      :hasValue ?Begindatum ;
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?Begindatum ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect # Deze ontbrak (20230416)
   [
-      rdf:type :MateriaalLeiding ;
-      :hasReference ?MateriaalLeiding ;
+      rdf:type gwsw:Einddatum ;
+      gwsw:hasValue ?Einddatum ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :VormLeiding ;
-      :hasReference ?VormLeiding ;
+      rdf:type gwsw:MateriaalLeiding ;
+      gwsw:hasReference ?MateriaalLeiding ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :DiameterLeiding ;
+      rdf:type gwsw:VormLeiding ;
+      gwsw:hasReference ?VormLeiding ;
+  ] .}
+  optional {?obj gwsw:hasAspect 
+  [
+      rdf:type gwsw:DiameterLeiding ;
 # Werkt niet altijd goed? Opgelost via COALESCE (20210521)
-#      :hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
-       :hasValue ?dia ;  
+#      gwsw:hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+       gwsw:hasValue ?dia ;  
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :BreedteLeiding ;
-      :hasValue ?br ;
+      rdf:type gwsw:BreedteLeiding ;
+      gwsw:hasValue ?br ;
   ] .}
   BIND (COALESCE (?br, ?dia) as ?BreedteLeiding) # de eerst geldende doet mee (20210521)
 
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :HoogteLeiding ;
-      :hasValue ?HoogteLeiding ;
+      rdf:type gwsw:HoogteLeiding ;
+      gwsw:hasValue ?HoogteLeiding ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :LengteLeiding ;
-      :hasValue ?LengteLeiding ;
+      rdf:type gwsw:LengteLeiding ;
+      gwsw:hasValue ?LengteLeiding ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :Wanddikte ;
-      :hasValue ?Wanddikte ;
+      rdf:type gwsw:Wanddikte ;
+      gwsw:hasValue ?Wanddikte ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :Verbindingstype ;
-      :hasReference ?Verbindingstype ;
+      rdf:type gwsw:Verbindingstype ;
+      gwsw:hasReference ?Verbindingstype ;
   ] .}
-  optional {?lei :hasPart 
+  optional {?obj gwsw:hasPart 
   [
-      rdf:type :Fundering ;
+      rdf:type gwsw:Fundering ;
       sesame:directType ?Fundering ;
   ] .}
-  optional {?lei :isInputOf 
+  optional {?obj gwsw:isInputOf 
   [
-    rdf:type :Inspecteren ;
-    :hasAspect
+    rdf:type gwsw:Inspecteren ;
+    gwsw:hasAspect
     [
-      rdf:type :DatumMaatregel ;
-      :hasValue ?DatumInspectie ;
+      rdf:type gwsw:DatumMaatregel ;
+      gwsw:hasValue ?DatumInspectie ;
     ];
   ] .}
-  optional {?lei :isInputOf 
+  optional {?obj gwsw:isInputOf 
   [
-    rdf:type :Reinigen ;
-    :hasAspect
+    rdf:type gwsw:Reinigen ;
+    gwsw:hasAspect
     [
-      rdf:type :DatumMaatregel ;
-      :hasValue ?DatumReiniging ;
+      rdf:type gwsw:DatumMaatregel ;
+      gwsw:hasValue ?DatumReiniging ;
     ];
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :WIONThema ;
-      :hasReference ?WIONThema ;
+      rdf:type gwsw:WIONThema ;
+      gwsw:hasReference ?WIONThema ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :AantalWoningen ;
-      :hasValue ?AantalWoningen ;
+      rdf:type gwsw:AantalWoningen ;
+      gwsw:hasValue ?AantalWoningen ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :Aantal_ieBedrijven ;
-      :hasValue ?Aantal_ieBedrijven ;
+      rdf:type gwsw:Aantal_ieBedrijven ;
+      gwsw:hasValue ?Aantal_ieBedrijven ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :Aantal_ieRecreatie ;
-      :hasValue ?Aantal_ieRecreatie ;
+      rdf:type gwsw:Aantal_ieRecreatie ;
+      gwsw:hasValue ?Aantal_ieRecreatie ;
   ] .}
   optional
   {
-      SELECT ?lei (sum(?ao) as ?AfvoerendOppervlak) # sommeer de types ao
+      SELECT ?obj (sum(?ao) as ?AfvoerendOppervlak) # sommeer de types ao
       WHERE
       {
-          optional {?lei :hasAspect 
+          optional {?obj gwsw:hasAspect 
           [
-              rdf:type :AfvoerendOppervlak ;
-              :hasValue ?ao ;
+              rdf:type gwsw:AfvoerendOppervlak ;
+              gwsw:hasValue ?ao ;
           ] .}
       }
-      GROUP BY ?lei
+      GROUP BY ?obj
   }
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :LateraalDebietDWA ;
-      :hasValue ?LateraalDebietDWA ;
+      rdf:type gwsw:LateraalDebietDWA ;
+      gwsw:hasValue ?LateraalDebietDWA ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :LateraalDebietHWA ;
-      :hasValue ?LateraalDebietHWA ;
+      rdf:type gwsw:LateraalDebietHWA ;
+      gwsw:hasValue ?LateraalDebietHWA ;
   ] .}
-  optional {?lei :hasAspect 
+  optional {?obj gwsw:hasAspect 
   [
-      rdf:type :LateraalAfvoerendOppervlak ;
-      :hasValue ?LateraalAfvoerendOppervlak ;
+      rdf:type gwsw:LateraalAfvoerendOppervlak ;
+      gwsw:hasValue ?LateraalAfvoerendOppervlak ;
   ] .}
-  BIND (strafter(str(?lei), "#") AS ?uri)
-  BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
-  BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)
+  #BIND (strafter(str(?obj), "#") AS ?uri)
+  BIND (?obj AS ?uri) # De complete IRI in de uitvoer (20230416)
+
+  #BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
+  #BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)
+  BIND (IF (BOUND(?_uriB), ?_uriB, "") AS ?uriB) # De complete IRI in de uitvoer (20230416)
+  BIND (IF (BOUND(?_uriE), ?_uriE, "") AS ?uriE) # De complete IRI in de uitvoer (20230416)
 }

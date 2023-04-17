@@ -5,54 +5,56 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naamPunt ?uriPunt ?naam ?uri ?type ?Punt ?begin ?eind ?BreedteOpening ?HoogteOpening ?VormOpening ?Doorlaatniveau ?Contractiecoef ?MaxCapDoorlaat  ?Pompcapaciteit ?AanslagniveauBeneden ?AfslagniveauBeneden ?AanslagniveauBoven ?AfslagniveauBoven ?Drempelbreedte ?Drempelniveau ?Stromingsrichting
 
 WHERE
 { 
-  ?put :hasAspect 
+  ?obj gwsw:hasAspect 
   [
-    rdf:type :TopologischElement ;
-    :hasAspect
+    rdf:type gwsw:TopologischElement ;
+    gwsw:hasAspect
     [ 
-    rdf:type :Punt ;
-    :hasValue ?Punt ;
+    rdf:type gwsw:Punt ;
+    gwsw:hasValue ?Punt ;
     ] ;
   ] .
-  FILTER (!(isBlank(?put)))
+  FILTER (!(isBlank(?obj)))
 
   # Alleen de delen van een Punt (Put, Bouwwerk)
 
-  { ?put :hasPart [ :hasPart ?ond ;] . } # Bijv. via stuwconstructie
+  { ?obj gwsw:hasPart [ gwsw:hasPart ?ond ;] . } # Bijv. via stuwconstructie
   UNION
-  { ?put :hasPart ?ond . }
+  { ?obj gwsw:hasPart ?ond . }
 
   # Dit deel staat al in Default_Punt (komt max 1x voor)
-  FILTER (NOT EXISTS{?ond rdf:type :Fundering})
+  FILTER (NOT EXISTS{?ond rdf:type gwsw:Fundering})
 
   ?ond sesame:directType ?type .  
   FILTER (!(isBlank(?type)))
 
   # Consequent alle delen, ook compartimenten met eigen Punt. Op dit niveau komen de put-gegevens ook goed mee.
   #  optional {
-  #  ?ond :hasAspect 
+  #  ?ond gwsw:hasAspect 
   #  [
-  #    rdf:type :TopologischElement ;
-  #    :hasAspect
+  #    rdf:type gwsw:TopologischElement ;
+  #    gwsw:hasAspect
   #    [ 
-  #      rdf:type :Punt ;
-  #      :hasValue ?ondPunt ;
+  #      rdf:type gwsw:Punt ;
+  #      gwsw:hasValue ?ondPunt ;
   #    ] ;
   #  ] .
   #}
   #FILTER (!BOUND(?ondPunt)) # Staat al in andere GIS-laag
 
-  ?put rdfs:label ?naamPunt .
+  ?obj rdfs:label ?naamPunt .
 
-  BIND (strafter(str(?put), "#") AS ?uriPunt) 
-  BIND (strafter(str(?ond), "#") AS ?uri) 
+  #BIND (strafter(str(?obj), "#") AS ?uriPunt) 
+  #BIND (strafter(str(?ond), "#") AS ?uri) 
+  BIND (?obj AS ?uriPunt) # De complete IRI in de uitvoer (20230416)
+  BIND (?ond AS ?uri) # De complete IRI in de uitvoer (20230416)
 
   optional
   {
@@ -61,8 +63,8 @@ WHERE
  
   optional
   {
-    ?put :isPartOf 
-    [ rdf:type :Stelsel ;
+    ?obj gwsw:isPartOf 
+    [ rdf:type gwsw:Stelsel ;
       rdfs:label ?Stelsel ;
         sesame:directType ?stelseltype ;
     ] .
@@ -72,105 +74,105 @@ WHERE
 
   optional
   {
-    ?ond :hasAspect ?ori .
-	  ?ori rdf:type :Onderdeelorientatie .
+    ?ond gwsw:hasAspect ?ori .
+	  ?ori rdf:type gwsw:Onderdeelorientatie .
     
     # de verbinding begin/eind
 
     optional
     {
-      ?ori :hasPart [
-          rdf:type :BeginpuntOnderdeel ;
-          :hasConnection ?bpunt ; ] .
+      ?ori gwsw:hasPart [
+          rdf:type gwsw:BeginpuntOnderdeel ;
+          gwsw:hasConnection ?bpunt ; ] .
     
-      { ?bpunt :isAspectOf [ rdfs:label ?begin ;] }
+      { ?bpunt gwsw:isAspectOf [ rdfs:label ?begin ;] }
       UNION
-      { ?bpunt :isPartOf [ :isAspectOf [ rdfs:label ?begin ;] ] . }
+      { ?bpunt gwsw:isPartOf [ gwsw:isAspectOf [ rdfs:label ?begin ;] ] . }
     }
     optional
     {
-      ?ori :hasPart [
-        rdf:type :EindpuntOnderdeel ;
-        :hasConnection ?epunt ; ] .
+      ?ori gwsw:hasPart [
+        rdf:type gwsw:EindpuntOnderdeel ;
+        gwsw:hasConnection ?epunt ; ] .
       
-      { ?epunt :isAspectOf [ rdfs:label ?eind ;] }
+      { ?epunt gwsw:isAspectOf [ rdfs:label ?eind ;] }
       UNION
-      { ?epunt :isPartOf [ :isAspectOf [ rdfs:label ?eind ;] ] . }
+      { ?epunt gwsw:isPartOf [ gwsw:isAspectOf [ rdfs:label ?eind ;] ] . }
     }
   }
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :DiameterOpening ;
-    :hasValue ?BreedteOpening ; # Diameter als breedte vermelden
+    rdf:type gwsw:DiameterOpening ;
+    gwsw:hasValue ?BreedteOpening ; # Diameter als breedte vermelden
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :BreedteOpening ;
-    :hasValue ?BreedteOpening ;
+    rdf:type gwsw:BreedteOpening ;
+    gwsw:hasValue ?BreedteOpening ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :HoogteOpening ;
-    :hasValue ?HoogteOpening ;
+    rdf:type gwsw:HoogteOpening ;
+    gwsw:hasValue ?HoogteOpening ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :VormOpening ;
-    :hasReference ?VormOpening ;
+    rdf:type gwsw:VormOpening ;
+    gwsw:hasReference ?VormOpening ;
   ] .}
-  optional {?ond :hasAspect # 20190812
+  optional {?ond gwsw:hasAspect # 20190812
   [
-    rdf:type :Doorlaatniveau ;
-    :hasValue ?Doorlaatniveau ;
+    rdf:type gwsw:Doorlaatniveau ;
+    gwsw:hasValue ?Doorlaatniveau ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :ContractiecoefficientDoorlaatprofiel ;
-    :hasValue ?Contractiecoef ;
+    rdf:type gwsw:ContractiecoefficientDoorlaatprofiel ;
+    gwsw:hasValue ?Contractiecoef ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :MaximaleCapaciteitDoorlaat ;
-    :hasValue ?MaxCapDoorlaat ;
+    rdf:type gwsw:MaximaleCapaciteitDoorlaat ;
+    gwsw:hasValue ?MaxCapDoorlaat ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    sesame:directType :Pompcapaciteit ; # Niet de subtypes (20201117)
-    :hasValue ?Pompcapaciteit ;
+    sesame:directType gwsw:Pompcapaciteit ; # Niet de subtypes (20201117)
+    gwsw:hasValue ?Pompcapaciteit ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :AanslagniveauBenedenstrooms ;
-    :hasValue ?AanslagniveauBeneden ;
+    rdf:type gwsw:AanslagniveauBenedenstrooms ;
+    gwsw:hasValue ?AanslagniveauBeneden ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :AfslagniveauBenedenstrooms ;
-    :hasValue ?AfslagniveauBeneden ;
+    rdf:type gwsw:AfslagniveauBenedenstrooms ;
+    gwsw:hasValue ?AfslagniveauBeneden ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :AanslagniveauBovenstrooms ;
-    :hasValue ?AanslagniveauBoven ;
+    rdf:type gwsw:AanslagniveauBovenstrooms ;
+    gwsw:hasValue ?AanslagniveauBoven ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :AfslagniveauBovenstrooms ;
-    :hasValue ?AfslagniveauBoven ;
+    rdf:type gwsw:AfslagniveauBovenstrooms ;
+    gwsw:hasValue ?AfslagniveauBoven ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :Drempelbreedte ;
-    :hasValue ?Drempelbreedte ;
+    rdf:type gwsw:Drempelbreedte ;
+    gwsw:hasValue ?Drempelbreedte ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :Drempelniveau ;
-    :hasValue ?Drempelniveau ;
+    rdf:type gwsw:Drempelniveau ;
+    gwsw:hasValue ?Drempelniveau ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :Stromingsrichting ;
-    :hasReference ?Stromingsrichting ;
+    rdf:type gwsw:Stromingsrichting ;
+    gwsw:hasReference ?Stromingsrichting ;
   ] .}
 }

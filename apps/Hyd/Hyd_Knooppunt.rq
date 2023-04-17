@@ -14,7 +14,7 @@ SELECT DISTINCT ?uri ?uriCps ?Stelsel ?naam ?naamComp ?type ?geenPut ?blind ?Pun
 
 WHERE
 { 
-  {  ?ori rdf:type :Knooppunt ; 
+  {  ?ori rdf:type :Knooppunt ; # Aansluitpunt, bouwwerk-ori, compartiment-ori, hulpstuk-ori, put-ori
           :isAspectOf ?uri . 
   }
   UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230228)

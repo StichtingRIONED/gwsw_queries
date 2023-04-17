@@ -1,0 +1,61 @@
+# GWSW/Geo-thema Waterschap: IBA (20230416)
+# Filter op:
+# * heeft geometrie gwsw:Punt
+# * is (super)type gwsw:IBA
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?Punt ?type ?BreedteBouwwerk ?Begindatum ?Einddatum ?HoogteBouwwerk ?LengteBouwwerk ?MateriaalBouwwerk ?StatusFunctioneren ?comment ?naam
+
+WHERE
+{ 
+  ?obj gwsw:hasAspect ?ori .
+  ?ori rdf:type gwsw:TopologischElement .
+  ?obj rdf:type gwsw:IBA .
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+  
+  ?ori gwsw:hasAspect
+  [ 
+    rdf:type gwsw:Punt ;
+    gwsw:hasValue ?Punt ;
+  ] .
+   optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
+   optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:Begindatum ;
+       gwsw:hasValue ?Begindatum ;
+   ] .}
+   optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:Einddatum ;
+       gwsw:hasValue ?Einddatum ;
+   ] .}
+   optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:MateriaalBouwwerk ;
+       gwsw:hasReference ?MateriaalBouwwerk ;
+   ] . }
+   optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:LengteBouwwerk ;
+       gwsw:hasValue ?LengteBouwwerk ;
+   ] .}
+      optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:HoogteBouwwerk ;
+       gwsw:hasValue ?HoogteBouwwerk ;
+   ] .}
+   optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:StatusFunctioneren ;
+       gwsw:hasReference ?StatusFunctioneren ;
+   ] . }
+   optional {?obj rdfs:comment ?comment. }
+}

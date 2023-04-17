@@ -5,39 +5,39 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naamLijn ?uriLijn ?naam ?uri ?type ?Lijn ?Begindatum ?Einddatum ?DikteLining ?MateriaalLining
 
 WHERE
 { 
-  ?lei :hasAspect 
+  ?obj gwsw:hasAspect 
   [
-    rdf:type :TopologischElement ;
-    :hasAspect
+    rdf:type gwsw:TopologischElement ;
+    gwsw:hasAspect
     [ 
-    rdf:type :Lijn ;
-    :hasValue ?Lijn ;
+    rdf:type gwsw:Lijn ;
+    gwsw:hasValue ?Lijn ;
     ] ;
   ] .
-  FILTER (!(isBlank(?lei)))
+  FILTER (!(isBlank(?obj)))
 
   # Alleen de delen van een Lijn (Leiding, ...)
 
-  { ?lei :hasPart ?ond . }
+  { ?obj gwsw:hasPart ?ond . }
 
   # Dit deel staat al in Default_Lijn (komt max 1x voor)
-  FILTER (NOT EXISTS{?ond rdf:type :Fundering})
+  FILTER (NOT EXISTS{?ond rdf:type gwsw:Fundering})
 
   ?ond sesame:directType ?type .  
   FILTER (!(isBlank(?type)))
 
-  ?lei rdfs:label ?naamLijn .
+  ?obj rdfs:label ?naamLijn .
 
-  # BIND (strafter(str(?lei), "#") AS ?uriPunt) 
+  # BIND (strafter(str(?obj), "#") AS ?uriPunt) 
   # BIND (strafter(str(?ond), "#") AS ?uri) 
-  BIND  (?lei as ?uriLijn) # uri compeeet houden
+  BIND  (?obj as ?uriLijn) # uri compteet houden
   BIND  (?ond as ?uri) # uri compeeet houden
 
   optional
@@ -46,30 +46,30 @@ WHERE
   }
   optional
   {
-    ?lei :isPartOf 
-    [ rdf:type :Stelsel ;
+    ?obj gwsw:isPartOf 
+    [ rdf:type gwsw:Stelsel ;
       rdfs:label ?Stelsel ;
         sesame:directType ?stelseltype ;
     ] .
   }
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-      rdf:type :Begindatum ;
-      :hasValue ?Begindatum ;
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?Begindatum ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-      rdf:type :Einddatum ;
-      :hasValue ?Einddatum ;
+      rdf:type gwsw:Einddatum ;
+      gwsw:hasValue ?Einddatum ;
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :DikteLining ;
-    :hasValue ?DikteLining ; # Diameter als breedte vermelden
+    rdf:type gwsw:DikteLining ;
+    gwsw:hasValue ?DikteLining ; # Diameter als breedte vermelden
   ] .}
-  optional {?ond :hasAspect 
+  optional {?ond gwsw:hasAspect 
   [
-    rdf:type :MateriaalLining ;
-    :hasValue ?MateriaalLining ; # Diameter als breedte vermelden
+    rdf:type gwsw:MateriaalLining ;
+    gwsw:hasValue ?MateriaalLining ; # Diameter als breedte vermelden
   ] .}
 }
