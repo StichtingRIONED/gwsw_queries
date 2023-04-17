@@ -11,7 +11,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?Punt ?type ?uri_leiding ?Begindatum ?Einddatum
+SELECT ?Punt ?type ?uri_leiding ?Begindatum ?Einddatum
 
 WHERE
 {
@@ -32,7 +32,7 @@ WHERE
 
    optional { # Deel van een leiding?
     ?obj gwsw:isPartOf ?uri_leiding .
-    ?uri_leding rdf:type gwsw:Leiding .
+    ?uri_leiding rdf:type gwsw:Leiding .
    }
    optional {?obj gwsw:hasAspect 
    [
