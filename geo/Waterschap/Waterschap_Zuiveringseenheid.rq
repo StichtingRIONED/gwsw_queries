@@ -11,7 +11,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Vlak ?RWZI ?Code ?naam
+SELECT ?Vlak ?type ?RWZI ?Code ?naam
 
 WHERE
 { 
