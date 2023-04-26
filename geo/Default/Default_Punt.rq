@@ -21,7 +21,7 @@ WHERE
   }
   UNION # ook de zelfstandige topologische elementen
   {
-    ?obj rdf:type gwsw:Aanvoerpunt .
+    ?obj rdf:type gwsw:Aansluitpunt . # Supertype van Uitlaatpunt en zo (20230426) (hier stond het foute gwsw:Aanvoerpunt)
     BIND (?obj as ?ori)
   }
   FILTER (!(isBlank(?obj)))
