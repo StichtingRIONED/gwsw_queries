@@ -11,16 +11,19 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Lijn ?uri ?type ?Begindatum ?Einddatum ?LengteLeiding ?DiameterLeiding ?MateriaalLeiding ?VormLeiding ?StatusFunctioneren ?comment ?naam
+SELECT ?Lijn ?type ?Begindatum ?Einddatum ?LengteLeiding ?DiameterLeiding ?MateriaalLeiding ?VormLeiding ?StatusFunctioneren ?code ?naam
 WHERE
 { 
   ?obj gwsw:hasAspect ?ori .
   ?ori rdf:type gwsw:TopologischElement . # lees lei-geo (vanaf versie 1.4 altijd aanwezig)
   FILTER (!(isBlank(?obj)))
-  ?obj rdf:type gwsw:Leidingsegment .
+
+  { ?obj rdf:type gwsw:Leidingsegment . }
+  UNION
+  { ?obj rdf:type gwsw:VrijvervalLeidingsegment . }
+  
   ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
-  BIND (?obj as ?uri)
 
   ?ori gwsw:hasAspect
     [ 
@@ -75,5 +78,5 @@ WHERE
       rdf:type gwsw:StatusFunctioneren ;
       gwsw:hasReference ?StatusFunctioneren ;
   ] . }
-  optional {?obj rdfs:comment ?comment. }
+  optional {?obj rdfs:comment ?code. }
 }

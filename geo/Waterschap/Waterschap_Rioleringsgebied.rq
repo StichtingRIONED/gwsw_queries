@@ -18,7 +18,7 @@ WHERE
   ?obj gwsw:hasAspect ?ori .
   ?ori rdf:type gwsw:TopologischElement .
   FILTER (!(isBlank(?obj)))
-  ?obj rdf:type gwsw:Zuiveringsgebied .
+  ?obj rdf:type gwsw:Rioleringsgebied .
   ?obj sesame:directType ?type .
 
   ?ori gwsw:hasAspect
@@ -26,7 +26,7 @@ WHERE
     rdf:type gwsw:Buitengrens ;
     gwsw:hasValue ?Vlak ;
   ] .
-  optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
+  optional { ?obj rdfs:label ?naam . } 
 
   optional {?obj gwsw:hasPart [ # heeft als deel RWZI ?
       rdf:type gwsw:RWZI;

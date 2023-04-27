@@ -11,28 +11,25 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Punt ?uri_leiding ?type ?comment ?naam
+SELECT ?Punt ?uri_leiding ?type ?code ?naam
 WHERE
 { 
-  ?obj gwsw:hasAspect ?ori .
-  ?ori rdf:type gwsw:TopologischElement .
-  FILTER (!(isBlank(?obj)))
   ?obj rdf:type gwsw:Lozingspunt .
   ?obj sesame:directType ?type .
 
-  ?ori gwsw:hasAspect
+  ?obj gwsw:hasAspect
   [ 
     rdf:type gwsw:Punt ;
     gwsw:hasValue ?Punt ;
   ] .
    optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
 
-   optional {?ori gwsw:hasConnection [ # verbonden met leiding ?
+   optional {?obj gwsw:hasConnection [ # verbonden met leiding ?
       rdf:type gwsw:Vertex ;
       gwsw:isPartOf  [
         rdf:type gwsw:Leidingorientatie;
         gwsw:isAspectOf ?uri_leiding ; 
       ] ;
    ] . }
-   optional {?obj rdfs:comment ?comment. }
+   optional {?obj rdfs:comment ?code. }
 }

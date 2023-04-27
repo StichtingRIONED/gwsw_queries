@@ -11,7 +11,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Lijn ?LengteLeiding ?DiameterLeiding ?MateriaalLeiding ?StatusFunctioneren ?comment ?naam
+SELECT ?Lijn ?type ?Begindatum ?LengteLeiding ?DiameterLeiding ?MateriaalLeiding ?StatusFunctioneren ?code ?naam
 WHERE
 { 
   ?obj gwsw:hasAspect ?ori .
@@ -26,9 +26,13 @@ WHERE
         rdf:type gwsw:Lijn ;
         gwsw:hasValue ?Lijn ;
     ] .
+  optional { ?obj rdfs:label ?naam . }
 
-  optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
-
+  optional {?obj gwsw:hasAspect 
+  [
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?Begindatum ;
+  ] .}
   optional {?obj gwsw:hasAspect 
   [
       rdf:type gwsw:MateriaalLeiding ;
@@ -59,5 +63,5 @@ WHERE
       rdf:type gwsw:StatusFunctioneren ;
       gwsw:hasReference ?StatusFunctioneren ;
   ] . }
-  optional {?obj rdfs:comment ?comment. }
+  optional {?obj rdfs:comment ?code. }
 }

@@ -11,18 +11,13 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Punt ?type ?invoer ?comment ?naam
+SELECT ?Punt ?type ?invoer ?code ?naam
 WHERE
 { 
-  BIND (str(iri(gwsw:)) AS ?aft) # de prefix, voor optioneel inkorten IRI
-
-  ?obj gwsw:hasAspect ?ori .
-  ?ori rdf:type gwsw:TopologischElement .
-  FILTER (!(isBlank(?obj)))
   ?obj rdf:type gwsw:Overnamepunt .
   ?obj sesame:directType ?type .
 
-  ?ori gwsw:hasAspect
+  ?obj gwsw:hasAspect
   [ 
     rdf:type gwsw:Punt ;
     gwsw:hasValue ?Punt ;
@@ -32,6 +27,6 @@ WHERE
       rdf:type gwsw:Invoer ;
       gwsw:hasValue ?invoer ;
   ] .}
-  optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
-  optional { ?obj rdfs:comment ?comment . }
+  optional { ?obj rdfs:label ?naam . }  
+  optional { ?obj rdfs:comment ?code . }
 }
