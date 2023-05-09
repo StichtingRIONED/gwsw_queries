@@ -10,7 +10,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Punt ?type ?BreedteBouwwerk ?Begindatum ?Einddatum ?HoogteBouwwerk ?LengteBouwwerk ?MateriaalBouwwerk ?StatusFunctioneren ?code ?naam
+SELECT ?Punt ?type ?BreedteBouwwerk ?Begindatum ?Einddatum ?HoogteBouwwerk ?LengteBouwwerk ?BreedteBouwwerk ?MateriaalBouwwerk ?StatusFunctioneren ?code ?naam
 
 WHERE
 { 
@@ -42,6 +42,11 @@ WHERE
        rdf:type gwsw:MateriaalBouwwerk ;
        gwsw:hasReference ?MateriaalBouwwerk ;
    ] . }
+   optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:BreedteBouwwerk ;
+       gwsw:hasValue ?BreedteBouwwerk ;
+   ] .}
    optional {?obj gwsw:hasAspect 
    [
        rdf:type gwsw:LengteBouwwerk ;

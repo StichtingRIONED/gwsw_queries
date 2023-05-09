@@ -11,7 +11,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Punt ?type ?adresgegevens ?Begindatum ?Einddatum ?StatusFunctioneren ?code ?naam
+SELECT ?Punt ?type ?Adresgegevens ?Begindatum ?Einddatum ?StatusFunctioneren ?code ?naam
 
 WHERE
 { 
@@ -42,6 +42,11 @@ WHERE
    [
        rdf:type gwsw:StatusFunctioneren ;
        gwsw:hasReference ?StatusFunctioneren ;
+   ] . }
+   optional {?obj gwsw:hasAspect 
+   [
+       rdf:type gwsw:Adresgegevens ;
+       gwsw:hasValue ?Adresgegevens ;
    ] . }
    optional {?obj rdfs:comment ?code. }
 }
