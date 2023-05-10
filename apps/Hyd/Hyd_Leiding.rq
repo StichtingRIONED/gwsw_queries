@@ -60,7 +60,6 @@ WHERE
           BIND (?bpunt as ?bUri) 
         }
 	}
-	
 	optional
 	{
         ?ori :hasPart ?epnt .

@@ -1,4 +1,4 @@
-# Geoserver: Hyd_Verbinding.spq (20170910-20180412)
+# GWSW Geo: Netwerk_Verbinding.spq (20170910,20180412,20230510)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -34,86 +34,91 @@ WHERE
        rdf:type :Lijn ;
        :hasValue ?Lijn ;
    ] .
-    optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
+   # Synchroon met Hyd_Leiding gemaakt (20230510)
+   
+   # optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
+   # {
+   #     ?ori :hasPart ?bpnt .
+   #     ?bpnt rdf:type :BeginpuntLeiding .
+   #     optional {?bpnt :hasAspect
+   #     [ 
+   #        rdf:type :BobBeginpuntLeiding ;
+   #        :hasValue ?BobBeginpuntLeiding ;
+   #     ] .}
+   #     ?bpnt :hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
+   #	optional
+	#	{
+	#		?bconn :hasAspect
+	#		[ 
+	#			rdf:type :Punt ;
+	#			:hasValue ?bgeo ;
+    #        ] .
+	#	}
+    #	    # Bepaal naam van de aansluiting
+ 	#	{ ?bconn :isAspectOf ?bconn1 . }
+    #    union
+    #    { ?bconn :isPartOf [ :isAspectOf ?bconn1 ; ] . } # rechtstreekse aansluiting op pomp
+    #        
+    #    ?bconn1 rdfs:label ?beginpunt1 .
+	#	
+    #    optional # toegevoegde naam?
+	#	{
+	#		?bconn1 :isPartOf ?bconn2 . # deel van put / bouwwerk
+    #        filter not exists {?bconn2 rdf:type :Stelsel .} # alles behalve Stelsel-types
+	#		?bconn2 rdfs:label ?beginpunt2 .
+	#	}
+    #    # Ga ervan uit dat beginpunt1 (compartiment) unieke naam heeft (20190527)
+    #    # bind (if(bound(?beginpunt1) && bound(?beginpunt2), concat(str(?beginpunt2), "/", str(?beginpunt1)), if (bound(?beginpunt1), ?beginpunt1, "")) as ?beginpunt)
+    #    BIND (COALESCE (?beginpunt1, ?beginpunt2) as ?beginpunt) # de eerst geldende (20190527)
+	#}
+    
+    optional
     {
         ?ori :hasPart ?bpnt .
         ?bpnt rdf:type :BeginpuntLeiding .
-		
+ 
         optional {?bpnt :hasAspect
         [ 
            rdf:type :BobBeginpuntLeiding ;
            :hasValue ?BobBeginpuntLeiding ;
         ] .}
-		
-        ?bpnt :hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
-		
-		optional
-		{
-			?bconn :hasAspect
-			[ 
-				rdf:type :Punt ;
-				:hasValue ?bgeo ;
-            ] .
-		}
-			
-		# Bepaal naam van de aansluiting
-		
- 		{ ?bconn :isAspectOf ?bconn1 . }
-        union
-        { ?bconn :isPartOf [ :isAspectOf ?bconn1 ; ] . } # rechtstreekse aansluiting op pomp
-            
-        ?bconn1 rdfs:label ?beginpunt1 .
-		
-        optional # toegevoegde naam?
-		{
-			?bconn1 :isPartOf ?bconn2 . # deel van put / bouwwerk
-            filter not exists {?bconn2 rdf:type :Stelsel .} # alles behalve Stelsel-types
-			?bconn2 rdfs:label ?beginpunt2 .
-		}
-        # Ga ervan uit dat beginpunt1 (compartiment) unieke naam heeft (20190527)
-        # bind (if(bound(?beginpunt1) && bound(?beginpunt2), concat(str(?beginpunt2), "/", str(?beginpunt1)), if (bound(?beginpunt1), ?beginpunt1, "")) as ?beginpunt)
-        BIND (COALESCE (?beginpunt1, ?beginpunt2) as ?beginpunt) # de eerst geldende (20190527)
+        ?bpnt :hasConnection ?bpunt .
+        
+        { ?bpunt :isAspectOf ?bUri }
+        UNION
+        { ?bpunt :isPartOf [ :isAspectOf ?bUri ] . }
+        UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
+        {
+          FILTER NOT EXISTS {?bpunt :isAspectOf ?any1 .}
+          FILTER NOT EXISTS {?bpunt :isPartOf [ :isAspectOf ?any2 ] . }
+          BIND (?bpunt as ?bUri) 
+        }
+        ?bUri rdfs:label ?beginpunt . 
 	}
-    optional # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
-    {
-		?ori :hasPart ?epnt .
-		?epnt rdf:type :EindpuntLeiding .
-		
+	optional
+	{
+        ?ori :hasPart ?epnt .
+        ?epnt rdf:type :EindpuntLeiding .
+
         optional {?epnt :hasAspect
         [ 
            rdf:type :BobEindpuntLeiding ;
            :hasValue ?BobEindpuntLeiding ;
         ] .}
-		
-      	?epnt :hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
-		
-		optional
+		?epnt :hasConnection ?epunt .
+        
+        { ?epunt :isAspectOf ?eUri }
+        UNION
+        { ?epunt :isPartOf [ :isAspectOf ?eUri ] . }
+        UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
         {
-            ?econn :hasAspect
-            [ 
-                rdf:type :Punt ;
-                :hasValue ?egeo ;
-            ] . 
- 		}
-		
-		# Bepaal naam van de aansluiting
-            
-        { ?econn :isAspectOf ?econn1 . }
-        union
-        { ?econn :isPartOf [ :isAspectOf ?econn1 ; ] . } # rechtstreekse aansluiting op pomp
-            
-      	?econn1 rdfs:label ?eindpunt1 .
+          FILTER NOT EXISTS {?epunt :isAspectOf ?any3 .}
+          FILTER NOT EXISTS {?epunt :isPartOf [ :isAspectOf ?any4 ] . }
+          BIND (?epunt as ?eUri) 
+        }
+        ?eUri rdfs:label ?eindpunt . 
+   }
 
-        optional # toegevoegde naam?
-		{
-			?econn1 :isPartOf ?econn2 . # deel van put / bouwwerk
-            filter not exists {?econn2 rdf:type :Stelsel .} # alles behalve Stelsel-types
-			?econn2 rdfs:label ?eindpunt2 .
-		}
-        # Zie beginpunt
-        #bind (if(bound(?eindpunt1) && bound(?eindpunt2), concat(str(?eindpunt2), "/", str(?eindpunt1)), if (bound(?eindpunt1), ?eindpunt1, "")) as ?eindpunt)
-        BIND (COALESCE (?eindpunt1, ?eindpunt2) as ?eindpunt) # de eerst geldende (20190527)
-    }
    optional {?lei :hasAspect 
    [
        rdf:type :MateriaalLeiding ;
