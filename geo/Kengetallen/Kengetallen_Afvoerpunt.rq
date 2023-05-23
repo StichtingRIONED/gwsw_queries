@@ -7,7 +7,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?Afvoernetwerk ?Afvoerpunt ?Eigenaar ?uri ?type ?Punt ?aanvoernaam ?aanvoertype ?AantalInwoners ?AantalVe ?AantalVeBedrijven ?AantalVeInwoners ?AantalVeRecreatie ?Afvoercapaciteit ?AfvoerendOppervlak ?AfvoerendOppervlak_NietAangesloten ?DWADebiet ?DWADebietBedrijven ?DWADebietInwoners ?DWADebietRecreatie ?Ledigingstijd ?NettoBerging ?NettoBergingRandvoorzieningen ?NiveauBerging ?NormatievePompovercapaciteit ?Ontwerpcapaciteit ?Pompovercapaciteit ?VerlorenBerging ?Vultijd
+SELECT DISTINCT ?Afvoernetwerk ?Afvoerpunt ?Eigenaar ?uri ?type ?Punt ?aanvoernaam ?aanvoertype ?AantalWoningen ?AantalInwoners ?AantalVe ?AantalVeBedrijven ?AantalVeInwoners ?AantalVeRecreatie ?Afvoercapaciteit ?AfvoerendOppervlak ?AfvoerendOppervlak_NietAangesloten ?DWADebiet ?DWADebietBedrijven ?DWADebietInwoners ?DWADebietRecreatie ?Ledigingstijd ?NettoBerging ?NettoBergingRandvoorzieningen ?NiveauBerging ?NormatievePompovercapaciteit ?Ontwerpcapaciteit ?Pompovercapaciteit ?VerlorenBerging ?Vultijd
 #SELECT DISTINCT ?Afvoerpunt ?uri ?type ?Punt ?Afvoernetwerk ?aanvoernaam ?aanvoertype ?NettoBerging
 
 WHERE
@@ -66,6 +66,11 @@ WHERE
     [
         rdf:type gwsw:Eigenaar ;
         rdfs:label ?Eigenaar ;
+    ] .}
+    optional {?punt gwsw:hasAspect 
+    [
+        rdf:type gwsw:AantalWoningen ;
+        gwsw:hasValue ?AantalWoningen ;
     ] .}
     optional {?punt gwsw:hasAspect 
     [
