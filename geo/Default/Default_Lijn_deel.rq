@@ -1,4 +1,4 @@
-# Geoserver: Default_Lijn_Deel (20220301)
+# GWSW Geo: Default_Lijn_deel (20220301)
 # Alle delen van een lijn-object (Lining, ...)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -25,7 +25,7 @@ WHERE
 
   # Alleen de delen van een Lijn (Leiding, ...)
 
-  { ?obj gwsw:hasPart ?ond . }
+  ?obj gwsw:hasPart ?ond .
 
   # Dit deel staat al in Default_Lijn (komt max 1x voor)
   FILTER (NOT EXISTS{?ond rdf:type gwsw:Fundering})

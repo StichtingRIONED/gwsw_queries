@@ -87,13 +87,17 @@ WHERE
    optional {?obj gwsw:hasAspect 
    [
        rdf:type gwsw:DiameterPut ;
-       gwsw:hasValue ?BreedtePut ; # Diameter als breedte vermelden
+   # Werkt niet altijd goed? Opgelost via COALESCE (20230710)
+   #      gwsw:hasValue ?BreedtePut ; # Diameter als breedte vermelden
+       gwsw:hasValue ?dia ;  
    ] .}
    optional {?obj gwsw:hasAspect 
    [
        rdf:type gwsw:BreedtePut ;
-       gwsw:hasValue ?BreedtePut ;
+       gwsw:hasValue ?br ;
    ] .}
+   BIND (COALESCE (?br, ?dia) as ?BreedtePut) # de eerst geldende doet mee (20230710)
+
    optional {?obj gwsw:hasAspect 
    [
        rdf:type gwsw:LengtePut ;

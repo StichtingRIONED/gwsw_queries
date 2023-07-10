@@ -83,16 +83,21 @@ WHERE
        rdf:type :VormPut ;
        :hasReference ?VormPut ;
    ] .}
+
    optional {?put :hasAspect 
    [
        rdf:type :DiameterPut ;
-       :hasValue ?BreedtePut ; # Diameter als breedte vermelden
+   # Werkt niet altijd goed? Opgelost via COALESCE (20230710)
+   #      :hasValue ?BreedtePut ; # Diameter als breedte vermelden
+       :hasValue ?dia ;  
    ] .}
    optional {?put :hasAspect 
    [
        rdf:type :BreedtePut ;
-       :hasValue ?BreedtePut ;
+       :hasValue ?br ;
    ] .}
+   BIND (COALESCE (?br, ?dia) as ?BreedtePut) # de eerst geldende doet mee (20230710)   
+   
    optional {?put :hasAspect 
    [
        rdf:type :LengtePut ;
