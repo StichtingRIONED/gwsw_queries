@@ -1,70 +1,73 @@
 # Hyd_Pomp.spq
-# Gegevens pompen (20170824-20190530)
+# Gegevens pompen (20170824/20190530/20230720)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?naam ?bUri ?eUri ?Pompcapaciteit ?AanslagniveauBenedenstrooms ?AfslagniveauBenedenstrooms ?AanslagniveauBovenstrooms ?AfslagniveauBovenstrooms
 
 WHERE
 { 
-    ?ond sesame:directType :Pomp .
+    ?ond sesame:directType gwsw:Pomp .
 	
 	optional 
 	{
 		?ond rdfs:label ?naam .
 	}
-	?ond :hasAspect ?ori .
-    ?ori rdf:type :Onderdeelorientatie ;
-         :hasPart 
+	?ond gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:Onderdeelorientatie ;
+         gwsw:hasPart 
          [
-        	rdf:type :BeginpuntOnderdeel ;
-        	:hasConnection 
+        	rdf:type gwsw:BeginpuntOnderdeel ;
+        	gwsw:hasConnection
             [
-        		:isAspectOf ?bUri ;
+        		gwsw:isAspectOf ?bUri ; # beginpunt is altijd een kenmerk van put/cmp/bouwwerk-ori
     		] ] .
 
-	optional
+	optional # eindpunt verbinding gekoppeld?
     {
-        ?ori :hasPart ?ePunt .
-		?ePunt rdf:type :EindpuntOnderdeel .
-		
-        # Vervalt: altijd koppelen via Knooppunt (ePunt doet niet meer mee in query-results) (20190530)
-        #optional # Eventueel opvoergemaal, connectie met cmp
-		#{
-			?ePunt :hasConnection 
-			[
-				:isAspectOf ?eUri ;
-			] .
-        #}
+        ?ori gwsw:hasPart ?ePunt .
+		?ePunt rdf:type gwsw:EindpuntOnderdeel .
+    	?ePunt gwsw:hasConnection ?epunt .
+
+        # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection) (20230720)
+        {   ?epunt rdf:type  ?typEpunt .
+            FILTER (?typEpunt IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie ))
+            ?epunt gwsw:isAspectOf ?eUri . # orientatie moet kenmerk van het fysieke ding zijn
+        }
+        UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+        {
+            ?epunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+            BIND (?epunt as ?eUri)
+        }
     }
-   optional {?ond :hasAspect 
+   optional {?ond gwsw:hasAspect 
    [
-       rdf:type :Pompcapaciteit ;
-       :hasValue ?Pompcapaciteit ;
+       rdf:type gwsw:Pompcapaciteit ;
+       gwsw:hasValue ?Pompcapaciteit ;
    ] .}
-   optional {?ond :hasAspect 
+   optional {?ond gwsw:hasAspect 
    [
-       rdf:type :AanslagniveauBenedenstrooms ;
-       :hasValue ?AanslagniveauBenedenstrooms ;
+       rdf:type gwsw:AanslagniveauBenedenstrooms ;
+       gwsw:hasValue ?AanslagniveauBenedenstrooms ;
    ] .}
-   optional {?ond :hasAspect 
+   optional {?ond gwsw:hasAspect 
    [
-       rdf:type :AfslagniveauBenedenstrooms ;
-       :hasValue ?AfslagniveauBenedenstrooms ;
+       rdf:type gwsw:AfslagniveauBenedenstrooms ;
+       gwsw:hasValue ?AfslagniveauBenedenstrooms ;
    ] .}
-   optional {?ond :hasAspect 
+   optional {?ond gwsw:hasAspect 
    [
-       rdf:type :AanslagniveauBovenstrooms ;
-       :hasValue ?AanslagniveauBovenstrooms ;
+       rdf:type gwsw:AanslagniveauBovenstrooms ;
+       gwsw:hasValue ?AanslagniveauBovenstrooms ;
    ] .}
-   optional {?ond :hasAspect 
+   optional {?ond gwsw:hasAspect 
    [
-       rdf:type :AfslagniveauBovenstrooms ;
-       :hasValue ?AfslagniveauBovenstrooms ;
+       rdf:type gwsw:AfslagniveauBovenstrooms ;
+       gwsw:hasValue ?AfslagniveauBovenstrooms ;
    ] .}
 }

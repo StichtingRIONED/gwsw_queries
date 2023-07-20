@@ -12,14 +12,15 @@ SELECT ?bUri ?Punt
 
 WHERE
 { 
-  ?uri sesame:directType :UitlaatPunt .
+  ?bUri sesame:directType :UitlaatPunt .
 
-	optional { # UitlaatPunt hoeft geen aspect te zijn, begin/eindpunt leiding heeft vrije uitstroming (20230228)
-		?uri :isAspectOf ?cpsUri .
-	}
-  BIND (IF(BOUND(?cpsUri), ?cpsUri, ?uri) AS ?bUri) 
+  # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+	# Vervalt (20230719): optional { # UitlaatPunt hoeft geen aspect te zijn, begin/eindpunt leiding heeft vrije uitstroming (20230228)
+	#	?uri :isAspectOf ?cpsUri .
+	#}
+  #BIND (IF(BOUND(?cpsUri), ?cpsUri, ?uri) AS ?bUri) 
 
-	?uri :hasAspect [
+	?bUri :hasAspect [
 		rdf:type :Punt ;
 		:hasValue ?Punt ; ] .
 }

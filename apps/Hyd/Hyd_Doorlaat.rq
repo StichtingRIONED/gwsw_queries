@@ -1,90 +1,99 @@
 # Hyd_Doorlaat.spq
-# Tbv conversie naar GWSW.hydx (20170901-20190812)
+# Tbv conversie naar GWSW.hydx (20170901/20190812/20230720)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX : <{{&version}}>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?naam ?bUri ?eUri ?BreedteOpening ?HoogteOpening ?VormOpening ?Doorlaatniveau ?ContractiecoefficientDoorlaatprofiel ?MaximaleCapaciteitDoorlaat ?Stromingsrichting
 
 WHERE
 { 
-    ?uri rdf:type :Doorlaat .
+    ?uri rdf:type gwsw:Doorlaat .
 	FILTER (!isBlank(?uri))
 	
 	optional
 	{
 		?uri rdfs:label ?naam .
 	}
-	?uri :hasAspect ?ori .
+	?uri gwsw:hasAspect ?ori .
 	
-    ?ori rdf:type :Onderdeelorientatie ;
-         :hasPart [
-		  	rdf:type :BeginpuntOnderdeel ;
-        	:hasConnection ?bpunt ; 
-			
-			# Via Doorlaatniveau (20190812)
-			#:hasAspect [
-			#	rdf:type :BinnenonderkantOnderdeel ;
-			#	:hasValue ?BinnenonderkantOnderdeel ]	
-			
-			] .
-         
-	{ ?bpunt :isAspectOf ?bUri }
-	UNION
-	{ ?bpunt :isPartOf [ :isAspectOf ?bUri ] . }
+    ?ori rdf:type gwsw:Onderdeelorientatie ;
+         gwsw:hasPart [
+		  	rdf:type gwsw:BeginpuntOnderdeel ;
+        	gwsw:hasConnection ?bpunt ; # koppelt alleen op knooppunt (20230719)
+		 ] .
 
-	optional
-    {
-        ?ori :hasPart [
-		  	rdf:type :EindpuntOnderdeel ;
-        	:hasConnection ?epunt ; ] .
-
-        { ?epunt :isAspectOf ?eUri }
-        UNION
-        { ?epunt :isPartOf [ :isAspectOf ?eUri ] . }
+    # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection)
+    {   ?bpunt rdf:type  ?typBpunt .
+        FILTER (?typBpunt IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie ))
+        ?bpunt gwsw:isAspectOf ?bUri . # orientatie moet kenmerk van het fysieke ding zijn
     }
-   optional {?uri :hasAspect 
+    UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+    {
+        ?bpunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+        BIND (?bpunt as ?bUri)
+    }
+	optional # eindpunt verbinding gekoppeld?
+    {
+        ?ori gwsw:hasPart [
+		  	rdf:type gwsw:EindpuntOnderdeel ;
+        	gwsw:hasConnection ?epunt ; ] . # koppelt alleen op knooppunt (20230719)
+
+        # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection) (20230720)
+        {   ?epunt rdf:type  ?typEpunt .
+            FILTER (?typEpunt IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie )) 
+            ?epunt gwsw:isAspectOf ?eUri . # orientatie moet kenmerk van het fysieke ding zijn
+        }
+        UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+        {
+            ?epunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+            BIND (?epunt as ?eUri)
+        }
+    }
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :DiameterOpening ;
-       :hasValue ?dia ;
+       rdf:type gwsw:DiameterOpening ;
+       gwsw:hasValue ?dia ;
    ] . }
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :BreedteOpening ;
-       :hasValue ?br ;
+       rdf:type gwsw:BreedteOpening ;
+       gwsw:hasValue ?br ;
    ] . }
    BIND (COALESCE (?dia, ?br) AS ?BreedteOpening) # diameter als breedte in result
 
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :HoogteOpening ;
-       :hasValue ?HoogteOpening ;
+       rdf:type gwsw:HoogteOpening ;
+       gwsw:hasValue ?HoogteOpening ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :VormOpening ;
-       :hasReference ?VormOpening ;
+       rdf:type gwsw:VormOpening ;
+       gwsw:hasReference ?VormOpening ;
    ] .}
-   optional {?uri :hasAspect # 20190812
+   optional {?uri gwsw:hasAspect # 20190812
    [
-       rdf:type :Doorlaatniveau ;
-       :hasValue ?Doorlaatniveau ;
+       rdf:type gwsw:Doorlaatniveau ;
+       gwsw:hasValue ?Doorlaatniveau ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :ContractiecoefficientDoorlaatprofiel ;
-       :hasValue ?ContractiecoefficientDoorlaatprofiel ;
+       rdf:type gwsw:ContractiecoefficientDoorlaatprofiel ;
+       gwsw:hasValue ?ContractiecoefficientDoorlaatprofiel ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :MaximaleCapaciteitDoorlaat ;
-       :hasValue ?MaximaleCapaciteitDoorlaat ;
+       rdf:type gwsw:MaximaleCapaciteitDoorlaat ;
+       gwsw:hasValue ?MaximaleCapaciteitDoorlaat ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :Stromingsrichting ;
-       :hasReference ?Stromingsrichting ;
+       rdf:type gwsw:Stromingsrichting ;
+       gwsw:hasReference ?Stromingsrichting ;
    ] .}
 }

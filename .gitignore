@@ -8,6 +8,7 @@
 /hyd/*.csv
 /hyd_v131/*.csv
 /geo/Archief
+/apps/Archief
 
 node_modules_org
 # system files

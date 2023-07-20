@@ -1,74 +1,95 @@
 # Hyd_Knooppunt.spq
-# Tbv conversie naar GWSW.hydx (20170901/20190429/20230308)
-# Op basis topologie-type :Knooppunt
-# Alleen via :Knooppunt koppelen naar leidingen en onderdelen
+# Tbv conversie naar GWSW.hydx (20170901/20190429/20230308/20230719)
+# Op basis topologie-type gwsw:Knooppunt
+# Alleen via gwsw:Knooppunt koppelen naar leidingen en onderdelen
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT DISTINCT ?uri ?uriCps ?Stelsel ?naam ?naamComp ?type ?geenPut ?blind ?Punt ?puntCps ?Maaiveldhoogte ?materiaal ?vorm ?breedte ?lengte ?hoogte ?Maaiveldschematisering ?BergendOppervlak ?Grondwaterniveau
 
 WHERE
 { 
-  {  ?ori rdf:type :Knooppunt ; # Aansluitpunt, bouwwerk-ori, compartiment-ori, hulpstuk-ori, put-ori
-          :isAspectOf ?uri . 
+
+  # UNION op alle subtypes van Knooppunt
+
+  {  ?ori rdf:type  ?typKnp .
+     FILTER (?typKnp IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie ))
+     ?ori gwsw:isAspectOf ?uri .                  # orientatie moet kenmerk van het fysieke ding zijn
+     ?uri rdfs:label      ?naam1 .                # moet een naam hebben
   }
-  UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230228)
-  {  ?ori rdf:type :Aansluitpunt . 
-     FILTER NOT EXISTS {?ori :isAspectOf ?any1 .}
+  UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+  {  ?ori rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+     # Dit vervalt (20230719)
+     # FILTER NOT EXISTS {?ori gwsw:isAspectOf ?any1 .} # (UitlaatPunt) doen ook mee als ze niet bij een hoofdconstructie horen (20230228)
      BIND (?ori as ?uri) 
      BIND ("true" as ?geenPut)
-  }
 
+     # De naam bij een aansluitpunt was niet verplicht, nu wel opgenomen in OroX-protocol (20230719)
+
+     ?uri sesame:directType ?typAansl .
+     BIND (str(iri(gwsw:)) AS ?aft) # gebruik de gwsw-IRI
+        
+     optional {
+      ?uri rdfs:label ?lab1 .
+     }
+     optional { # maak een naam op basis cps
+      ?uri gwsw:isAspectOf [
+           rdfs:label ?labCps ;
+        ] .
+      BIND (CONCAT(str(?labCps), "_", strafter(str(?typAansl), ?aft)) AS ?lab2) # Fabriceer een naam
+     }
+     BIND (CONCAT(strafter(str(?typAansl), ?aft), "_??") AS ?lab3) # Generieke naam (de uri wordt gebruikt als identificatie)
+     BIND (COALESCE (?lab1, ?lab2, ?lab3) as ?naam1)
+  }
   optional { # markeer de hulpstukken: Verbindingsstuk, Afsluitkap (20230308)
-     ?uri rdf:type :Hulpstuk . 
+     ?uri rdf:type gwsw:Hulpstuk . 
      BIND ("true" as ?geenPut)
   }
   optional { # markeer de blinde putten (20230309)
-     ?uri rdf:type :BlindePut .
+     ?uri rdf:type gwsw:BlindePut .
      BIND ("true" as ?blind)
   }
   ?uri sesame:directType ?type .
 
-	FILTER (?type != :BlindePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)
-	FILTER (?type != :VerdektePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)
+	FILTER (?type != gwsw:BlindePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)
+	FILTER (?type != gwsw:VerdektePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)
 
-  ?uri rdfs:label ?naam1 .
   
-  { ?ori :hasConnection [ rdf:type :BeginpuntLeiding ;] . }
+  { ?ori gwsw:hasConnection [ rdf:type gwsw:BeginpuntLeiding ;] . }
   UNION
-  { ?ori :hasConnection [ rdf:type :EindpuntLeiding ;] . }
+  { ?ori gwsw:hasConnection [ rdf:type gwsw:EindpuntLeiding ;] . }
   UNION
-  { ?ori :hasConnection [ rdf:type :BeginpuntOnderdeel ;] . }
+  { ?ori gwsw:hasConnection [ rdf:type gwsw:BeginpuntOnderdeel ;] . }
   UNION
-  { ?ori :hasConnection [ rdf:type :EindpuntOnderdeel ;] . }
+  { ?ori gwsw:hasConnection [ rdf:type gwsw:EindpuntOnderdeel ;] . }
   
   optional # compartimenten hoeven geen punt te hebben 
   {
-      ?ori :hasAspect
+      ?ori gwsw:hasAspect
     [ 
-       rdf:type :Punt ;
-         :hasValue ?punt1 ;
+       rdf:type gwsw:Punt ;
+         gwsw:hasValue ?punt1 ;
       ] . 
   }
   optional # zoek evt hoofdconstructie
   {
-   ?ori rdf:type :Compartimentorientatie . # geldt alleen voor compartimenten
+   ?ori rdf:type gwsw:Compartimentorientatie . # geldt alleen voor compartimenten
    BIND (?naam1 as ?naamComp) .
-   ?uri :isPartOf ?uriCps .
+   ?uri gwsw:isPartOf ?uriCps .
    
    ?uriCps rdfs:label ?naam2 .
-   ?uriCps :hasAspect 
+   ?uriCps gwsw:hasAspect 
    [
-     rdf:type :Knooppunt ; # Put, bouwwerk, ...
-     :hasAspect 
+     rdf:type gwsw:Knooppunt ; # Put-ori, bouwwerk-ori, ...
+     gwsw:hasAspect 
      [ 
-       rdf:type :Punt ;
-       :hasValue ?punt2 ;
+       rdf:type gwsw:Punt ;
+       gwsw:hasValue ?punt2 ;
      ] ;
    ] .
   }
@@ -78,58 +99,58 @@ WHERE
   
   optional 
   {
-   ?uri :hasAspect ?vrm .
+   ?uri gwsw:hasAspect ?vrm .
    
-   { ?vrm rdf:type :VormPut . }
+   { ?vrm rdf:type gwsw:VormPut . }
    UNION
-   { ?vrm rdf:type :VormCompartiment . }
+   { ?vrm rdf:type gwsw:VormCompartiment . }
    UNION
-   { ?vrm rdf:type :VormBouwwerk . }
+   { ?vrm rdf:type gwsw:VormBouwwerk . }
    
-   ?vrm :hasReference ?vorm ;
+   ?vrm gwsw:hasReference ?vorm ;
   }
   optional 
   {
-    ?uri :hasAspect 
+    ?uri gwsw:hasAspect 
     [
-      rdf:type :DiameterPut ;
-      :hasValue ?breedte ; # Diameter als breedte vermelden
+      rdf:type gwsw:DiameterPut ;
+      gwsw:hasValue ?breedte ; # Diameter als breedte vermelden
     ] .}
   optional 
   {
-   ?uri :hasAspect ?br .
+   ?uri gwsw:hasAspect ?br .
    
-   { ?br rdf:type :BreedtePut . }
+   { ?br rdf:type gwsw:BreedtePut . }
    UNION
-   { ?br rdf:type :BreedteCompartiment . }
+   { ?br rdf:type gwsw:BreedteCompartiment . }
    UNION
-   { ?br rdf:type :BreedteBouwwerk . }
+   { ?br rdf:type gwsw:BreedteBouwwerk . }
    
-   ?br :hasValue ?breedte ;
+   ?br gwsw:hasValue ?breedte ;
   }
   optional 
   {
-   ?uri :hasAspect ?len .
+   ?uri gwsw:hasAspect ?len .
    
-   { ?len rdf:type :LengtePut . }
+   { ?len rdf:type gwsw:LengtePut . }
    UNION
-   { ?len rdf:type :LengteCompartiment . }
+   { ?len rdf:type gwsw:LengteCompartiment . }
    UNION
-   { ?len rdf:type :LengteBouwwerk . }
+   { ?len rdf:type gwsw:LengteBouwwerk . }
    
-   ?len :hasValue ?lengte ;
+   ?len gwsw:hasValue ?lengte ;
   }
   optional # Ook hoogte inlezen, voor afleiden put-bob (20230302)
   {
-   ?uri :hasAspect ?hgt .
+   ?uri gwsw:hasAspect ?hgt .
    
-   { ?hgt rdf:type :HoogtePut . }
+   { ?hgt rdf:type gwsw:HoogtePut . }
    UNION
-   { ?hgt rdf:type :HoogteCompartiment . }
+   { ?hgt rdf:type gwsw:HoogteCompartiment . }
    UNION
-   { ?hgt rdf:type :HoogteBouwwerk . }
+   { ?hgt rdf:type gwsw:HoogteBouwwerk . }
    
-   ?hgt :hasValue ?hoogte ;
+   ?hgt gwsw:hasValue ?hoogte ;
   }
   
 # Gebruik vanaf hier evt het compositie-object
@@ -138,63 +159,63 @@ WHERE
   
   optional
   {   
-    ?uri_ :isPartOf 
-    [ rdf:type :Stelsel ;
+    ?uri_ gwsw:isPartOf 
+    [ rdf:type gwsw:Stelsel ;
       rdfs:label ?Stelsel ;
     ] .
   }
   optional 
   {
-     ?uri_ :hasAspect ?oriCps . # Alleen put en bouwwerk verbinden aan maaiveld
+     ?uri_ gwsw:hasAspect ?oriCps . # Alleen put en bouwwerk verbinden aan maaiveld
     
-   { ?oriCps rdf:type :Putorientatie . }
+   { ?oriCps rdf:type gwsw:Putorientatie . }
    UNION
-   { ?oriCps rdf:type :Bouwwerkorientatie . }
+   { ?oriCps rdf:type gwsw:Bouwwerkorientatie . }
    
    optional
      {
-     ?oriCps :hasConnection
+     ?oriCps gwsw:hasConnection
      [
-       rdf:type :Maaiveldorientatie ;
-       :hasAspect
+       rdf:type gwsw:Maaiveldorientatie ;
+       gwsw:hasAspect
        [
-       rdf:type :Maaiveldhoogte ;
-       :hasValue ?Maaiveldhoogte ;
+       rdf:type gwsw:Maaiveldhoogte ;
+       gwsw:hasValue ?Maaiveldhoogte ;
        ];
      ] .
    }
       optional # Grondwaterniveau (20190501)
      {
-     ?oriCps :hasConnection
+     ?oriCps gwsw:hasConnection
      [
-       rdf:type :Grondwatermeetpunt ;
-       :hasAspect
+       rdf:type gwsw:Grondwatermeetpunt ;
+       gwsw:hasAspect
        [
-       rdf:type :Grondwaterniveau ;
-       :hasValue ?Grondwaterniveau ;
+       rdf:type gwsw:Grondwaterniveau ;
+       gwsw:hasValue ?Grondwaterniveau ;
        ];
      ] .
    }
   }
   optional 
   {
-   ?uri_ :hasAspect ?mat .
+   ?uri_ gwsw:hasAspect ?mat .
    
-   { ?mat rdf:type :MateriaalPut . }
+   { ?mat rdf:type gwsw:MateriaalPut . }
    UNION
-   { ?mat rdf:type :MateriaalBouwwerk . }
+   { ?mat rdf:type gwsw:MateriaalBouwwerk . }
    
-   ?mat :hasReference ?materiaal ;
+   ?mat gwsw:hasReference ?materiaal ;
   }
-  optional {?uri_ :hasAspect 
+  optional {?uri_ gwsw:hasAspect 
    [
-      rdf:type :Maaiveldschematisering ;
-      :hasReference ?Maaiveldschematisering ;
+      rdf:type gwsw:Maaiveldschematisering ;
+      gwsw:hasReference ?Maaiveldschematisering ;
    ] .}
-  optional {?uri_ :hasAspect 
+  optional {?uri_ gwsw:hasAspect 
    [
-      rdf:type :BergendOppervlak ;
-      :hasValue ?BergendOppervlak ;
+      rdf:type gwsw:BergendOppervlak ;
+      gwsw:hasValue ?BergendOppervlak ;
    ] .}
 
 }

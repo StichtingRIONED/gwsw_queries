@@ -5,22 +5,22 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?uri ?Stelsel ?naam ?type ?bUri ?eUri ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?SDR_waarde
 
 WHERE
 { 
-    {   ?uri rdf:type :VrijvervalRioolleiding .
+    {   ?uri rdf:type gwsw:VrijvervalRioolleiding .
 		?uri sesame:directType ?type .
     }
     UNION
-    { 	?uri rdf:type :VrijvervalTransportleiding . 
+    { 	?uri rdf:type gwsw:VrijvervalTransportleiding . 
 		BIND("VrijvervalTransportleiding" AS ?type) .
 	}
     UNION
-    { 	?uri rdf:type :OpenLeiding . 
+    { 	?uri rdf:type gwsw:OpenLeiding . 
 		BIND("OpenLeiding" AS ?type) .
 	}
    FILTER (!(isBlank(?uri)))
@@ -30,101 +30,124 @@ WHERE
 
    optional
    {   
-      ?uri :isPartOf 
-      [ rdf:type :Stelsel ;
+      ?uri gwsw:isPartOf 
+      [ rdf:type gwsw:Stelsel ;
         rdfs:label ?Stelsel ;
       ] .
    }
-   ?uri :hasAspect ?ori .
-   ?ori rdf:type :Leidingorientatie .
+   ?uri gwsw:hasAspect ?ori .
+   ?ori rdf:type gwsw:Leidingorientatie .
    
     optional
     {
-        ?ori :hasPart ?bpnt .
-        ?bpnt rdf:type :BeginpuntLeiding .
+        ?ori gwsw:hasPart ?bpnt .
+        ?bpnt rdf:type gwsw:BeginpuntLeiding .
  
-        optional {?bpnt :hasAspect
+        optional {?bpnt gwsw:hasAspect
         [ 
-           rdf:type :BobBeginpuntLeiding ;
-           :hasValue ?BobBeginpuntLeiding ;
+           rdf:type gwsw:BobBeginpuntLeiding ;
+           gwsw:hasValue ?BobBeginpuntLeiding ;
         ] .}
-        ?bpnt :hasConnection ?bpunt .
+        ?bpnt gwsw:hasConnection ?bpunt .
         
-        { ?bpunt :isAspectOf ?bUri }
-        UNION
-        { ?bpunt :isPartOf [ :isAspectOf ?bUri ] . }
-        UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
+        #{ ?bpunt gwsw:isAspectOf ?bUri }
+        #UNION
+        #{ ?bpunt gwsw:isPartOf [ gwsw:isAspectOf ?bUri ] . }
+        #UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
+        #{
+        #  FILTER NOT EXISTS {?bpunt gwsw:isAspectOf ?any1 .}
+        #  FILTER NOT EXISTS {?bpunt gwsw:isPartOf [ gwsw:isAspectOf ?any2 ] . }
+        #  BIND (?bpunt as ?bUri) 
+        #}
+
+        # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection) (20230720)
+        {   ?bpunt rdf:type  ?typBpunt .
+            FILTER (?typBpunt IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie )) 
+            ?bpunt gwsw:isAspectOf ?bUri . # orientatie moet kenmerk van het fysieke ding zijn
+        }
+        UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
         {
-          FILTER NOT EXISTS {?bpunt :isAspectOf ?any1 .}
-          FILTER NOT EXISTS {?bpunt :isPartOf [ :isAspectOf ?any2 ] . }
-          BIND (?bpunt as ?bUri) 
+            ?bpunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+            BIND (?bpunt as ?bUri)
         }
 	}
 	optional
 	{
-        ?ori :hasPart ?epnt .
-        ?epnt rdf:type :EindpuntLeiding .
+        ?ori gwsw:hasPart ?epnt .
+        ?epnt rdf:type gwsw:EindpuntLeiding .
 
-        optional {?epnt :hasAspect
+        optional {?epnt gwsw:hasAspect
         [ 
-           rdf:type :BobEindpuntLeiding ;
-           :hasValue ?BobEindpuntLeiding ;
+           rdf:type gwsw:BobEindpuntLeiding ;
+           gwsw:hasValue ?BobEindpuntLeiding ;
         ] .}
-		?epnt :hasConnection ?epunt .
+		?epnt gwsw:hasConnection ?epunt .
         
-        { ?epunt :isAspectOf ?eUri }
-        UNION
-        { ?epunt :isPartOf [ :isAspectOf ?eUri ] . }
-        UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
-        {
-          FILTER NOT EXISTS {?epunt :isAspectOf ?any3 .}
-          FILTER NOT EXISTS {?epunt :isPartOf [ :isAspectOf ?any4 ] . }
-          BIND (?epunt as ?eUri) 
+        #{ ?epunt gwsw:isAspectOf ?eUri }
+        #UNION
+        #{ ?epunt gwsw:isPartOf [ gwsw:isAspectOf ?eUri ] . }
+        #UNION # Ook de aansluitpunten (UitlaatPunt) doen mee als ze niet bij een hoofdconstructie horen (20230302)
+        #{
+        #  FILTER NOT EXISTS {?epunt gwsw:isAspectOf ?any3 .}
+        #  FILTER NOT EXISTS {?epunt gwsw:isPartOf [ gwsw:isAspectOf ?any4 ] . }
+        #  BIND (?epunt as ?eUri) 
+        #}
+                
+        # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection) (20230720)
+        {   ?epunt rdf:type  ?typEpunt .
+            FILTER (?typEpunt IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie )) 
+            ?epunt gwsw:isAspectOf ?eUri . # orientatie moet kenmerk van het fysieke ding zijn
         }
+        UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+        {
+            ?epunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+            BIND (?epunt as ?eUri)
+        }
+
    }
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :MateriaalLeiding ;
-       :hasReference ?MateriaalLeiding ;
+       rdf:type gwsw:MateriaalLeiding ;
+       gwsw:hasReference ?MateriaalLeiding ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :VormLeiding ;
-       :hasReference ?VormLeiding ;
+       rdf:type gwsw:VormLeiding ;
+       gwsw:hasReference ?VormLeiding ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :DiameterLeiding ;
-       :hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+       rdf:type gwsw:DiameterLeiding ;
+       gwsw:hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :BreedteLeiding ;
-       :hasValue ?BreedteLeiding ;
+       rdf:type gwsw:BreedteLeiding ;
+       gwsw:hasValue ?BreedteLeiding ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :HoogteLeiding ;
-       :hasValue ?HoogteLeiding ;
+       rdf:type gwsw:HoogteLeiding ;
+       gwsw:hasValue ?HoogteLeiding ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :LengteLeiding ;
-       :hasValue ?LengteLeiding ;
+       rdf:type gwsw:LengteLeiding ;
+       gwsw:hasValue ?LengteLeiding ;
    ] .}
-   optional {?uri :hasAspect # doet ook mee (20190903)
+   optional {?uri gwsw:hasAspect # doet ook mee (20190903)
    [
-       rdf:type :Wanddikte ;
-       :hasValue ?Wanddikte ;
+       rdf:type gwsw:Wanddikte ;
+       gwsw:hasValue ?Wanddikte ;
    ] .}
-   optional {?uri :hasAspect # doet ook mee (20190903)
+   optional {?uri gwsw:hasAspect # doet ook mee (20190903)
    [
-       rdf:type :SDR_waarde ;
-       :hasValue ?SDR_waarde ;
+       rdf:type gwsw:SDR_waarde ;
+       gwsw:hasValue ?SDR_waarde ;
    ] .}
-#   optional {?uri :hasAspect 
+#   optional {?uri gwsw:hasAspect 
 #   [
-#       rdf:type :AfvoerendOppervlak ;
-#       :hasValue ?AfvoerendOppervlak ;
+#       rdf:type gwsw:AfvoerendOppervlak ;
+#       gwsw:hasValue ?AfvoerendOppervlak ;
 #   ] .}
 }

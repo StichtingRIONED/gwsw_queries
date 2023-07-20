@@ -5,53 +5,73 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?naam ?bUri ?bEnd ?eUri ?eEnd
 
 WHERE
 { 
-	{ ?lei sesame:directType :Persleiding . }
+	{ ?lei sesame:directType gwsw:Persleiding . }
 	UNION
-	{ ?lei sesame:directType :Drukleiding . }
+	{ ?lei sesame:directType gwsw:Drukleiding . }
 	
 	?lei rdfs:label ?naam .
-	?lei :hasAspect ?ori .
-	?ori rdf:type :Leidingorientatie .
+	?lei gwsw:hasAspect ?ori .
+	?ori rdf:type gwsw:Leidingorientatie .
 
     optional
     {
-        ?ori :hasPart ?bpnt .
-        ?bpnt rdf:type :BeginpuntLeiding .
-        ?bpnt :hasConnection ?bPunt .
+        ?ori gwsw:hasPart ?bpnt .
+        ?bpnt rdf:type gwsw:BeginpuntLeiding .
+        ?bpnt gwsw:hasConnection ?bPunt .
         
-        { ?bPunt :isAspectOf ?bUri }
-        UNION
-        { ?bPunt :isPartOf [ :isAspectOf ?bUri ] . }
+        # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection) (20230720)
+        {   ?bPunt rdf:type  ?typBpunt .
+            FILTER (?typBpunt IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie )) 
+            ?bPunt gwsw:isAspectOf ?bUri . # orientatie moet kenmerk van het fysieke ding zijn
+        }
+        UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+        {
+            ?bPunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+            BIND (?bPunt as ?bUri)
+        }
+        #{ ?bPunt gwsw:isAspectOf ?bUri }
+        #UNION
+        #{ ?bPunt gwsw:isPartOf [ gwsw:isAspectOf ?bUri ] . }
         
         optional { # markeer het eindpunt (20230303)
-            {?bUri rdf:type :Lozingsput . }
+            {?bUri rdf:type gwsw:Lozingsput . }
             UNION
-            {?bUri rdf:type :Inspectieput . }
+            {?bUri rdf:type gwsw:Inspectieput . }
             BIND ("true" as ?bEnd)
         }
         # ?bUri sesame:directType ?bType .
 	}
  	optional
 	{
-        ?ori :hasPart ?epnt .
-        ?epnt rdf:type :EindpuntLeiding .
-		?epnt :hasConnection ?ePunt .
+        ?ori gwsw:hasPart ?epnt .
+        ?epnt rdf:type gwsw:EindpuntLeiding .
+		?epnt gwsw:hasConnection ?ePunt .
+
+        #{ ?ePunt gwsw:isAspectOf ?eUri }
+        #UNION
+        #{ ?ePunt gwsw:isPartOf [ gwsw:isAspectOf ?eUri ] . }
         
-        { ?ePunt :isAspectOf ?eUri }
-        UNION
-        { ?ePunt :isPartOf [ :isAspectOf ?eUri ] . }
-        
+        # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection) (20230720)
+        {   ?ePunt rdf:type  ?typEpunt .
+            FILTER (?typEpunt IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie )) 
+            ?ePunt gwsw:isAspectOf ?eUri . # orientatie moet kenmerk van het fysieke ding zijn
+        }
+        UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
+        {
+            ?ePunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+            BIND (?ePunt as ?eUri)
+        }
         optional { # markeer het eindpunt (20230303)
-            {?eUri rdf:type :Lozingsput . }
+            {?eUri rdf:type gwsw:Lozingsput . }
             UNION
-            {?eUri rdf:type :Inspectieput . }
+            {?eUri rdf:type gwsw:Inspectieput . }
             BIND ("true" as ?eEnd)
         }
         # ?eUri sesame:directType ?eType .
