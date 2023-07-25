@@ -1,0 +1,38 @@
+# Lees NEN 3300 concepten (20230725)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?uri ?naam ?synoniemen ?definitie ?datumStart
+WHERE
+{ 
+  ?uri rdfs:seeAlso ?definitie .
+  FILTER (CONTAINS(?definitie, "[NEN") && CONTAINS(?definitie, "3300"))
+	
+  optional {
+    ?uri rdfs:label ?labNL
+    FILTER(lang(?labNL) = "nl")
+	}
+  optional {
+    ?uri rdfs:label ?labEN
+    FILTER(lang(?labEN) != "nl")
+	}
+  BIND (COALESCE(?labNL, ?labEN) as ?naam)
+
+  { # subquery voor synoniemen
+    SELECT ?uri (GROUP_CONCAT(?altLabel; separator = " / ") as ?synoniemen)
+    WHERE
+    {
+      OPTIONAL {
+        ?uri skos:altLabel ?altLabel .
+      }
+      ?uri gwsw:hasDateStart ?dat . # dummy: nodig voor GraphDB
+    }
+    GROUP BY ?uri # GraphDB: groeperen incl ?lab, anders verschijnt AltLabels soms dubbel
+  }
+  ?uri gwsw:hasDateStart ?datumStart .
+}
