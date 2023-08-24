@@ -1,12 +1,12 @@
 # Hyd_Drempel.spq
-# Gegevens overstortdrempels (20170817)
+# Gegevens overstortdrempels (20170817, 20230823)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX : <{{&version}}>
 
-SELECT ?naam ?bUri ?eUri ?Drempelbreedte ?Drempelniveau ?Afvoercoefficient ?Stromingsrichting
+SELECT ?naam ?bUri ?eUri ?Drempelbreedte ?Drempelniveau ?Afvoercoefficient ?Stromingsrichting ?VrijeOverstorthoogte
 
 WHERE
 { 
@@ -56,5 +56,10 @@ WHERE
    [
        rdf:type :Stromingsrichting ;
        :hasReference ?Stromingsrichting ;
+   ] .}
+   optional {?uri :hasAspect # Toegevoegd (20230823)
+   [
+       rdf:type :VrijeOverstorthoogte ;
+       :hasValue ?VrijeOverstorthoogte ;
    ] .}
 }

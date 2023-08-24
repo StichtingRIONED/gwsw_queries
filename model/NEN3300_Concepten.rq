@@ -1,18 +1,40 @@
-# Lees NEN 3300 concepten (20230725)
+# Lees NEN 3300 concepten (20230725, 20230818)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
-PREFIX gwsw: <{{&version}}>
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?uri ?naam ?synoniemen ?definitie ?datumStart
+SELECT DISTINCT ?uri ?naam ?synoniemen ?zieOok ?definitie ?datumStart
 WHERE
 { 
-  ?uri rdfs:seeAlso ?definitie .
-  FILTER (CONTAINS(?definitie, "[NEN") && CONTAINS(?definitie, "3300"))
-	
+  ?uri rdfs:seeAlso ?def .
+  FILTER (CONTAINS(?def, "[NEN") && CONTAINS(?def, "3300"))
+    
+  { # subquery voor definities
+    SELECT ?uri (GROUP_CONCAT(?zie; separator = " / ") as ?zieOok)
+    WHERE
+    {
+      OPTIONAL {
+        ?uri rdfs:seeAlso ?zie .
+      }
+      ?uri gwsw:hasDateStart ?dat . # dummy: nodig voor GraphDB
+    }
+    GROUP BY ?uri # GraphDB: groeperen incl ?lab, anders verschijnt AltLabels soms dubbel
+  }
+  { # subquery voor gwswDefinities
+    SELECT ?uri (GROUP_CONCAT(?def; separator = " / ") as ?definitie)
+    WHERE
+    {
+      OPTIONAL {
+        ?uri skos:definition ?def .
+      }
+      ?uri gwsw:hasDateStart ?dat . # dummy: nodig voor GraphDB
+    }
+    GROUP BY ?uri # GraphDB: groeperen incl ?lab, anders verschijnt AltLabels soms dubbel
+  }
   optional {
     ?uri rdfs:label ?labNL
     FILTER(lang(?labNL) = "nl")

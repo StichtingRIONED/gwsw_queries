@@ -14,16 +14,30 @@ SELECT DISTINCT ?uri ?uriCps ?Stelsel ?naam ?naamComp ?type ?geenPut ?blind ?Pun
 
 WHERE
 { 
-
   # UNION op alle subtypes van Knooppunt
 
-  {  ?ori rdf:type  ?typKnp .
+  {  
+     ?ori rdf:type  ?typKnp .
      FILTER (?typKnp IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie ))
      ?ori gwsw:isAspectOf ?uri .                  # orientatie moet kenmerk van het fysieke ding zijn
      ?uri rdfs:label      ?naam1 .                # moet een naam hebben
+
+     optional { # markeer de hulpstukken: Verbindingsstuk, Afsluitkap (20230308)
+       ?uri rdf:type gwsw:Hulpstuk . 
+       BIND ("true" as ?geenPut)
+     }
+     optional { # markeer de blinde putten (20230309)
+       ?uri rdf:type gwsw:BlindePut .
+       BIND ("true" as ?blind)
+     }
+     ?uri sesame:directType ?type .
+
+     FILTER (?type != gwsw:BlindePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)  
+     FILTER (?type != gwsw:VerdektePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)
   }
   UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
-  {  ?ori rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+  {  
+     ?ori rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
      # Dit vervalt (20230719)
      # FILTER NOT EXISTS {?ori gwsw:isAspectOf ?any1 .} # (UitlaatPunt) doen ook mee als ze niet bij een hoofdconstructie horen (20230228)
      BIND (?ori as ?uri) 
@@ -32,6 +46,7 @@ WHERE
      # De naam bij een aansluitpunt was niet verplicht, nu wel opgenomen in OroX-protocol (20230719)
 
      ?uri sesame:directType ?typAansl .
+
      BIND (str(iri(gwsw:)) AS ?aft) # gebruik de gwsw-IRI
         
      optional {
@@ -43,23 +58,14 @@ WHERE
         ] .
       BIND (CONCAT(str(?labCps), "_", strafter(str(?typAansl), ?aft)) AS ?lab2) # Fabriceer een naam
      }
-     BIND (CONCAT(strafter(str(?typAansl), ?aft), "_??") AS ?lab3) # Generieke naam (de uri wordt gebruikt als identificatie)
-     BIND (COALESCE (?lab1, ?lab2, ?lab3) as ?naam1)
+     BIND (CONCAT(strafter(str(?typAansl), ?aft), "_??") AS ?lab3) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
+     
+     # Deze voorlopig uitgeschakeld (20230824)
+     # Als er geen aansluitpunten zijn (deze UNION wordt niet doorlopen !!), loopt de query vast (20230824)
+     #BIND (COALESCE(?lab1, ?lab2, ?lab3) as ?naam1)
+     
+     BIND (strafter(str(?typAansl), ?aft) AS ?naam1) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
   }
-  optional { # markeer de hulpstukken: Verbindingsstuk, Afsluitkap (20230308)
-     ?uri rdf:type gwsw:Hulpstuk . 
-     BIND ("true" as ?geenPut)
-  }
-  optional { # markeer de blinde putten (20230309)
-     ?uri rdf:type gwsw:BlindePut .
-     BIND ("true" as ?blind)
-  }
-  ?uri sesame:directType ?type .
-
-	FILTER (?type != gwsw:BlindePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)
-	FILTER (?type != gwsw:VerdektePut) # Uitvoerings-type doet niet mee, functie-type moet er ook zijn (20230309)
-
-  
   { ?ori gwsw:hasConnection [ rdf:type gwsw:BeginpuntLeiding ;] . }
   UNION
   { ?ori gwsw:hasConnection [ rdf:type gwsw:EindpuntLeiding ;] . }
@@ -93,8 +99,8 @@ WHERE
      ] ;
    ] .
   }
-  BIND (COALESCE (?punt1, ?punt2) as ?Punt)
-  BIND (COALESCE (?naam2, ?naam1) as ?naam)
+  BIND (COALESCE(?punt1, ?punt2) as ?Punt)
+  BIND (COALESCE(?naam2, ?naam1) as ?naam)
   BIND (IF(BOUND(?punt1), "", "Ja") AS ?puntCps)
   
   optional 
