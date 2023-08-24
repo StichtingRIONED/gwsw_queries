@@ -1,5 +1,5 @@
 # Hyd_Knooppunt.spq
-# Tbv conversie naar GWSW.hydx (20170901/20190429/20230308/20230719)
+# Tbv conversie naar GWSW.hydx (20170901/20190429/20230308/20230719/20230824)
 # Op basis topologie-type gwsw:Knooppunt
 # Alleen via gwsw:Knooppunt koppelen naar leidingen en onderdelen
 
@@ -46,23 +46,22 @@ WHERE
      # De naam bij een aansluitpunt was niet verplicht, nu wel opgenomen in OroX-protocol (20230719)
 
      ?uri sesame:directType ?typAansl .
-
      BIND (str(iri(gwsw:)) AS ?aft) # gebruik de gwsw-IRI
         
-     optional {
-      ?uri rdfs:label ?lab1 .
-     }
-     optional { # maak een naam op basis cps
-      ?uri gwsw:isAspectOf [
-           rdfs:label ?labCps ;
-        ] .
-      BIND (CONCAT(str(?labCps), "_", strafter(str(?typAansl), ?aft)) AS ?lab2) # Fabriceer een naam
-     }
-     BIND (CONCAT(strafter(str(?typAansl), ?aft), "_??") AS ?lab3) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
-     
-     # Deze voorlopig uitgeschakeld (20230824)
-     # Als er geen aansluitpunten zijn (deze UNION wordt niet doorlopen !!), loopt de query vast (20230824)
-     #BIND (COALESCE(?lab1, ?lab2, ?lab3) as ?naam1)
+# Dit deel voorlopig uitgeschakeld (20230824)
+# Als er geen aansluitpunten zijn (deze UNION wordt niet doorlopen !!), loopt de query vast (20230824)
+# In de COALESCE() zit de oorzaak?
+#     optional {
+#      ?uri rdfs:label ?lab1 .
+#     }
+#     optional { # maak een naam op basis cps
+#      ?uri gwsw:isAspectOf [
+#           rdfs:label ?labCps ;
+#        ] .
+#      BIND (CONCAT(str(?labCps), "_", strafter(str(?typAansl), ?aft)) AS ?lab2) # Fabriceer een naam
+#     }
+#     BIND (CONCAT(strafter(str(?typAansl), ?aft), "_??") AS ?lab3) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
+#     BIND (COALESCE(?lab1, ?lab2, ?lab3) as ?naam1)
      
      BIND (strafter(str(?typAansl), ?aft) AS ?naam1) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
   }
