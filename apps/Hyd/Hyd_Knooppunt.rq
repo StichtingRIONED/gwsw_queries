@@ -88,15 +88,26 @@ WHERE
    ?uri gwsw:isPartOf ?uriCps .
    
    ?uriCps rdfs:label ?naam2 .
-   ?uriCps gwsw:hasAspect 
-   [
-     rdf:type gwsw:Knooppunt ; # Put-ori, bouwwerk-ori, ...
-     gwsw:hasAspect 
-     [ 
-       rdf:type gwsw:Punt ;
-       gwsw:hasValue ?punt2 ;
-     ] ;
-   ] .
+     optional {
+       ?uriCps gwsw:hasAspect 
+       [
+         rdf:type gwsw:Knooppunt ; # Put-ori, bouwwerk-ori, ...
+         gwsw:hasAspect 
+         [ 
+           rdf:type gwsw:Punt ;
+           gwsw:hasValue ?punt2 ;
+         ] ;
+       ] .
+     }
+     optional { # Gebruik de compositie-hoogte
+       ?uriCps gwsw:hasAspect ?_hgtCps
+            
+       { ?_hgtCps rdf:type gwsw:HoogtePut ; }
+	     UNION
+       { ?_hgtCps rdf:type gwsw:HoogteBouwwerk . }
+
+       ?_hgtCps gwsw:hasValue ?hgtCps ;
+     }
   }
   BIND (COALESCE(?punt1, ?punt2) as ?Punt)
   BIND (COALESCE(?naam2, ?naam1) as ?naam)
@@ -151,12 +162,13 @@ WHERE
    
    { ?hgt rdf:type gwsw:HoogtePut . }
    UNION
-   { ?hgt rdf:type gwsw:HoogteCompartiment . }
-   UNION
    { ?hgt rdf:type gwsw:HoogteBouwwerk . }
-   
-   ?hgt gwsw:hasValue ?hoogte ;
+   #UNION
+   #{ ?hgt rdf:type gwsw:HoogteCompartiment . } Deze bestaat (nog) niet (20230912)
+
+   ?hgt gwsw:hasValue ?hgt1 ;
   }
+  BIND (COALESCE(?hgt1, ?hgtCps) as ?hoogte) # Gebruik voor compartimenten de compositie-hoogte (20230912)
   
 # Gebruik vanaf hier evt het compositie-object
 

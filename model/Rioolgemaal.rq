@@ -1,0 +1,59 @@
+# De rioolgemaal-capaciteiten (20230831)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?naam ?type ?CapaciteitGemaal ?OntwerpcapaciteitGemaal ?capaciteitPompen ?version ?Punt
+
+WHERE
+{ 
+  ?gem rdf:type gwsw:Rioolgemaal .
+  ?gem sesame:directType ?type .
+  ?gem rdfs:label ?naam .
+
+  optional {?gem gwsw:hasAspect 
+  [
+     rdf:type gwsw:CapaciteitGemaal ;
+     gwsw:hasValue ?asp1 ;
+  ] .}
+  BIND (COALESCE(?asp1, "") as ?CapaciteitGemaal) # Vul altijd, anders ontbreekt ie in de export
+
+  optional {?gem gwsw:hasAspect 
+  [
+     rdf:type gwsw:OntwerpcapaciteitGemaal ;
+     gwsw:hasValue ?asp2 ;
+  ] .}
+  BIND (COALESCE(?asp2, "") as ?OntwerpcapaciteitGemaal) # Vul altijd, anders ontbreekt ie in de export
+
+  { # subquery voor pompcapaciteiten
+    SELECT ?gem (GROUP_CONCAT(str(?cap) ; separator = ", ") as ?capaciteitPompen)
+    WHERE
+    {
+      OPTIONAL {
+        ?gem gwsw:hasPart ?pmp .
+        ?pmp rdf:type gwsw:Pomp ;
+             gwsw:hasAspect [
+                rdf:type gwsw:Pompcapaciteit ; 
+                gwsw:hasValue ?cap ;
+             ] .
+      }
+    }
+    GROUP BY ?gem
+  }
+  OPTIONAL {
+  ?gem gwsw:hasAspect [
+    rdf:type gwsw:Bouwwerkorientatie ;
+    gwsw:hasAspect 
+    [
+      rdf:type gwsw:Punt ;
+      gwsw:hasValue ?asp3 ;
+    ] ] .
+  }
+  BIND (COALESCE(?asp3, "") as ?Punt) # Vul altijd, anders ontbreekt ie in de export
+
+  bind (str(iri(gwsw:)) as ?version) # nodig voor omrekenen
+}

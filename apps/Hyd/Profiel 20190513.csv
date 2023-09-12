@@ -1,4 +1,10 @@
 PRO_IDE,PRO_MAT,PRO_VRM,PRO_BRE,PRO_HGT,TAB_BRE,TAB_HGT,ALG_TOE
+PVC160,PVC,RND,160,,,,Standaard maat
+PVC200,PVC,RND,200,,,,Standaard maat
+PVC250,PVC,RND,250,,,,Standaard maat
+PVC315,PVC,RND,315,,,,Standaard maat
+PVC400,PVC,RND,400,,,,Standaard maat
+PVC500,PVC,RND,500,,,,Standaard maat
 BET250,BET,RND,250,,,,Standaard maat
 BET300,BET,RND,300,,,,Standaard maat
 BET400,BET,RND,400,,,,Standaard maat
