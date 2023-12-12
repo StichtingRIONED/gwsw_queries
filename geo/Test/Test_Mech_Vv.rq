@@ -1,0 +1,105 @@
+# Test_Mech_Vv (Zoek punten met overgang mechanisch naar vrijverval) (20231126)
+# RIONED onderzoek
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
+PREFIX : <{{&version}}>
+
+SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?atLei ?typesLei ?afmsLei ?matsLei
+
+WHERE
+{ 
+  { ?uri rdf:type :Rioolput . }
+   UNION
+  { ?uri rdf:type :Bouwwerk . }
+
+  ?uri sesame:directType ?type .
+  
+  FILTER (!(isBlank(?uri)))
+  FILTER (!(isBlank(?type)))
+
+  # FILTER (NOT EXISTS{?uri rdf:type :Gemaal })
+  # FILTER (NOT EXISTS{?uri rdf:type :Pompput })
+  # FILTER (NOT EXISTS{?uri rdf:type :Pompunit })
+
+  ?uri rdfs:label ?naam .
+
+  optional {   
+    ?uri :isPartOf 
+    [ rdf:type :Stelsel ;
+      rdfs:label ?_Stelsel ;
+      sesame:directType ?_stelseltype ;
+    ] .
+  }
+  ?uri :hasAspect ?ori .
+  ?ori rdf:type :Knooppunt . # vertex (put/bouwwerk)
+
+  optional {
+    ?ori :hasAspect
+    [ 
+        rdf:type :Punt ;
+        :hasValue ?_Punt ;
+    ] .
+  }
+  # niet in gebruik: SPARQL struikelt over nabewerking (STRAFTER, COALESCE) van ?mat
+  #BIND (str(iri(:)) AS ?aft) # gebruik de IRI bij prefix :
+  {
+    SELECT ?ori (COUNT(*) as ?atLei) (GROUP_CONCAT(?typLei; separator = " ") as ?typesLei) (GROUP_CONCAT(?mat; separator = " ") as ?matsLei) (GROUP_CONCAT(?afm; separator = " ") as ?afmsLei) # doorloop de aansluitende leidingen
+    WHERE
+    { 
+      { ?ori :hasConnection [
+          rdf:type :BeginpuntLeiding;
+          :isPartOf [
+          :isAspectOf ?lei ;
+        ] ] . 
+        ?lei rdf:type ?typ ;
+      }
+      UNION
+      { ?ori :hasConnection [
+          rdf:type :EindpuntLeiding;
+          :isPartOf [
+          :isAspectOf ?lei ;
+        ] ] . 
+        ?lei rdf:type ?typ ;
+      }
+      BIND (if (?typ = :Persleiding, "pers", if (?typ = :Drukleiding, "druk", if (?typ = :VrijvervalRioolleiding, "vv", "??"))) as ?typLei )
+      FILTER (str(?typLei) != "??")
+
+      OPTIONAL {
+        ?lei :hasAspect [
+          rdf:type :MateriaalLeiding;
+          :hasReference ?mat; 
+          ] . 
+          #BIND (strafter(str(?__mat), ?aft) as ?_mat) # niet in gebruik: SPARQL struikelt over nabewerking (STRAFTER, COALESCE) van ?mat
+      }
+      #BIND (COALESCE(?_mat, "-") AS ?mat) 
+
+      OPTIONAL {
+        ?lei :hasAspect [
+          rdf:type :DiameterLeiding;
+          :hasValue ?_dia;
+        ] . }
+      OPTIONAL {
+        ?lei :hasAspect [
+          rdf:type :HoogteLeiding;
+          :hasValue ?_hgt;
+        ] . }
+      OPTIONAL {
+        ?lei :hasAspect [
+          rdf:type :BreedteLeiding;
+          :hasValue ?_br;
+        ] . }
+      BIND (COALESCE(?_dia, ?_hgt, ?_br, "-") AS ?afm) 
+    }
+    GROUP BY ?ori
+  }
+  FILTER (CONTAINS(str(?typesLei), "vv") && (CONTAINS(str(?typesLei), "pers") || CONTAINS(str(?typesLei), "druk")))
+
+  # Anders ontbreken de CSV-export-kolommen
+  BIND (COALESCE(?_Stelsel, "-") AS ?Stelsel) 
+  BIND (COALESCE(?_stelseltype, "-") AS ?stelseltype) 
+  BIND (COALESCE(?_Punt, "-") AS ?Punt) 
+}
