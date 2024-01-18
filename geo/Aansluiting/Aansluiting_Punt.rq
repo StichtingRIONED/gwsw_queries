@@ -1,4 +1,4 @@
-# Aansluiting_Punt.rq (was Aansluiting_Put, gewijzigd 20220511)
+# Aansluiting_Punt.rq (was Aansluiting_Put, gewijzigd 20220511) (20240118)
 
 # Zoek alle putten/hulpstukken als deel van de aansluiting (20200501)
 # Vervalt (20200501): Zoek de putten en hulpstukken die op aansluitleidingen koppelen
@@ -15,15 +15,21 @@ SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?type ?Punt ?Begindatum ?Maaiveldhoo
 
 WHERE
 { 
-   ?put :isPartOf ?aansl .
-   ?aansl rdf:type :Aansluiting . # Altijd deel van Aansluiting (20200501)
+   {
+     ?put :isPartOf ?aansl .
+     ?aansl rdf:type :Aansluiting . # Altijd deel van Aansluiting (20200501)
+   }
+   UNION
+   {
+	   ?put rdf:type :Kolk . # Tijdelijk, om dataset-fouten te omzeilen (20240118)
+   }
     
-    optional {?aansl :isPartOf 
-	    [ rdf:type :Stelsel ;
-        rdfs:label ?Stelsel ;
-        sesame:directType ?stelseltype ;
-      ] . 
-    } 
+   optional {?aansl :isPartOf 
+	   [ rdf:type :Stelsel ;
+       rdfs:label ?Stelsel ;
+       sesame:directType ?stelseltype ;
+     ] . 
+   } 
    #{?lei rdf:type :Aansluitleiding .}
    #UNION
    #{?lei rdf:type :Goot .}
