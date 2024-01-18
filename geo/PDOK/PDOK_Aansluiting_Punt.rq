@@ -12,20 +12,21 @@ SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?type ?Punt ?Begindatum ?Maaiveldhoo
 WHERE
 { 
    {
-     ?put :isPartOf ?aansl .
-     ?aansl rdf:type :Aansluiting . # Altijd deel van Aansluiting (20200501)
+    ?put :isPartOf ?aansl .
+    ?aansl rdf:type :Aansluiting . # Altijd deel van Aansluiting (20200501)
+    
+    optional {?aansl :isPartOf 
+      [ rdf:type :Stelsel ;
+        rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ;
+      ] . 
+    } 
    }
    UNION
    {
 	   ?put rdf:type :Kolk . # Tijdelijk, om dataset-fouten te omzeilen (20240118)
    }
     
-   optional {?aansl :isPartOf 
-	   [ rdf:type :Stelsel ;
-       rdfs:label ?Stelsel ;
-       sesame:directType ?stelseltype ;
-     ] . 
-   } 
    #{?lei rdf:type :Aansluitleiding .}
    #UNION
    #{?lei rdf:type :Goot .}
