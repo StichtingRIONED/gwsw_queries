@@ -1,0 +1,80 @@
+# Tbv RIONED Monitor 2024 (20240208)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar ?Lining (SUM (?LengteLeiding) AS ?somLengteLeiding) ?somBergendVermogen ?somInfiltrerendOppervlak
+WHERE
+{ 
+  { ?obj rdf:type gwsw:MechanischeRioolleiding .
+    BIND ("MechanischeRioolleiding" as ?groep) }
+  UNION {
+    ?obj rdf:type gwsw:VrijvervalRioolleiding .
+    BIND ("VrijvervalRioolleiding" as ?groep) }
+  UNION {
+    ?obj rdf:type gwsw:MechanischeTransportleiding .
+    BIND ("MechanischeTransportleiding" as ?groep) }
+  UNION {
+    ?obj rdf:type gwsw:VrijvervalTransportleiding .
+    BIND ("VrijvervalTransportleiding" as ?groep) }
+  UNION {
+    ?obj rdf:type gwsw:OpenLeiding .
+    BIND ("OpenLeiding" as ?groep) }
+  UNION {
+    ?obj rdf:type gwsw:Drain .
+    BIND ("Drain" as ?groep) }
+
+  #FILTER NOT EXISTS {?obj rdf:type gwsw:Aansluitleiding .}
+
+  ?obj sesame:directType ?type1 .
+  FILTER (!(isBlank(?type1)))
+  BIND (str(iri(gwsw:)) AS ?aft)
+
+  BIND ("{{&repository}}" AS ?dataset )
+  BIND ( strafter(str(?type1), ?aft) as ?type)
+
+  OPTIONAL {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Stelsel ;
+   	  sesame:directType ?stelsel1 ;
+    ]
+ 	  BIND ( strafter(str(?stelsel1), ?aft) as ?stelsel2)
+  }
+  BIND (COALESCE(?stelsel2, "") as ?Stelsel)
+
+  OPTIONAL {
+    ?obj gwsw:hasAspect [
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?datum ;
+    ] .
+ 	  BIND (SUBSTR(str(?datum), 1, 4) as ?jaar1)
+  }
+  BIND (COALESCE(?jaar1, "") as ?jaar)
+
+  # De query loopt niet met ?Eigenaar als die bovenaan staat! (20240208)
+  OPTIONAL {
+    ?obj gwsw:isInputOf ?eig1 .
+    ?eig1 rdf:type gwsw:Eigenaar .
+ 	  BIND ( strafter(str(?eig1), ?aft) as ?eig2)
+  }
+  BIND (COALESCE(?eig2, "") as ?Eigenaar)
+
+  OPTIONAL {
+    ?obj gwsw:hasAspect [
+      rdf:type gwsw:LengteLeiding ;
+      gwsw:hasValue ?LengteLeiding ;
+    ] .
+  }
+  OPTIONAL {?obj gwsw:hasPart 
+    [
+      rdf:type gwsw:Lining ;
+    ] .
+    BIND ("ja" as ?lining1) 
+  }
+  BIND (COALESCE(?lining1, "") as ?Lining)
+
+  BIND ("" as ?somBergendVermogen)
+  BIND ("" as ?somInfiltrerendOppervlak)
+}
+GROUP BY ?dataset ?Eigenaar ?Stelsel ?groep ?type ?jaar ?Lining ?somBergendVermogen ?somInfiltrerendOppervlak
