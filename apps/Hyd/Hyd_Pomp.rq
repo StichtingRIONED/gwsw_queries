@@ -12,7 +12,7 @@ SELECT ?naam ?bUri ?eUri ?Pompcapaciteit ?AanslagniveauBenedenstrooms ?Afslagniv
 
 WHERE
 { 
-    ?ond sesame:directType gwsw:Pomp .
+  ?ond sesame:directType gwsw:Pomp .
 	
 	optional 
 	{
@@ -30,8 +30,8 @@ WHERE
 
 	optional # eindpunt verbinding gekoppeld?
     {
-        ?ori gwsw:hasPart ?ePunt .
-		?ePunt rdf:type gwsw:EindpuntOnderdeel .
+      ?ori gwsw:hasPart ?ePunt .
+	    ?ePunt rdf:type gwsw:EindpuntOnderdeel .
     	?ePunt gwsw:hasConnection ?epunt .
 
         # Verbinding koppelt aan een knooppunt: orientatie of aansluitpunt (UitlaatPunt) (sync met gebruik gwsw:hasConnection) (20230720)

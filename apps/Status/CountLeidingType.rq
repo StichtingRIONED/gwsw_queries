@@ -8,9 +8,9 @@ WHERE
 { 
 	?obj rdf:type :Leiding ; 
 	sesame:directType ?styp .
-    FILTER (!(isBlank(?styp)))
+  FILTER (!(isBlank(?styp)))
 	
-    BIND ("{{&version}}" AS ?aft)
+  BIND (str(iri(:)) AS ?aft) # de prefix, voor optioneel inkorten IRI
  	BIND ( IF(CONTAINS(str(?styp), ?aft), strafter(str(?styp), ?aft), str(?styp)) as ?type)
 }
 GROUP BY ?type
