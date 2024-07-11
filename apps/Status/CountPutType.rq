@@ -1,4 +1,6 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
 PREFIX : <{{&version}}>
 
 SELECT ?type (COUNT (?obj) AS ?count)
