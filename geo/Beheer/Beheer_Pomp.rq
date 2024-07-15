@@ -12,7 +12,11 @@ SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Eindda
 WHERE
 { 
    {
-   	?pmp rdf:type :Pompput .
+   	?pmp sesame:directType :Pompput . # Selecteer expliciet op Pompput, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
+   }
+   UNION
+   {
+   	?pmp sesame:directType :Pompunit . # Selecteer expliciet op Pompunit, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
    }
    UNION
    {
