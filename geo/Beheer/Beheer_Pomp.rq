@@ -1,32 +1,32 @@
-# Beheer_Pomp.rq - Alle pomp-constructies (pompput/gemaal)
+# Beheer_Pomp.rq - Alle pomp-constructies (pompput/gemaal) (20240718)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Pompcapaciteit1 ?Pompcapaciteit2
 
 WHERE
 { 
    {
-   	?pmp sesame:directType :Pompput . # Selecteer expliciet op Pompput, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
+   	?pmp sesame:directType gwsw:Pompput . # Selecteer expliciet op Pompput, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
    }
    UNION
    {
-   	?pmp sesame:directType :Pompunit . # Selecteer expliciet op Pompunit, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
+   	?pmp sesame:directType gwsw:Pompunit . # Selecteer expliciet op Pompunit, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
    }
    UNION
    {
-   	?pmp rdf:type :Gemaal .
+   	?pmp rdf:type gwsw:Gemaal .
    }
    UNION
    {
-   	?pmp :hasPart
+   	?pmp gwsw:hasPart
     [ 
-          rdf:type :Pomp;
+          rdf:type gwsw:Pomp;
     ] .
    }
    ?pmp sesame:directType ?type .
@@ -38,53 +38,69 @@ WHERE
    
    optional
    {   
-      ?pmp :isPartOf 
-      [ rdf:type :Stelsel ;
+      ?pmp gwsw:isPartOf 
+      [ rdf:type gwsw:Stelsel ;
         rdfs:label ?Stelsel ;
         sesame:directType ?stelseltype ;
       ] .
    }
-   ?pmp :hasAspect ?ori .
+   ?pmp gwsw:hasAspect ?ori .
    
-   { ?ori rdf:type :Putorientatie . } # werkte niet voor gemalen (t/m 1.3.2)
+   { ?ori rdf:type gwsw:Putorientatie . } # werkte niet voor gemalen (t/m 1.3.2)
    UNION
-   { ?ori rdf:type :Bouwwerkorientatie . } # werkt vanaf 1.3.3 voor gemalen
+   { ?ori rdf:type gwsw:Bouwwerkorientatie . } # werkt vanaf 1.3.3 voor gemalen
    
-   ?ori :hasAspect
+   ?ori gwsw:hasAspect
        [ 
-         rdf:type :Punt ;
-         :hasValue ?Punt ;
+         rdf:type gwsw:Punt ;
+         gwsw:hasValue ?Punt ;
        ] .
 
-   optional {?pmp :hasAspect 
+   optional {?pmp gwsw:hasAspect 
    [
-       rdf:type :Begindatum ;
-       :hasValue ?Begindatum ;
+       rdf:type gwsw:Begindatum ;
+       gwsw:hasValue ?Begindatum ;
    ] .}
-   optional {?pmp :hasAspect 
+   optional {?pmp gwsw:hasAspect 
    [
-       rdf:type :Einddatum ;
-       :hasValue ?Einddatum ;
+       rdf:type gwsw:Einddatum ;
+       gwsw:hasValue ?Einddatum ;
    ] .}
-    
-   optional 
-   {
-      ?pmp :hasPart ?pomp1 .
-  	  ?pomp1 rdf:type :Pomp ;
-          :hasAspect 
-          [ rdf:type :Pompcapaciteit ;
-            :hasValue ?Pompcapaciteit1 ;
-          ] .
-      optional 
-      {
-          ?pmp :hasPart ?pomp2 .
-          ?pomp2 rdf:type :Pomp ;
-              :hasAspect 
-              [ rdf:type :Pompcapaciteit ;
-                :hasValue ?Pompcapaciteit2 ;
-              ] .
-      }
-      filter (!bound(?pomp2) || (str(?pomp2) > str(?pomp1)))
-   }
+
+   # Gemaalcapaciteit opnemen (20240718)
+  
+   optional {?pmp gwsw:hasAspect 
+   [
+       rdf:type gwsw:CapaciteitGemaal ;
+       gwsw:hasValue ?Pompcapaciteit1 ;
+   ] .}
+   optional {?pmp gwsw:hasAspect 
+   [
+       rdf:type gwsw:OntwerpcapaciteitGemaal ;
+       gwsw:hasValue ?Pompcapaciteit2 ;
+   ] .}
+
+   # Vervallen, geeft weinig informatie en draait niet goed (bij twee waarden volgen meerdere rijen) (20240718)
+   
+   #optional 
+   #{
+   #   ?pmp gwsw:hasPart ?pomp1 .
+   #	  ?pomp1 rdf:type gwsw:Pomp ;
+   #       gwsw:hasAspect 
+   #       [ rdf:type gwsw:Pompcapaciteit ;
+   #         gwsw:hasValue ?Pompcapaciteit1 ;
+   #       ] .
+   #   optional 
+   #   {
+   #       ?pmp gwsw:hasPart ?pomp2 .
+   #       ?pomp2 rdf:type gwsw:Pomp ;
+   #           gwsw:hasAspect 
+   #           [ rdf:type gwsw:Pompcapaciteit ;
+   #             gwsw:hasValue ?Pompcapaciteit2 ;
+   #           ] .
+   #   }
+   #   filter (!bound(?pomp2) || (str(?pomp2) > str(?pomp1)))
+   #}
+
    BIND (strafter(str(?pmp), "#") AS ?uri)
 }
