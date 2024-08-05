@@ -1,7 +1,24 @@
+# Proef (20240805): COUNT() telt het aantal voorkomens van ?s (niet het aantal triples)
+# Dubbele typeringen (VerdektePut) hebben dan geen invloed, de telling klopt
+
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX : <{{&version}}>
-SELECT (COUNT (*) AS ?count)
-WHERE
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT (COUNT (*) AS ?count) WHERE
 { 
-    {?s rdf:type :Put}
+    ?s rdf:type gwsw:Put .
+
+    ## Gebruik deze om multitypes af te handelen: (in deze query niet relevant) (20240805)
+    #optional { # vermeld de extra types
+    #  { select ?s ?extra where {
+    #    ?s rdf:type gwsw:VerdektePut.
+    #    bind ("verdekt" as ?extra ) .
+    #    }
+    #  }
+    #}
+    ## Alleen functionele types:
+    #?s sesame:directType ?type .
+    #filter not exists { ?type rdfs:subClassOf gwsw:ExtraObjecttype }
 }

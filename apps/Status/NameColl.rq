@@ -3,6 +3,6 @@ SELECT ?name ?NameColl
 WHERE 
 { 
 	?name rdfs:label ?lab .
-    FILTER (CONTAINS(LCASE(STR(?lab)), "collectie_"))
-    BIND (STRAFTER(LCASE(STR(?lab)), "collectie_") as ?NameColl)
+  FILTER (CONTAINS(LCASE(STR(?lab)), "collectie_"))
+  BIND (STRAFTER(LCASE(STR(?lab)), "collectie_") as ?NameColl)
 }
