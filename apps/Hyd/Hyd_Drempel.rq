@@ -1,65 +1,70 @@
 # Hyd_Drempel.spq
-# Gegevens overstortdrempels (20170817, 20230823)
+# Gegevens overstortdrempels (20170817/20230823/20240814)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX : <{{&version}}>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?naam ?bUri ?eUri ?Drempelbreedte ?Drempelniveau ?Afvoercoefficient ?Stromingsrichting ?VrijeOverstorthoogte
 
 WHERE
 { 
-    ?uri sesame:directType :Overstortdrempel .
+  ?uri sesame:directType gwsw:Overstortdrempel .
 	
 	optional
 	{
 		?uri rdfs:label ?naam .
 	}
-	?uri :hasAspect ?ori .
+	?uri gwsw:hasAspect ?ori .
 	
-    ?ori rdf:type :Onderdeelorientatie ;
-         :hasPart [
-		  	rdf:type :BeginpuntOnderdeel ;
-        	:hasConnection ?bpunt ; ] .
+    ?ori rdf:type gwsw:Onderdeelorientatie ;
+         gwsw:hasPart [
+		  	rdf:type gwsw:BeginpuntOnderdeel ;
+        	gwsw:hasConnection ?bpunt ; ] .
          
-        { ?bpunt :isAspectOf ?bUri }
+        { ?bpunt gwsw:isAspectOf ?bUri }
         UNION
-        { ?bpunt :isPartOf [ :isAspectOf ?bUri ] . }
+        { ?bpunt gwsw:isPartOf [ gwsw:isAspectOf ?bUri ] . }
 
 	optional
     {
-        ?ori :hasPart [
-		  	rdf:type :EindpuntOnderdeel ;
-        	:hasConnection ?epunt ; ] .
+        ?ori gwsw:hasPart [
+		  	rdf:type gwsw:EindpuntOnderdeel ;
+        	gwsw:hasConnection ?epunt ; ] .
 		
-        { ?epunt :isAspectOf ?eUri }
+        { ?epunt gwsw:isAspectOf ?eUri }
         UNION
-        { ?epunt :isPartOf [ :isAspectOf ?eUri ] . }
+        { ?epunt gwsw:isPartOf [ gwsw:isAspectOf ?eUri ] . }
+        UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20240814)
+        { ?epunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+          BIND (?epunt as ?eUri) }
     }
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :Drempelbreedte ;
-       :hasValue ?Drempelbreedte ;
+       rdf:type gwsw:Drempelbreedte ;
+       gwsw:hasValue ?Drempelbreedte ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :Drempelniveau ;
-       :hasValue ?Drempelniveau ;
+       rdf:type gwsw:Drempelniveau ;
+       gwsw:hasValue ?Drempelniveau ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :Afvoercoefficient ;
-       :hasValue ?Afvoercoefficient ;
+       rdf:type gwsw:Afvoercoefficient ;
+       gwsw:hasValue ?Afvoercoefficient ;
    ] .}
-   optional {?uri :hasAspect 
+   optional {?uri gwsw:hasAspect 
    [
-       rdf:type :Stromingsrichting ;
-       :hasReference ?Stromingsrichting ;
+       rdf:type gwsw:Stromingsrichting ;
+       gwsw:hasReference ?Stromingsrichting ;
    ] .}
-   optional {?uri :hasAspect # Toegevoegd (20230823)
+   optional {?uri gwsw:hasAspect # Toegevoegd (20230823)
    [
-       rdf:type :VrijeOverstorthoogte ;
-       :hasValue ?VrijeOverstorthoogte ;
+       rdf:type gwsw:VrijeOverstorthoogte ;
+       gwsw:hasValue ?VrijeOverstorthoogte ;
    ] .}
 }

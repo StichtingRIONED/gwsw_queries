@@ -40,10 +40,8 @@ WHERE
             ?epunt gwsw:isAspectOf ?eUri . # orientatie moet kenmerk van het fysieke ding zijn
         }
         UNION # De aansluitpunten (Uitlaatpunt) zijn geen orientatie, functioneren altijd zelfstandig (ook als aspect-van) (20230719)
-        {
-            ?epunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
-            BIND (?epunt as ?eUri)
-        }
+        {   ?epunt rdf:type gwsw:Aansluitpunt . # Zelfstandig knooppunt
+            BIND (?epunt as ?eUri) }
     }
    optional {?ond gwsw:hasAspect 
    [

@@ -1,5 +1,5 @@
 # Hyd_Knooppunt.spq
-# Tbv conversie naar GWSW.hydx (20170901/20190429/20230308/20230719/20230824)
+# Tbv conversie naar GWSW.hydx (20170901/20190429/20230308/20230719/20230824/20240814)
 # Op basis topologie-type gwsw:Knooppunt
 # Alleen via gwsw:Knooppunt koppelen naar leidingen en onderdelen
 
@@ -17,10 +17,10 @@ WHERE
   # UNION op alle subtypes van Knooppunt
 
   {  
-     ?ori rdf:type  ?typKnp .
+     ?ori rdf:type ?typKnp .
      FILTER (?typKnp IN (gwsw:Bouwwerkorientatie, gwsw:Compartimentorientatie, gwsw:Hulpstukorientatie, gwsw:Putorientatie ))
-     ?ori gwsw:isAspectOf ?uri .                  # orientatie moet kenmerk van het fysieke ding zijn
-     ?uri rdfs:label      ?naam1 .                # moet een naam hebben
+     ?ori gwsw:isAspectOf ?uri .             # orientatie moet kenmerk van het fysieke ding zijn
+     ?uri rdfs:label ?naam1 .                # moet een naam hebben
 
      optional { # markeer de hulpstukken: Verbindingsstuk, Afsluitkap (20230308)
        ?uri rdf:type gwsw:Hulpstuk . 
@@ -47,6 +47,10 @@ WHERE
 
      ?uri sesame:directType ?typAansl .
      BIND (str(iri(gwsw:)) AS ?aft) # gebruik de gwsw-IRI
+     
+     # Maak dit verplicht, hou herkenbaar in HydX en hou de query draaiend (20240813)
+     ?uri rdfs:label ?naam1 .
+     #BIND (strafter(str(?typAansl), ?aft) AS ?naam1) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
         
 # Dit deel voorlopig uitgeschakeld (20230824)
 # Als er geen aansluitpunten zijn (deze UNION wordt niet doorlopen !!), loopt de query vast (20230824)
@@ -63,7 +67,6 @@ WHERE
 #     BIND (CONCAT(strafter(str(?typAansl), ?aft), "_??") AS ?lab3) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
 #     BIND (COALESCE(?lab1, ?lab2, ?lab3) as ?naam1)
      
-     BIND (strafter(str(?typAansl), ?aft) AS ?naam1) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
   }
   { ?ori gwsw:hasConnection [ rdf:type gwsw:BeginpuntLeiding ;] . }
   UNION
@@ -163,12 +166,12 @@ WHERE
    { ?hgt rdf:type gwsw:HoogtePut . }
    UNION
    { ?hgt rdf:type gwsw:HoogteBouwwerk . }
-   #UNION
-   #{ ?hgt rdf:type gwsw:HoogteCompartiment . } Deze bestaat (nog) niet (20230912)
+   UNION
+   { ?hgt rdf:type gwsw:HoogteCompartiment . } # Deze bestaat vanaf versie 1.6 (20240814)
 
    ?hgt gwsw:hasValue ?hgt1 ;
   }
-  BIND (COALESCE(?hgt1, ?hgtCps) as ?hoogte) # Gebruik voor compartimenten de compositie-hoogte (20230912)
+  BIND (COALESCE(?hgt1, ?hgtCps) as ?hoogte) # Gebruik voor compartimenten optioneel de compositie-hoogte (20230912)
   
 # Gebruik vanaf hier evt het compositie-object
 
