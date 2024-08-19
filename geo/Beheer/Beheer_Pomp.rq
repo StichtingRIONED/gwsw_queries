@@ -1,106 +1,125 @@
-# Beheer_Pomp.rq - Alle pomp-constructies (pompput/gemaal) (20240718)
+# Beheer_Pomp.rq - Alle pomp-constructies (pompput/gemaal) (20240819) (20240718)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
 SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Pompcapaciteit1 ?Pompcapaciteit2
 
 WHERE
 { 
-   {
-   	?pmp sesame:directType gwsw:Pompput . # Selecteer expliciet op Pompput, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
-   }
-   UNION
-   {
-   	?pmp sesame:directType gwsw:Pompunit . # Selecteer expliciet op Pompunit, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
-   }
-   UNION
-   {
-   	?pmp rdf:type gwsw:Gemaal .
-   }
-   UNION
-   {
-   	?pmp gwsw:hasPart
+  {
+    ?pmp sesame:directType gwsw:Pompput . # Selecteer expliciet op Pompput, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
+  }
+  UNION {
+    ?pmp sesame:directType gwsw:Pompunit . # Selecteer expliciet op Pompunit, vanaf versie 1.6 is Pompunit geen subtype meer van Pompput (20240715/mv)
+  }
+  UNION {
+    ?pmp rdf:type gwsw:Gemaal .
+  }
+  UNION {
+    ?pmp gwsw:hasPart
     [ 
           rdf:type gwsw:Pomp;
     ] .
-   }
-   ?pmp sesame:directType ?type .
-    
-   FILTER (!(isBlank(?pmp)))
-   FILTER (!(isBlank(?type)))
-    
-   ?pmp rdfs:label ?naam .
-   
-   optional
-   {   
-      ?pmp gwsw:isPartOf 
-      [ rdf:type gwsw:Stelsel ;
-        rdfs:label ?Stelsel ;
-        sesame:directType ?stelseltype ;
-      ] .
-   }
-   ?pmp gwsw:hasAspect ?ori .
-   
-   { ?ori rdf:type gwsw:Putorientatie . } # werkte niet voor gemalen (t/m 1.3.2)
-   UNION
-   { ?ori rdf:type gwsw:Bouwwerkorientatie . } # werkt vanaf 1.3.3 voor gemalen
-   
-   ?ori gwsw:hasAspect
-       [ 
-         rdf:type gwsw:Punt ;
-         gwsw:hasValue ?Punt ;
-       ] .
-
-   optional {?pmp gwsw:hasAspect 
-   [
-       rdf:type gwsw:Begindatum ;
-       gwsw:hasValue ?Begindatum ;
-   ] .}
-   optional {?pmp gwsw:hasAspect 
-   [
-       rdf:type gwsw:Einddatum ;
-       gwsw:hasValue ?Einddatum ;
-   ] .}
-
-   # Gemaalcapaciteit opnemen (20240718)
+  }
+  ?pmp sesame:directType ?type .
   
-   optional {?pmp gwsw:hasAspect 
-   [
-       rdf:type gwsw:CapaciteitGemaal ;
-       gwsw:hasValue ?Pompcapaciteit1 ;
-   ] .}
-   optional {?pmp gwsw:hasAspect 
-   [
-       rdf:type gwsw:OntwerpcapaciteitGemaal ;
-       gwsw:hasValue ?Pompcapaciteit2 ;
-   ] .}
+  FILTER (!(isBlank(?pmp)))
+  FILTER (!(isBlank(?type)))
+  
+  ?pmp rdfs:label ?naam .
+  
+  optional
+  {   
+    ?pmp gwsw:isPartOf 
+    [ rdf:type gwsw:Stelsel ;
+      rdfs:label ?Stelsel ;
+      sesame:directType ?stelseltype ;
+    ] .
+  }
+  ?pmp gwsw:hasAspect ?ori .
+  
+  { ?ori rdf:type gwsw:Putorientatie . } # werkte niet voor gemalen (t/m 1.3.2)
+  UNION
+  { ?ori rdf:type gwsw:Bouwwerkorientatie . } # werkt vanaf 1.3.3 voor gemalen
+  
+  ?ori gwsw:hasAspect
+      [ 
+        rdf:type gwsw:Punt ;
+        gwsw:hasValue ?Punt ;
+      ] .
 
-   # Vervallen, geeft weinig informatie en draait niet goed (bij twee waarden volgen meerdere rijen) (20240718)
-   
-   #optional 
-   #{
-   #   ?pmp gwsw:hasPart ?pomp1 .
-   #	  ?pomp1 rdf:type gwsw:Pomp ;
-   #       gwsw:hasAspect 
-   #       [ rdf:type gwsw:Pompcapaciteit ;
-   #         gwsw:hasValue ?Pompcapaciteit1 ;
-   #       ] .
-   #   optional 
-   #   {
-   #       ?pmp gwsw:hasPart ?pomp2 .
-   #       ?pomp2 rdf:type gwsw:Pomp ;
-   #           gwsw:hasAspect 
-   #           [ rdf:type gwsw:Pompcapaciteit ;
-   #             gwsw:hasValue ?Pompcapaciteit2 ;
-   #           ] .
-   #   }
-   #   filter (!bound(?pomp2) || (str(?pomp2) > str(?pomp1)))
-   #}
+  optional {?pmp gwsw:hasAspect 
+  [
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?Begindatum ;
+  ] .}
+  optional {?pmp gwsw:hasAspect 
+  [
+      rdf:type gwsw:Einddatum ;
+      gwsw:hasValue ?Einddatum ;
+  ] .}
 
-   BIND (strafter(str(?pmp), "#") AS ?uri)
+  # Gemaalcapaciteit opnemen (20240718)
+  
+  # Deze levert logischer resultaten, maar de datasets zijn nog hiermee onvoldoende gevuld
+  # Toch gekozen voor de capaciteiten per pomp (max 2)
+
+  #optional {?pmp gwsw:hasAspect 
+  #[
+  #    rdf:type gwsw:CapaciteitGemaal ;
+  #    gwsw:hasValue ?Pompcapaciteit1 ;
+  #] .}
+  #optional {?pmp gwsw:hasAspect 
+  #[
+  #    rdf:type gwsw:OntwerpcapaciteitGemaal ;
+  #    gwsw:hasValue ?Pompcapaciteit2 ;
+  #] .}
+      
+  optional { # zijn er capaciteiten ?
+
+    { # Verzamel de capaciteiten in een string (20240819)
+      select ?pmp (group_concat(?val; separator = ",") as ?aCap) where {
+        ?pmp ?hasPart [ 
+          rdf:type gwsw:Pomp ; 
+          gwsw:hasAspect [
+            rdf:type gwsw:Pompcapaciteit; 
+            gwsw:hasValue ?val ;
+        ]] .
+      } group by (?pmp)
+    }
+    filter (strlen(?aCap))
+    bind (if (contains(?aCap, ","), strbefore(?aCap, ","), ?aCap) as ?Pompcapaciteit1)
+    
+    optional { # 2e capaciteit ?
+      bind (strafter(?aCap, ",") as ?cap2)
+      filter (strlen(?cap2))
+      bind (if (contains(?cap2, ","), strbefore(?cap2, ","), ?cap2) as ?Pompcapaciteit2)
+    }
+  }
+  # 20240819/mv: Deze draait niet goed, bij meerdere capaciteiten worden alle combinaties opgesomd
+  # 2x hasPart opvragen levert ook 2x dezelfde triple 
+
+  #optional {
+  #  ?pmp gwsw:hasPart ?pomp1 .
+  #  ?pomp1 rdf:type gwsw:Pomp ;
+  #      gwsw:hasAspect 
+  #      [ rdf:type gwsw:Pompcapaciteit ;
+  #      ] .
+  #  optional {
+  #     ?pmp gwsw:hasPart ?pomp2 .
+  #     ?pomp2 rdf:type gwsw:Pomp ;
+  #          gwsw:hasAspect 
+  #          [ rdf:type gwsw:Pompcapaciteit ;
+  #            gwsw:hasValue ?Pompcapaciteit2 ;
+  #          ] .
+  #  }
+  #  filter (!bound(?pomp2) || (str(?pomp2) > str(?pomp1)))
+  #}
+
+  BIND (strafter(str(?pmp), "#") AS ?uri)
 }
