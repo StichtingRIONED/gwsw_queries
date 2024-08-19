@@ -80,9 +80,9 @@ WHERE
   #    gwsw:hasValue ?Pompcapaciteit2 ;
   #] .}
       
-  optional { # zijn er capaciteiten ?
+  optional { # Zijn er capaciteiten? Vooraf verzamelen (20240819)
 
-    { # Verzamel de capaciteiten in een string (20240819)
+    { # Verzamel de capaciteiten in een string
       select ?pmp (group_concat(?val; separator = ",") as ?aCap) where {
         ?pmp ?hasPart [ 
           rdf:type gwsw:Pomp ; 
@@ -101,7 +101,7 @@ WHERE
       bind (if (contains(?cap2, ","), strbefore(?cap2, ","), ?cap2) as ?Pompcapaciteit2)
     }
   }
-  # 20240819/mv: Deze draait niet goed, bij meerdere capaciteiten worden alle combinaties opgesomd
+  # 20240819/mv: Deze (hieronder) draait niet goed, bij meerdere capaciteiten worden alle combinaties opgesomd
   # 2x hasPart opvragen levert ook 2x dezelfde triple 
 
   #optional {
