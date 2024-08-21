@@ -45,12 +45,12 @@ WHERE
 
      # De naam bij een aansluitpunt was niet verplicht, nu wel opgenomen in OroX-protocol (20230719)
 
-     ?uri sesame:directType ?typAansl .
+     ?uri sesame:directType ?type .
      BIND (str(iri(gwsw:)) AS ?aft) # gebruik de gwsw-IRI
      
      # Maak dit verplicht, hou herkenbaar in HydX en hou de query draaiend (20240813)
      ?uri rdfs:label ?naam1 .
-     #BIND (strafter(str(?typAansl), ?aft) AS ?naam1) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
+     #BIND (strafter(str(?type), ?aft) AS ?naam1) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
         
 # Dit deel voorlopig uitgeschakeld (20230824)
 # Als er geen aansluitpunten zijn (deze UNION wordt niet doorlopen !!), loopt de query vast (20230824)
@@ -62,9 +62,9 @@ WHERE
 #      ?uri gwsw:isAspectOf [
 #           rdfs:label ?labCps ;
 #        ] .
-#      BIND (CONCAT(str(?labCps), "_", strafter(str(?typAansl), ?aft)) AS ?lab2) # Fabriceer een naam
+#      BIND (CONCAT(str(?labCps), "_", strafter(str(?type), ?aft)) AS ?lab2) # Fabriceer een naam
 #     }
-#     BIND (CONCAT(strafter(str(?typAansl), ?aft), "_??") AS ?lab3) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
+#     BIND (CONCAT(strafter(str(?type), ?aft), "_??") AS ?lab3) # Generieke naam (geen probleem, de uri wordt gebruikt als identificatie)
 #     BIND (COALESCE(?lab1, ?lab2, ?lab3) as ?naam1)
      
   }
