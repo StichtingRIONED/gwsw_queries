@@ -1,11 +1,13 @@
-# Geo-thema netwerk: Hyd_Knooppunt.spq (20170910-20230302)
+# Geo-thema netwerk: Hyd_Knooppunt.rq (20170910-20240930)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT ?Stelsel ?naam ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?Maaiveldschematisering ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
+SELECT ?Stelsel ?stelseltype ?naam ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?Maaiveldschematisering ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
 
 WHERE
 { 
@@ -29,6 +31,7 @@ WHERE
       ?knp :isPartOf 
       [ rdf:type :Stelsel ;
         rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
       ] .
    }
    ?knp :hasAspect ?ori .

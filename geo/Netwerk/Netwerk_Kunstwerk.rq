@@ -1,4 +1,4 @@
-# Geoserver: Netwerk_Kunstwerk.spq (20170910-20230426)
+# Geoserver: Netwerk_Kunstwerk.rq (20170910-20240930)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -7,7 +7,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT ?Stelsel ?naam ?type ?begin ?eind ?Punt ?BreedteOpening ?HoogteOpening ?VormOpening ?Doorlaatniveau ?Contractiecoef ?MaxCapDoorlaat  ?Pompcapaciteit ?AanslagniveauBeneden ?AfslagniveauBeneden ?AanslagniveauBoven ?AfslagniveauBoven ?Drempelbreedte ?Drempelniveau ?Buitenwaterstand ?Stromingsrichting
+SELECT ?Stelsel ?stelseltype ?naam ?type ?begin ?eind ?Punt ?BreedteOpening ?HoogteOpening ?VormOpening ?Doorlaatniveau ?Contractiecoef ?MaxCapDoorlaat  ?Pompcapaciteit ?AanslagniveauBeneden ?AfslagniveauBeneden ?AanslagniveauBoven ?AfslagniveauBoven ?Drempelbreedte ?Drempelniveau ?Buitenwaterstand ?Stromingsrichting
 
 WHERE
 { 
@@ -33,7 +33,8 @@ WHERE
           ?uri :isAspectOf [ :isPartOf
           [ rdf:type :Stelsel ;
             rdfs:label ?Stelsel ;
-          ] ] .
+            sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
+         ] ] .
         }
             
         # zoek de z-waarde
@@ -72,6 +73,7 @@ WHERE
 				?uriKnp :isPartOf
 				[ rdf:type :Stelsel ;
 					rdfs:label ?Stelsel ;
+          sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
 				] .
 			}
 		

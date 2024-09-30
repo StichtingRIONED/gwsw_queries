@@ -1,13 +1,13 @@
-# GWSW Geo: Netwerk_Verbinding.spq (20170910,20180412,20230510)
+# GWSW Geo: Netwerk_Verbinding.rq (20170910-20240930)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
-SELECT ?Stelsel ?naam ?type ?Lijn ?beginpunt ?eindpunt ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
+SELECT ?Stelsel ?stelseltype ?naam ?type ?Lijn ?beginpunt ?eindpunt ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
 
 WHERE
 { 
@@ -24,6 +24,7 @@ WHERE
       ?lei :isPartOf 
       [ rdf:type :Stelsel ;
         rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
       ] .
    }
    ?lei :hasAspect ?ori .
