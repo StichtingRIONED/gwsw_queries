@@ -1,0 +1,59 @@
+# leiding.rq (20241028)
+# Inspecteren persleidingen
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?typeInvoer ?naamLeiding ?DiameterLeiding ?Punt ?typeWaarn ?typeMeting ?waardeMeting
+WHERE
+{ 
+  { 
+    ?actv rdf:type gwsw:InspecterenPersleiding .
+    BIND ("Persleiding" as ?typeInvoer)
+  }
+  UNION { 
+    ?actv rdf:type gwsw:InspecterenBuisdeel .
+    BIND ("Buisdeel" as ?typeInvoer)
+  }
+  ?actv gwsw:hasOutput [ 
+      rdf:type gwsw:WaarnemingOpLocatie ;
+      gwsw:hasPart ?wrn ;
+      gwsw:hasAspect ?loc ;
+  ] .
+  # Locatie met geo-punt en Waarneming moet er zijn
+  ?loc rdf:type gwsw:LocatieWaarneming .
+  ?loc gwsw:hasAspect [
+    rdf:type gwsw:Punt ;
+    gwsw:hasValue ?Punt ; 
+  ] .
+  ?wrn rdf:type gwsw:WaarnemingPersleiding .
+  ?wrn sesame:directType ?typeWaarn .
+
+  optional { # Metingen bij waarneming (elke meting = nieuwe regel)
+    ?wrn gwsw:hasAspect ?met .
+    ?met gwsw:hasValue ?waardeMeting .
+    ?met sesame:directType ?typeMeting .
+  }
+  optional { # Gegevens van de persleiding
+    ?actv gwsw:hasOutput ?lei .
+    ?lei rdf:type gwsw:MechanischeTransportleiding .
+    ?lei rdfs:label ?naamLeiding .
+
+    optional {?lei gwsw:hasAspect [
+      rdf:type gwsw:MateriaalLeiding ;
+      gwsw:hasReference ?MateriaalLeiding ;
+    ] . }
+    optional {?lei gwsw:hasAspect [
+      rdf:type gwsw:DiameterLeiding ;
+      gwsw:hasValue ?DiameterLeiding ;
+    ] . }
+    optional {?lei gwsw:hasAspect [ # Breedte als diameter vermelden (persleiding is altijd rond)
+      rdf:type gwsw:BreedteLeiding ;
+      gwsw:hasValue ?DiameterLeiding ;
+    ] . }
+  }
+}
