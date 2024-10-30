@@ -8,16 +8,51 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?typeInvoer ?naamLeiding ?DiameterLeiding ?Punt ?typeWaarn ?typeMeting ?waardeMeting
+SELECT ?inspectieObject ?naamLeiding ?diameter ?Punt ?typeWaarn ?typeMeting ?waardeMeting
+
 WHERE
 { 
   { 
     ?actv rdf:type gwsw:InspecterenPersleiding .
-    BIND ("Persleiding" as ?typeInvoer)
+    BIND ("Persleiding" as ?inspectieObject)
+
+    optional { # Gegevens van de persleiding in uitvoer
+      ?actv gwsw:hasOutput ?lei .
+      ?lei rdf:type gwsw:MechanischeTransportleiding .
+      ?lei rdfs:label ?naamOut .
+
+      #optional {?lei gwsw:hasAspect [
+      #  rdf:type gwsw:MateriaalLeiding ;
+      #  gwsw:hasReference ?MateriaalLeiding ;
+      #] . }
+      optional {?lei gwsw:hasAspect [
+        rdf:type gwsw:DiameterLeiding ;
+        gwsw:hasValue ?diameter ;
+      ] . }
+      optional {?lei gwsw:hasAspect [ # Breedte als diameter vermelden (persleiding is altijd rond)
+        rdf:type gwsw:BreedteLeiding ;
+        gwsw:hasValue ?diameter ;
+      ] . }
+    }
   }
   UNION { 
     ?actv rdf:type gwsw:InspecterenBuisdeel .
-    BIND ("Buisdeel" as ?typeInvoer)
+    BIND ("Buisdeel" as ?inspectieObject)
+
+    optional { # Gegevens van het buisdeel in uitvoer
+      ?actv gwsw:hasOutput ?lei .
+      ?lei rdf:type gwsw:Buisdeel .
+      ?lei rdfs:label ?naamOut .
+
+      optional {?lei gwsw:hasAspect [
+        rdf:type gwsw:DiameterBuisdeel ;
+        gwsw:hasValue ?diameter ;
+      ] . }
+      optional {?lei gwsw:hasAspect [ # Breedte als diameter vermelden (buisdeel is altijd rond)
+        rdf:type gwsw:BreedteBuisdeel ;
+        gwsw:hasValue ?diameter ;
+      ] . }
+    }
   }
   ?actv gwsw:hasOutput [ 
       rdf:type gwsw:WaarnemingOpLocatie ;
@@ -33,27 +68,15 @@ WHERE
   ?wrn rdf:type gwsw:WaarnemingPersleiding .
   ?wrn sesame:directType ?typeWaarn .
 
-  optional { # Metingen bij waarneming (elke meting = nieuwe regel)
+  optional { # Metingen bij waarneming (elke meting = nieuw geoobject)
     ?wrn gwsw:hasAspect ?met .
     ?met gwsw:hasValue ?waardeMeting .
     ?met sesame:directType ?typeMeting .
   }
-  optional { # Gegevens van de persleiding
-    ?actv gwsw:hasOutput ?lei .
-    ?lei rdf:type gwsw:MechanischeTransportleiding .
-    ?lei rdfs:label ?naamLeiding .
-
-    optional {?lei gwsw:hasAspect [
-      rdf:type gwsw:MateriaalLeiding ;
-      gwsw:hasReference ?MateriaalLeiding ;
-    ] . }
-    optional {?lei gwsw:hasAspect [
-      rdf:type gwsw:DiameterLeiding ;
-      gwsw:hasValue ?DiameterLeiding ;
-    ] . }
-    optional {?lei gwsw:hasAspect [ # Breedte als diameter vermelden (persleiding is altijd rond)
-      rdf:type gwsw:BreedteLeiding ;
-      gwsw:hasValue ?DiameterLeiding ;
-    ] . }
+  optional { # Naam persleiding als invoer?
+    ?actv gwsw:hasInput ?leiIn .
+    ?leiIn rdf:type gwsw:MechanischeTransportleiding .
+    ?leiIn rdfs:label ?naamIn .
   }
+  BIND (COALESCE(?naamIn, ?naamOut) AS ?naamLeiding)
 }
