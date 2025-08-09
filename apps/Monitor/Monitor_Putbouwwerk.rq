@@ -60,16 +60,14 @@ WHERE
   }
   #BIND (COALESCE(?nStelsel, ?mStelsel, "") as ?Stelsel)
 
-  #OPTIONAL {
-  #  ?obj gwsw:hasAspect [
-  #    rdf:type gwsw:Begindatum ;
-  #    gwsw:hasValue ?datum ;
-  #  ] .
- 	#  BIND (SUBSTR(str(?datum), 1, 4) as ?jaar1)
-  #}
-  #BIND (COALESCE(?jaar1, "") as ?jaar)
-
-  BIND ("" as ?jaar)
+  OPTIONAL {
+    ?obj gwsw:hasAspect [
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?datum ;
+    ] .
+ 	  BIND (SUBSTR(str(?datum), 1, 4) as ?jaar1)
+  }
+  BIND (COALESCE(?jaar1, "") as ?jaar)
 
   # De query loopt niet met ?Eigenaar als die bovenaan staat! (20240208)
   OPTIONAL {
