@@ -1,4 +1,5 @@
-# GWSW_Lijsten Collecties (20220118) (20200520) (20190429)
+# GWSW_Lijsten Collecties (20241112) (20220118) (20200520) (20190429)
+# Deze query kan lang duren, kans op server-timeout. Voer 'm dan lokaal uit, op de GWSW-Server.
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -29,7 +30,7 @@ where
 # OPTIONAL
 # {
  { 
- SELECT ?elem (GROUP_CONCAT(?Label; separator = " / ") as ?LabelElement)
+ SELECT ?elem (GROUP_CONCAT(?Label; separator = " | ") as ?LabelElement)
   WHERE
   {
    ?elem rdfs:label ?Label .
@@ -41,7 +42,7 @@ where
 # Groepeer de codes en noem optioneel DataType (fact-coll) (20150907)
 
 { 
-  SELECT ?elem (GROUP_CONCAT(?code; separator = " / ") as ?CodeElement)
+  SELECT ?elem (GROUP_CONCAT(?code; separator = " | ") as ?CodeElement)
   WHERE
   {
     OPTIONAL
@@ -68,11 +69,7 @@ where
   # ?elem :hasClassId ?NumberElement .
 	?elem skos:hiddenLabel ?NumberElement . # relatie hasClassId gewijzigd in hiddenLabel (20150910)
  }
-# BIND ("#" AS ?aft)
-# BIND ("gwsw.nl/" AS ?aft)
-#  BIND ("1.5/totaal/" AS ?aft)
  BIND (str(iri(:)) AS ?aft)
-
 
 # BIND (str(?labelCollection) AS ?Collection)  # zonder taal-aanduiding
  BIND (strafter(str(?coll), ?aft) AS ?Collection) # (20200520)

@@ -1,14 +1,14 @@
-# leiding.rq (20241028)
+# leiding.rq (20241111) (20241028)
 # Inspecteren persleidingen
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
-PREFIX gwsw: <{{&version}}>
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
 
-SELECT ?inspectieObject ?naamLeiding ?diameter ?Punt ?typeWaarn ?typeMeting ?waardeMeting
+SELECT ?inspectieObject ?naamLeiding ?diameter ?Punt ?Lijn ?DatumVanInwinning ?WijzeVanInwinning ?Opmerking ?typeWaarn ?typeMeting ?waardeMeting
 
 WHERE
 { 
@@ -21,15 +21,13 @@ WHERE
       ?lei rdf:type gwsw:MechanischeTransportleiding .
       ?lei rdfs:label ?naamOut .
 
-      #optional {?lei gwsw:hasAspect [
-      #  rdf:type gwsw:MateriaalLeiding ;
-      #  gwsw:hasReference ?MateriaalLeiding ;
-      #] . }
-      optional {?lei gwsw:hasAspect [
+      optional {
+        ?lei gwsw:hasAspect [
         rdf:type gwsw:DiameterLeiding ;
         gwsw:hasValue ?diameter ;
       ] . }
-      optional {?lei gwsw:hasAspect [ # Breedte als diameter vermelden (persleiding is altijd rond)
+      optional { # Breedte als diameter vermelden (persleiding is altijd rond)
+        ?lei gwsw:hasAspect [
         rdf:type gwsw:BreedteLeiding ;
         gwsw:hasValue ?diameter ;
       ] . }
@@ -44,30 +42,60 @@ WHERE
       ?lei rdf:type gwsw:Buisdeel .
       ?lei rdfs:label ?naamOut .
 
-      optional {?lei gwsw:hasAspect [
+      optional {
+        ?lei gwsw:hasAspect [
         rdf:type gwsw:DiameterBuisdeel ;
         gwsw:hasValue ?diameter ;
       ] . }
-      optional {?lei gwsw:hasAspect [ # Breedte als diameter vermelden (buisdeel is altijd rond)
+      optional { # Breedte als diameter vermelden (buisdeel is altijd rond)
+        ?lei gwsw:hasAspect [
         rdf:type gwsw:BreedteBuisdeel ;
         gwsw:hasValue ?diameter ;
       ] . }
     }
   }
-  ?actv gwsw:hasOutput [ 
-      rdf:type gwsw:WaarnemingOpLocatie ;
-      gwsw:hasPart ?wrn ;
-      gwsw:hasAspect ?loc ;
-  ] .
-  # Locatie met geo-punt en Waarneming moet er zijn
-  ?loc rdf:type gwsw:LocatieWaarneming .
-  ?loc gwsw:hasAspect [
-    rdf:type gwsw:Punt ;
-    gwsw:hasValue ?Punt ; 
-  ] .
-  ?wrn rdf:type gwsw:WaarnemingPersleiding .
-  ?wrn sesame:directType ?typeWaarn .
 
+  # Locatie met geo-punt en Waarneming moet er zijn
+  
+  ?actv gwsw:hasOutput [ 
+    rdf:type gwsw:WaarnemingOpLocatie ;
+    gwsw:hasAspect ?loc ;
+    gwsw:hasPart ?wrn ;
+  ] .
+  ?loc rdf:type gwsw:LocatieWaarneming .
+  ?loc gwsw:hasAspect ?geo .
+  {
+    ?geo rdf:type gwsw:Punt .
+    ?geo gwsw:hasValue ?Punt .
+  }
+  UNION {
+    ?geo rdf:type gwsw:Lijn .
+    ?geo gwsw:hasValue ?Lijn .
+  }
+  ?wrn rdf:type gwsw:WaarnemingPersleiding . # 1 record per waarneming
+
+  # Aan de slag, verzamel de waarnemingen en optionele kenmerken
+
+  optional { 
+    ?actv gwsw:hasAspect [
+      rdf:type gwsw:DatumVanInwinning ;
+      gwsw:hasValue ?DatumVanInwinning ;
+    ] .
+  }
+  optional { 
+    ?actv gwsw:hasAspect [
+      rdf:type gwsw:WijzeVanInwinning ;
+      gwsw:hasReference ?WijzeVanInwinning ;
+    ] .
+  }
+  optional {
+    ?actv gwsw:hasAspect [
+      rdf:type gwsw:Opmerking ;
+      gwsw:hasValue ?Opmerking ;
+    ] .
+  }
+  ?wrn sesame:directType ?typeWaarn .
+    
   optional { # Metingen bij waarneming (elke meting = nieuw geoobject)
     ?wrn gwsw:hasAspect ?met .
     ?met gwsw:hasValue ?waardeMeting .

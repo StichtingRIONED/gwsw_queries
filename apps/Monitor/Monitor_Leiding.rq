@@ -1,26 +1,26 @@
-# Tbv RIONED Monitor 2024 (20240208)
+# Tbv RIONED Monitor 2028 (20250809) (20240208)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar ?Lining (SUM (?LengteLeiding) AS ?somLengteLeiding) ?somBergendVermogen ?somInfiltrerendOppervlak
+SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar ?Lining (SUM (?LengteLeiding) AS ?somLengte) ?somBergendVermogen ?somInfiltrerendOppervlak
 WHERE
 { 
   { ?obj rdf:type gwsw:MechanischeRioolleiding .
-    BIND ("MechanischeRioolleiding" as ?groep) }
+    BIND ("Mechanische rioolleiding" as ?groep) }
   UNION {
     ?obj rdf:type gwsw:VrijvervalRioolleiding .
-    BIND ("VrijvervalRioolleiding" as ?groep) }
+    BIND ("Vrijverval rioolleiding" as ?groep) }
   UNION {
     ?obj rdf:type gwsw:MechanischeTransportleiding .
-    BIND ("MechanischeTransportleiding" as ?groep) }
+    BIND ("Mechanische transportleiding" as ?groep) }
   UNION {
     ?obj rdf:type gwsw:VrijvervalTransportleiding .
-    BIND ("VrijvervalTransportleiding" as ?groep) }
+    BIND ("Vrijverval transportleiding" as ?groep) }
   UNION {
     ?obj rdf:type gwsw:OpenLeiding .
-    BIND ("OpenLeiding" as ?groep) }
+    BIND ("Open leiding" as ?groep) }
   UNION {
     ?obj rdf:type gwsw:Drain .
     BIND ("Drain" as ?groep) }
@@ -33,15 +33,30 @@ WHERE
 
   BIND ("{{&repository}}" AS ?dataset )
   BIND ( strafter(str(?type1), ?aft) as ?type)
+  
+  # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
+  #BIND ( strafter(str(?type1), ?aft) as ?mType)
+  #OPTIONAL { 
+  #  ?type1 rdfs:label ?nType . 
+  #  FILTER(lang(?nType) = "nl")
+  #}
+  #BIND (COALESCE(?nType, ?mType, "") AS ?type)
 
   OPTIONAL {
     ?obj gwsw:isPartOf [
       rdf:type gwsw:Stelsel ;
    	  sesame:directType ?stelsel1 ;
     ]
- 	  BIND ( strafter(str(?stelsel1), ?aft) as ?stelsel2)
+ 	  BIND ( strafter(str(?stelsel1), ?aft) as ?Stelsel)
+    
+    # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
+ 	  #BIND ( strafter(str(?stelsel1), ?aft) as ?mStelsel)
+    #OPTIONAL { 
+    #  ?stelsel1 rdfs:label ?nStelsel . 
+    #  FILTER(lang(?nStelsel) = "nl")
+    #}
   }
-  BIND (COALESCE(?stelsel2, "") as ?Stelsel)
+  #BIND (COALESCE(?nStelsel, ?mStelsel, "") as ?Stelsel)
 
   OPTIONAL {
     ?obj gwsw:hasAspect [

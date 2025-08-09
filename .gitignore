@@ -7,8 +7,10 @@
 # not relevant
 /hyd/*.csv
 /hyd_v131/*.csv
-/geo/Archief
-/apps/Archief
+
+# all submaps (20240224) (20231016)
+archive/
+temp/ 
 
 node_modules_org
 # system files

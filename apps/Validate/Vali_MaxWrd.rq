@@ -5,7 +5,7 @@
 
 # 20160222: Check op datatype wel nodig, allvaluesfrom verwijst naar datatype met onder/bovengrens
 #           In aparte query ondergebracht
-# 20151214: let op - nog controleren/corrigeren !!!!!!!!!!!!!!!
+# 20151214: let op - nog controleren/corrigeren !
 #           check op datatype niet nodig? Elk concept heeft een allvaluesfrom - restrictie?
 #           in dat geval is de specifieke query voor datatype-check voldoende (geen dubbele meldingen doen)
 

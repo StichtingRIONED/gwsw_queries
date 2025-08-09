@@ -1,0 +1,223 @@
+# Inspecteren persleidingen - waarnemingen (20241120) (20241111)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+#PREFIX : <http://sparql.gwsw.nl/bim/PersTest#> # alleen voor testen
+
+SELECT ?typeObject ?Punt ?Lijn ?DatumVanInwinning ?WijzeVanInwinning ?Opmerking ?Gasophopingtype ?LengteGasophoping ?Lekkagetype ?Lekdebiet ?locatieVervuiling ?aantalDraadbreuken ?locatieDraadbreuk ?locatieDelaminatie ?WanddikteAfnameMinimaal ?WanddikteAfnameGemiddeld ?WanddikteAfnameMaximaal ?breedteBuisdeel ?hoogteBuisdeel ?ovaliteit ?buigingHorizontaal ?buigingVerticaal ?buigingTotaal ?hoekverdraaiingHorizontaal ?hoekverdraaiingVerticaal ?voegwijdte
+
+WHERE
+{ 
+  { 
+    ?actv rdf:type gwsw:InspecterenPersleiding .
+    BIND ("Persleiding" as ?typeObject)
+  }
+  UNION { 
+    ?actv rdf:type gwsw:InspecterenBuisdeel .
+    BIND ("Buisdeel" as ?typeObject)
+  }
+  # Locatie met geo-punt en Waarneming moet er zijn
+  
+  ?actv gwsw:hasOutput ?wrnLoc . 
+  #BIND (:Vredenburg_Joint_0001_Insp as ?wrnLoc) # alleen voor testen
+  #BIND (:Vredenburg_Pipe_0276_Insp as ?wrnLoc) # alleen voor testen
+
+  ?wrnLoc rdf:type gwsw:WaarnemingOpLocatie .
+  ?wrnLoc gwsw:hasAspect [ 
+    rdf:type gwsw:LocatieWaarneming ;
+    gwsw:hasAspect ?geo ;
+  ] .
+  {
+    ?geo rdf:type gwsw:Punt .
+    ?geo gwsw:hasValue ?Punt .
+  }
+  UNION {
+    ?geo rdf:type gwsw:Lijn .
+    ?geo gwsw:hasValue ?Lijn .
+  }
+
+  # Aan de slag, verzamel de waarnemingen en optionele kenmerken
+
+  optional {
+    ?actv gwsw:hasAspect [
+      rdf:type gwsw:DatumVanInwinning ;
+      gwsw:hasValue ?DatumVanInwinning ;
+    ] .
+  }
+  optional {
+    ?actv gwsw:hasAspect [
+      rdf:type gwsw:WijzeVanInwinning ;
+      gwsw:hasReference ?WijzeVanInwinning ;
+    ] .
+  }
+  optional {
+    ?actv gwsw:hasAspect [
+      rdf:type gwsw:Opmerking ;
+      gwsw:hasValue ?Opmerking ;
+    ] .
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart ?wrnGO .
+    ?wrnGO rdf:type gwsw:WaarnemingGasophoping .
+
+    optional {
+      ?wrnGO gwsw:hasAspect [
+        rdf:type gwsw:Gasophopingtype ;
+        gwsw:hasReference ?Gasophopingtype ;
+      ] .
+    }
+    optional {
+      ?wrnGO gwsw:hasAspect [
+        rdf:type gwsw:LengteGasophoping ;
+        gwsw:hasValue ?LengteGasophoping ;
+      ] .
+    }
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart ?wrnLK .
+    ?wrnLK rdf:type gwsw:WaarnemingLekkage .
+
+    optional {
+      ?wrnLK gwsw:hasAspect [
+        rdf:type gwsw:Lekkagetype ;
+        gwsw:hasReference ?Lekkagetype ;
+      ] .
+    }
+    optional {
+      ?wrnLK gwsw:hasAspect [
+        rdf:type gwsw:Lekdebiet ;
+        gwsw:hasValue ?Lekdebiet ;
+      ] .
+    }
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart [
+      rdf:type gwsw:WaarnemingVervuiling ;
+      gwsw:hasAspect [
+        rdf:type gwsw:Omtreklocatie ;
+        gwsw:hasValue ?locatieVervuiling ;
+      ] ;
+    ] .
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart ?wrnDB .
+    ?wrnDB rdf:type gwsw:WaarnemingDraadbreuk .
+    optional {
+      ?wrnDB gwsw:hasAspect [
+          rdf:type gwsw:MetingAantalDraadbreuken ;
+          gwsw:hasValue ?aantalDraadbreuken ;
+      ] .
+    }
+    optional {
+      ?wrnDB gwsw:hasAspect [
+        rdf:type gwsw:Omtreklocatie ;
+        gwsw:hasValue ?locatieDraadbreuk ;      
+      ] .
+    }
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart [
+      rdf:type gwsw:WaarnemingDelaminatie ;
+      gwsw:hasAspect [
+        rdf:type gwsw:Omtreklocatie ;
+        gwsw:hasValue ?locatieDelaminatie ;
+      ] ;
+    ] .
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart ?wrnWM .
+    ?wrnWM rdf:type gwsw:Wandmeting .
+    optional {
+      ?wrnWM gwsw:hasAspect [
+          rdf:type gwsw:WanddikteAfnameMinimaal ;
+          gwsw:hasValue ?WanddikteAfnameMinimaal ;
+      ] .
+    }
+    optional {
+      ?wrnWM gwsw:hasAspect [
+        rdf:type gwsw:WanddikteAfnameGemiddeld ;
+        gwsw:hasValue ?WanddikteAfnameGemiddeld ;      
+      ] .
+    }
+    optional {
+      ?wrnWM gwsw:hasAspect [
+        rdf:type gwsw:WanddikteAfnameMaximaal ;
+        gwsw:hasValue ?WanddikteAfnameMaximaal ;      
+      ] .
+    }
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart ?wrnOV .
+    ?wrnOV rdf:type gwsw:WaarnemingOvaliteit .
+    optional {
+      ?wrnOV gwsw:hasAspect [
+          rdf:type gwsw:BreedteBuisdeelMeting ;
+          gwsw:hasValue ?breedteBuisdeel ;
+      ] .
+    }
+    optional {
+      ?wrnOV gwsw:hasAspect [
+        rdf:type gwsw:HoogteBuisdeelMeting ;
+        gwsw:hasValue ?hoogteBuisdeel ;      
+      ] .
+    }
+    optional {
+      ?wrnOV gwsw:hasAspect [
+        rdf:type gwsw:MetenOvaliteit ;
+        gwsw:hasValue ?ovaliteit ;      
+      ] .
+    }
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart ?wrnBG .
+    ?wrnBG rdf:type gwsw:WaarnemingBuiging .
+    optional {
+      ?wrnBG gwsw:hasAspect [
+          rdf:type gwsw:MetingBuigingHorizontaal ;
+          gwsw:hasValue ?buigingHorizontaal ;
+      ] .
+    }
+    optional {
+      ?wrnBG gwsw:hasAspect [
+          rdf:type gwsw:MetingBuigingVerticaal ;
+          gwsw:hasValue ?buigingVerticaal ;
+      ] .
+    }
+    optional {
+      ?wrnBG gwsw:hasAspect [
+          rdf:type gwsw:MetingBuigingTotaal ;
+          gwsw:hasValue ?buigingTotaal ;
+      ] .
+    }
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart ?wrnHV .
+    ?wrnHV rdf:type gwsw:WaarnemingHoekverdraaiing .
+    optional {
+      ?wrnHV gwsw:hasAspect [
+          rdf:type gwsw:MetingHoekverdraaiingHorizontaal ;
+          gwsw:hasValue ?hoekverdraaiingHorizontaal ;
+      ] .
+    }
+    optional {
+      ?wrnHV gwsw:hasAspect [
+          rdf:type gwsw:MetingHoekverdraaiingVerticaal ;
+          gwsw:hasValue ?hoekverdraaiingVerticaal ;
+      ] .
+    }
+  }
+  optional {
+    ?wrnLoc gwsw:hasPart [
+      rdf:type gwsw:WaarnemingVoegwijdte ;
+      gwsw:hasAspect [
+        rdf:type gwsw:VoegwijdteMeting ;
+        gwsw:hasValue ?voegwijdte ;
+      ] ; 
+    ] .
+  }
+}

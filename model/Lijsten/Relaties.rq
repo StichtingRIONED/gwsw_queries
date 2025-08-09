@@ -14,21 +14,17 @@ FROM <http://www.ontotext.com/explicit> # GraphDB: gebruik alleen expliciete (no
 
 where
 {
-# ?b = blank node
  ?Class1 rdfs:subClassOf ?b .
 
- # zoek de restricties op cardinaliteit
+ BIND (str(iri(:)) AS ?aft)
 
+ # zoek de restricties op cardinaliteit
  ?b owl:onProperty ?property .
  ?b owl:onClass ?object .
 
  ?Class2 rdfs:subClassOf* ?Class1 . # Property path: 0 of meer links
- ?Class2 :hasDateStart ?dat . # alleen GWSW-classes gebruiken
-
-# BIND ("#" AS ?aft)
-# BIND ("gwsw.nl/" AS ?aft)
-# BIND ("1.5/totaal/" AS ?aft)
- BIND (str(iri(:)) AS ?aft)
+ #?Class2 :hasDateStart ?dat . # alleen GWSW-classes gebruiken
+ FILTER (CONTAINS(str(?Class2), ?aft))
  
  BIND (strafter(str(?Class1), ?aft) AS ?OwnerOfProperty)
  BIND (strafter(str(?Class2), ?aft) AS ?Subject)
