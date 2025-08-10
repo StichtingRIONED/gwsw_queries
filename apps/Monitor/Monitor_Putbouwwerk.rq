@@ -25,9 +25,9 @@ WHERE
     #}
     #BIND (COALESCE(?obj2, ?obj1) AS ?obj) 
     BIND ("Uitlaat" as ?groep) }
-  UNION { # Zoek de infiltratiekolk (20240214)
-    ?obj rdf:type gwsw:Kolk ; 
-    BIND ("Kolk" as ?groep) }
+  #UNION { # Zoek de infiltratiekolk (20240214)
+  #  ?obj rdf:type gwsw:Kolk ; 
+  #  BIND ("Kolk" as ?groep) }
 
   ?obj sesame:directType ?type1 .
   FILTER (!(isBlank(?type1)))
