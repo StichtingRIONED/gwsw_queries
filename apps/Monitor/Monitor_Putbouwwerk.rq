@@ -1,10 +1,13 @@
-# # Tbv RIONED Monitor 2028 (20250809) (20240214) (20240208)
+# Tbv RIONED Monitor 2028 (20250809) (20240214) (20240208)
+
+# ?Stelsel ?type bevatten de URI-naam (om wille van snelheid)
+# Om het consequent te houden: ook voor ?groep de URI-naam gebruiken
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar ?Lining ?somLengte (SUM (?BergendVermogen) AS ?somBergendVermogen) (SUM (?InfiltrerendOppervlak) AS ?somInfiltrerendOppervlak)
+SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar (SUM (?BergendVermogen) AS ?somBergendVermogen) (SUM (?InfiltrerendOppervlak) AS ?somInfiltrerendOppervlak)
 WHERE
 { 
   { ?obj rdf:type gwsw:Rioolput ; 
@@ -24,17 +27,19 @@ WHERE
     #  ?obj2 rdf:type gwsw:Uitlaatconstructie .
     #}
     #BIND (COALESCE(?obj2, ?obj1) AS ?obj) 
-    BIND ("Uitlaat" as ?groep) }
+    BIND ("Uitlaatconstructie" as ?groep) }
   #UNION { # Zoek de infiltratiekolk (20240214)
   #  ?obj rdf:type gwsw:Kolk ; 
   #  BIND ("Kolk" as ?groep) }
 
   ?obj sesame:directType ?type1 .
   FILTER (!(isBlank(?type1)))
+  FILTER NOT EXISTS { ?type1 rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20250812)
+
   BIND (str(iri(gwsw:)) AS ?aft)
+  BIND ( strafter(str(?type1), ?aft) as ?type)
 
   BIND ("{{&repository}}" AS ?dataset )
-  BIND ( strafter(str(?type1), ?aft) as ?type)
 
   # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
   #BIND ( strafter(str(?type1), ?aft) as ?mType)
@@ -77,9 +82,6 @@ WHERE
   }
   BIND (COALESCE(?eig2, "") as ?Eigenaar)
 
-  BIND ("" as ?somLengte)
-  BIND ("" as ?Lining)
-
   OPTIONAL {
     ?obj gwsw:hasAspect [
       rdf:type gwsw:BergendVermogen ;
@@ -93,4 +95,4 @@ WHERE
     ] .
   }
 }
-GROUP BY ?dataset ?Eigenaar ?Stelsel ?groep ?type ?jaar ?Lining ?somLengte
+GROUP BY ?dataset ?Eigenaar ?Stelsel ?groep ?type ?jaar

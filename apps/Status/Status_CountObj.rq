@@ -1,4 +1,6 @@
-# Proef (20240805): COUNT() telt het aantal voorkomens van ?s (niet het aantal triples)
+# Query algemeen gemaakt: typeObj meegeven (20250812)
+
+# Test (20240805): COUNT() telt het aantal voorkomens van ?s (niet het aantal triples)
 # Dubbele typeringen (VerdektePut) hebben dan geen invloed, de telling klopt
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -8,7 +10,7 @@ PREFIX gwsw: <{{&version}}>
 
 SELECT (COUNT (*) AS ?count) WHERE
 { 
-    ?s rdf:type gwsw:Put .
+    ?s rdf:type gwsw:{{&typeObj}} .
 
     ## Gebruik deze om multitypes af te handelen: (in deze query niet relevant) (20240805)
     #optional { # vermeld de extra types

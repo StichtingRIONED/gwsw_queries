@@ -1,16 +1,18 @@
+# Query algemeen gemaakt: typeObj meegeven (20250812)
+
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?type (COUNT (?obj) AS ?count)
 WHERE
 { 
-	?obj rdf:type :Leiding ; 
+	?obj rdf:type gwsw:{{typeObj}} ; 
 	sesame:directType ?styp .
   FILTER (!(isBlank(?styp)))
 	
-  BIND (str(iri(:)) AS ?aft) # de prefix, voor optioneel inkorten IRI
+  BIND (str(iri(gwsw:)) AS ?aft) # de prefix, voor optioneel inkorten IRI
  	BIND ( IF(CONTAINS(str(?styp), ?aft), strafter(str(?styp), ?aft), str(?styp)) as ?type)
 }
 GROUP BY ?type
