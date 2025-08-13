@@ -20,6 +20,7 @@ SELECT (COUNT (*) AS ?count) WHERE
     #    }
     #  }
     #}
+    
     ## Alleen functionele types:
     #?s sesame:directType ?type .
     #filter not exists { ?type rdfs:subClassOf gwsw:ExtraObjecttype }

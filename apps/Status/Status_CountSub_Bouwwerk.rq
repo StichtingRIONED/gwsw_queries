@@ -1,4 +1,4 @@
-# Query algemeen gemaakt: typeObj meegeven (20250812)
+# Algemene query: subtypes per Bouwwerk (20250813)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
@@ -8,7 +8,7 @@ PREFIX gwsw: <{{&version}}>
 SELECT ?type (COUNT (?obj) AS ?count)
 WHERE
 { 
-	?obj rdf:type gwsw:{{typeObj}} ; 
+	?obj rdf:type gwsw:Bouwwerk ; 
 	sesame:directType ?styp .
   FILTER (!(isBlank(?styp)))
 	
