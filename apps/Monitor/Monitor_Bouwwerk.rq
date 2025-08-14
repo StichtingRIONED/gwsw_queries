@@ -1,0 +1,93 @@
+# Tbv RIONED Monitor 2028 (20250809) (20240214) (20240208)
+# Bouwwerken apart (analoog aan status) (20250814)
+
+# ?Stelsel ?type bevatten de URI-naam (om wille van snelheid)
+# Om het consequent te houden: ook voor ?groep de URI-naam gebruiken
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar (SUM (?BergendVermogen) AS ?somBergendVermogen) (SUM (?InfiltrerendOppervlak) AS ?somInfiltrerendOppervlak)
+WHERE
+{ 
+  { ?obj rdf:type gwsw:Gemaal ; 
+    BIND ("Gemaal" as ?groep) }
+  UNION {
+    ?obj rdf:type gwsw:Reservoir ; 
+    BIND ("Reservoir" as ?groep) }
+  UNION {
+    ?obj rdf:type gwsw:Uitlaatconstructie ;
+    # duurt te lang:
+    #?obj1 rdf:type gwsw:Uitlaatpunt ;
+    #OPTIONAL { # Gebruik bij voorkeur de constructie
+    #  ?obj1 gwsw:isPartOf ?obj2 .
+    #  ?obj2 rdf:type gwsw:Uitlaatconstructie .
+    #}
+    #BIND (COALESCE(?obj2, ?obj1) AS ?obj) 
+    BIND ("Uitlaatconstructie" as ?groep) }
+
+  ?obj sesame:directType ?type1 .
+  FILTER (!(isBlank(?type1)))
+  FILTER NOT EXISTS { ?type1 rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20250812)
+
+  BIND (str(iri(gwsw:)) AS ?aft)
+  BIND ( strafter(str(?type1), ?aft) as ?type)
+
+  BIND ("{{&repository}}" AS ?dataset )
+
+  # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
+  #BIND ( strafter(str(?type1), ?aft) as ?mType)
+  #OPTIONAL { 
+  #  ?type1 rdfs:label ?nType . 
+  #  FILTER(lang(?nType) = "nl")
+  #}
+  #BIND (COALESCE(?nType, ?mType, "") AS ?type)
+
+  OPTIONAL {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Stelsel ;
+   	  sesame:directType ?stelsel1 ;
+    ]
+ 	  BIND ( strafter(str(?stelsel1), ?aft) as ?Stelsel)
+
+    # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
+ 	  #BIND ( strafter(str(?stelsel1), ?aft) as ?mStelsel)
+    #OPTIONAL { 
+    #  ?stelsel1 rdfs:label ?nStelsel . 
+    #  FILTER(lang(?nStelsel) = "nl")
+    #}
+  }
+  #BIND (COALESCE(?nStelsel, ?mStelsel, "") as ?Stelsel)
+
+  OPTIONAL {
+    ?obj gwsw:hasAspect [
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?datum ;
+    ] .
+ 	  BIND (SUBSTR(str(?datum), 1, 4) as ?jaar1)
+  }
+  BIND (COALESCE(?jaar1, "") as ?jaar)
+
+  # De query loopt niet met ?Eigenaar als die bovenaan staat! (20240208)
+  OPTIONAL {
+    ?obj gwsw:isInputOf ?eig1 .
+    ?eig1 rdf:type gwsw:Eigenaar .
+ 	  BIND ( strafter(str(?eig1), ?aft) as ?eig2)
+  }
+  BIND (COALESCE(?eig2, "") as ?Eigenaar)
+
+  OPTIONAL {
+    ?obj gwsw:hasAspect [
+      rdf:type gwsw:BergendVermogen ;
+      gwsw:hasValue ?BergendVermogen ;
+    ] .
+  }
+  OPTIONAL {
+    ?obj gwsw:hasAspect [
+      rdf:type gwsw:InfiltrerendOppervlak ;
+      gwsw:hasValue ?InfiltrerendOppervlak ;
+    ] .
+  }
+}
+GROUP BY ?dataset ?Eigenaar ?Stelsel ?groep ?type ?jaar

@@ -1,4 +1,5 @@
 # Tbv RIONED Monitor 2028 (20250809) (20240214) (20240208)
+# Putten apart (analoog aan status) (20250814)
 
 # ?Stelsel ?type bevatten de URI-naam (om wille van snelheid)
 # Om het consequent te houden: ook voor ?groep de URI-naam gebruiken
@@ -10,24 +11,8 @@ PREFIX gwsw: <{{&version}}>
 SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar (SUM (?BergendVermogen) AS ?somBergendVermogen) (SUM (?InfiltrerendOppervlak) AS ?somInfiltrerendOppervlak)
 WHERE
 { 
-  { ?obj rdf:type gwsw:Rioolput ; 
-    BIND ("Rioolput" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:Gemaal ; 
-    BIND ("Gemaal" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:Reservoir ; 
-    BIND ("Reservoir" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:Uitlaatconstructie ;
-    # duurt te lang:
-    #?obj1 rdf:type gwsw:Uitlaatpunt ;
-    #OPTIONAL { # Gebruik bij voorkeur de constructie
-    #  ?obj1 gwsw:isPartOf ?obj2 .
-    #  ?obj2 rdf:type gwsw:Uitlaatconstructie .
-    #}
-    #BIND (COALESCE(?obj2, ?obj1) AS ?obj) 
-    BIND ("Uitlaatconstructie" as ?groep) }
+  ?obj rdf:type gwsw:Rioolput . 
+  BIND ("Rioolput" as ?groep) 
   #UNION { # Zoek de infiltratiekolk (20240214)
   #  ?obj rdf:type gwsw:Kolk ; 
   #  BIND ("Kolk" as ?groep) }

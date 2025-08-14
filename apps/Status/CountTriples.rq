@@ -1,3 +1,5 @@
+# Gebruik bij voorkeur de GraphDB API (rest/repositories/Juinen/size) (veel sneller) (20250814)
+
 SELECT (COUNT (*) AS ?count)
 WHERE
 { 
