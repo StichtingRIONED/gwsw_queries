@@ -13,35 +13,39 @@ WHERE
 { 
 		# Uitlaatpunt apart behandelen
     { 
-        ?uri sesame:directType :UitlaatPunt . 
-        BIND ("Uitlaat" as ?type)
+      ?uri sesame:directType :UitlaatPunt . 
+      BIND ("Uitlaat" as ?type)
 
-				optional { # UitlaatPunt kan zelfstandig bestaan (20230426)
-					?uri rdfs:label ?naam1 .
-				}
-				optional {
-        	?uri :isAspectOf [ rdfs:label ?naam2 ; ] .
-				}
-				BIND (COALESCE(?naam1, ?naam2) AS ?naam)
+      optional { # UitlaatPunt kan zelfstandig bestaan (20230426)
+        ?uri rdfs:label ?naam1 .
+      }
+      optional {
+        ?uri :isAspectOf [ rdfs:label ?naam2 ; ] .
+      }
+      # Let op: op deze plek is coalesce (of IF (BOUND...) heel vertragend, doe de coalesce na alle optionals binnen deze union? (20250915)
+      # Geconstateerd bij AlpenAanDenRijn (> 7000 uitlaten)
+      #BIND (COALESCE(?naam1, ?naam2) AS ?naam)
 
-        ?uri :hasAspect [
-          rdf:type :Punt ;
-          :hasValue ?Punt ; ] .
+      ?uri :hasAspect [
+        rdf:type :Punt ;
+        :hasValue ?Punt ; ] .
+        
+      optional
+      {   
+        ?uri :isAspectOf [ :isPartOf
+        [ rdf:type :Stelsel ;
+          rdfs:label ?Stelsel ;
+          sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
+        ] ] .
+      }
           
-        optional
-        {   
-          ?uri :isAspectOf [ :isPartOf
-          [ rdf:type :Stelsel ;
-            rdfs:label ?Stelsel ;
-            sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
-         ] ] .
-        }
-            
-        # zoek de z-waarde
-        bind (strafter(str(?Punt), "<gml:pos>") as ?ws1)
-        bind (strbefore(?ws1, "</gml:pos>") as ?ws2)
-        bind (strafter(?ws2, " ") as ?ws3)
-        bind (strafter(?ws3, " ") as ?Buitenwaterstand)
+      # zoek de z-waarde
+      bind (strafter(str(?Punt), "<gml:pos>") as ?ws1)
+      bind (strbefore(?ws1, "</gml:pos>") as ?ws2)
+      bind (strafter(?ws2, " ") as ?ws3)
+      bind (strafter(?ws3, " ") as ?Buitenwaterstand)
+
+      BIND (COALESCE(?naam1, ?naam2) AS ?naam)
     }
     UNION # doorlaat, pomp, overstort
     {
