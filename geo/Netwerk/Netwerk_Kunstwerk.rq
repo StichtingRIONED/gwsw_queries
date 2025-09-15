@@ -1,4 +1,4 @@
-# Geoserver: Netwerk_Kunstwerk.rq (20170910-20240930)
+# Geoserver: Netwerk_Kunstwerk.rq (20250915 20240930 20170910)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -22,7 +22,7 @@ WHERE
       optional {
         ?uri :isAspectOf [ rdfs:label ?naam2 ; ] .
       }
-      # Let op: op deze plek is coalesce (of IF (BOUND...) heel vertragend, doe de coalesce na alle optionals binnen deze union? (20250915)
+      # Let op: op deze plek is COALESCE (of IF (BOUND...) heel vertragend, doe de COALESCE verderop (na alle optionals binnen deze union?) (20250915)
       # Geconstateerd bij AlpenAanDenRijn (> 7000 uitlaten)
       #BIND (COALESCE(?naam1, ?naam2) AS ?naam)
 
@@ -32,11 +32,11 @@ WHERE
         
       optional
       {   
-        ?uri :isAspectOf [ :isPartOf
-        [ rdf:type :Stelsel ;
-          rdfs:label ?Stelsel ;
-          sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
-        ] ] .
+        ?uri :isAspectOf [ :isPartOf ?stl ; ] .
+        ?stl rdf:type :Stelsel ; 
+             sesame:directType ?stelseltype . # Type stelsel erbij (20240930)
+        optional { ?stl rdfs:label ?stlLab .}
+        #BIND (COALESCE(?stlLab, str(?stl)) AS ?Stelsel) Doe het verderop (zie hierboven) (20250915)
       }
           
       # zoek de z-waarde
@@ -73,14 +73,15 @@ WHERE
 			?uriKnp rdfs:label ?naam .
 
 			optional
-			{   
-				?uriKnp :isPartOf
-				[ rdf:type :Stelsel ;
-					rdfs:label ?Stelsel ;
-          sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
-				] .
+			{
+				?uriKnp :isPartOf ?stl .
+        ?stl rdf:type :Stelsel ;
+             sesame:directType ?stelseltype ; # Type stelsel erbij (20240930)
+        optional {
+          ?stl rdfs:label ?stlLab .
+        }
+        #BIND (COALESCE(?stlLab, str(?stl)) AS ?Stelsel) Doe het verderop (zie hierboven) (20250915)
 			}
-		
 			{ ?oriKnp rdf:type :Putorientatie . }
 			UNION
 			{ ?oriKnp rdf:type :Bouwwerkorientatie . }
@@ -200,4 +201,5 @@ WHERE
 				:hasReference ?Stromingsrichting ;
 			] .}
 	} # einde union
+  BIND (COALESCE(?stlLab, str(?stl)) AS ?Stelsel)
 }
