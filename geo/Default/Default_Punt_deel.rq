@@ -1,5 +1,5 @@
-# Geoserver: Default_Punt_Deel (20201016)
-# Alle delen van een punt-object (Doorlaat, Pomp, Wand, Deksel)
+# Default_Punt_deel (20250915 20201016)
+# Alle delen van een punt-compositieobject (Doorlaat, Pomp, Wand, Deksel) (ook die met eigen geometrie)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -12,24 +12,24 @@ SELECT ?Stelsel ?stelseltype ?naamPunt ?uriPunt ?naam ?uri ?type ?Punt ?begin ?e
 
 WHERE
 { 
-  ?obj gwsw:hasAspect 
-  [
-    rdf:type gwsw:TopologischElement ;
-    gwsw:hasAspect
-    [ 
-    rdf:type gwsw:Punt ;
-    gwsw:hasValue ?Punt ;
-    ] ;
-  ] .
-  FILTER (!(isBlank(?obj)))
+  ?obj gwsw:hasAspect ?oriObj . #rdf:type gwsw:TopologischElement ;
+  ?oriObj sesame:directType ?oriType .
+  FILTER (?oriType IN (gwsw:Bouwwerkorientatie, gwsw:Putorientatie, gwsw:Hulpstukorientatie)) # Alleen de punt-compositieobjecten (sync met Default_Punt_deel)
 
-  # Alleen de delen van een Punt (Put, Bouwwerk)
+  ?oriObj gwsw:hasAspect
+  [ 
+    rdf:type gwsw:Punt ;
+    gwsw:hasValue ?objPunt ;
+  ] .
+  #FILTER (!(isBlank(?obj)))
+
+  # Alleen de delen van een compositie-object
 
   { ?obj gwsw:hasPart [ gwsw:hasPart ?ond ;] . } # Bijv. via stuwconstructie
   UNION
   { ?obj gwsw:hasPart ?ond . }
 
-  # Dit deel staat al in Default_Punt (komt max 1x voor)
+  # Dit deel staat al als attribuut in Default_Punt (komt max 1x voor)
   FILTER (NOT EXISTS{?ond rdf:type gwsw:Fundering})
 
   ?ond sesame:directType ?type .  
@@ -56,6 +56,19 @@ WHERE
   BIND (?obj AS ?uriPunt) # De complete IRI in de uitvoer (20230416)
   BIND (?ond AS ?uri) # De complete IRI in de uitvoer (20230416)
 
+  optional { # heeft het deel zelf een punt-geometrie? (20250915)
+    ?ond gwsw:hasAspect 
+    [
+      rdf:type gwsw:TopologischElement ;
+      gwsw:hasAspect
+      [ 
+      rdf:type gwsw:Punt ;
+      gwsw:hasValue ?ondPunt ;
+      ] ;
+    ] .
+  }
+  BIND (COALESCE(?ondPunt, ?objPunt) AS ?Punt)
+
   optional
   {
     ?ond rdfs:label ?naam .
@@ -66,7 +79,7 @@ WHERE
     ?obj gwsw:isPartOf 
     [ rdf:type gwsw:Stelsel ;
       rdfs:label ?Stelsel ;
-        sesame:directType ?stelseltype ;
+      sesame:directType ?stelseltype ;
     ] .
   }
   

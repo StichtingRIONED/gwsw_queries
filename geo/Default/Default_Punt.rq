@@ -1,8 +1,10 @@
+# Alle punt-objecten (alleen de compositieobjecten) (20250915)
+
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?BreedteBouwwerk ?LengteBouwwerk ?BreedteCompartiment ?LengteCompartiment ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak ?aantalPompen ?aantalDrempels
@@ -12,7 +14,9 @@ WHERE
 { 
   {
     ?obj gwsw:hasAspect ?ori .
-    ?ori rdf:type gwsw:TopologischElement .
+    #?ori rdf:type gwsw:TopologischElement . 
+    ?ori sesame:directType ?oriType .
+    FILTER (?oriType IN (gwsw:Bouwwerkorientatie, gwsw:Putorientatie, gwsw:Hulpstukorientatie)) # Alleen de compositieobjecten (sync met Default_Punt_deel) (20250915)
   }
   UNION # ook de zelfstandige topologische elementen
   {
@@ -27,7 +31,7 @@ WHERE
   FILTER (!(isBlank(?obj)))
   ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
-  
+
   ?ori gwsw:hasAspect
   [ 
     rdf:type gwsw:Punt ;
