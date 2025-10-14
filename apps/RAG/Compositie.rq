@@ -1,0 +1,36 @@
+# Dataset: Compositie van fysieke objecten (20251013)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
+
+SELECT ?rec
+
+where
+{
+  ?obj rdf:type gwsw:FysiekObject .
+
+  #BIND 
+  #  (IF (EXISTS{?obj rdf:type gwsw:Stelsel.}, "Stelsel", 
+  #          IF(EXISTS{?obj rdf:type gwsw:Put. }, "Put",
+  #               IF(EXISTS{?obj rdf:type gwsw:Bouwwerk .}, "Bouwwerk", 
+  #                  IF(EXISTS{?obj rdf:type gwsw:Leiding .}, "Leiding", "Object")))) as ?grp)
+  BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
+ 
+  ?obj rdfs:label ?lab . # doe voorlopig alleen dingen met een naam
+  ?obj gwsw:hasPart ?part . # Voorlopig 1 niveau (Inwinning doet nog niet mee)
+  ?part rdfs:label ?labP .
+  #BIND 
+  #  (IF (EXISTS{?part rdf:type gwsw:Stelsel.}, "Stelsel", 
+  #          IF(EXISTS{?part rdf:type gwsw:Put. }, "Put",
+  #               IF(EXISTS{?part rdf:type gwsw:Bouwwerk .}, "Bouwwerk", 
+  #                  IF(EXISTS{?part rdf:type gwsw:Leiding .}, "Leiding", "Object")))) as ?grpPart)
+  BIND ("object" as ?grpPart) # hou het snel, waarschijnlijk voor AI niet essentieel
+
+  BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
+  BIND (concat(strafter(str(?part), "#"), "/", ?labP) as ?labPart)
+  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft als deel het ", ?grpPart, " met identificatie \"", ?labPart, "\".") as ?rec)
+}

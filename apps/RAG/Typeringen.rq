@@ -1,0 +1,29 @@
+# Dataset: Typeringen van fysieke objecten (20251013)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
+
+SELECT ?rec
+
+where
+{
+  ?obj rdf:type gwsw:FysiekObject .
+  #BIND 
+  #  (IF (EXISTS{?obj rdf:type gwsw:Stelsel.}, "Stelsel", 
+  #          IF(EXISTS{?obj rdf:type gwsw:Put. }, "Put",
+  #               IF(EXISTS{?obj rdf:type gwsw:Bouwwerk .}, "Bouwwerk", 
+  #                  IF(EXISTS{?obj rdf:type gwsw:Leiding .}, "Leiding", "Object")))) as ?grp)
+  BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
+
+  ?obj sesame:directType ?type .
+  ?obj rdfs:label ?lab . # doe voorlopig alleen dingen met een naam
+  ?type rdfs:label ?labTyp .
+  FILTER (lang(?labTyp) = "nl")
+
+  BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
+  BIND (concat("Het ", ?grp, " met identificatie \"", str(?labObj), "\" is een \"", ?labTyp, "\"." ) as ?rec)
+}

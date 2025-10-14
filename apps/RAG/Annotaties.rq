@@ -1,0 +1,28 @@
+# Datamodel: Enkele Annotaties van fysieke objecten (20251013)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
+
+SELECT ?rec
+
+where
+{
+  ?obj rdf:type gwsw:FysiekObject .
+  ?obj sesame:directType ?typ .
+  ?typ rdfs:label ?labTyp .
+  FILTER (lang(?labTyp) = "nl")
+
+  {
+    ?typ skos:altLabel ?ann .
+    BIND ("heeft als synoniem" as ?pred)
+  }
+  UNION {
+    ?typ skos:definition ?ann .
+    BIND ("heeft de definitie" as ?pred) 
+  }
+  BIND (concat("Type \"", ?labTyp, "\" ", ?pred, " \"", ?ann, "\".") as ?rec)
+}

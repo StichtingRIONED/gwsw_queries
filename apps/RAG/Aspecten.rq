@@ -1,0 +1,38 @@
+# Dataset: Eigenschappen van fysieke objecten (20251013)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
+
+SELECT ?rec
+
+where
+{
+  ?obj rdf:type gwsw:FysiekObject .
+
+  #BIND 
+  #  (IF (EXISTS{?obj rdf:type gwsw:Stelsel.}, "Stelsel", 
+  #          IF(EXISTS{?obj rdf:type gwsw:Put. }, "Put",
+  #               IF(EXISTS{?obj rdf:type gwsw:Bouwwerk .}, "Bouwwerk", 
+  #                  IF(EXISTS{?obj rdf:type gwsw:Leiding .}, "Leiding", "Object")))) as ?grp)
+  BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
+
+  ?obj rdfs:label ?lab . # doe voorlopig alleen dingen met een naam
+  ?obj gwsw:hasAspect ?asp . # Voorlopig 1 niveau (Inwinning doet nog niet mee)
+  ?asp sesame:directType [
+      rdfs:label ?labAsp ;
+  ] .
+  FILTER (lang(?labAsp) = "nl")    
+  
+  { ?asp gwsw:hasValue ?wrd. }
+  UNION { 
+    ?asp gwsw:hasReference ?ref. 
+    ?ref rdfs:label ?wrd .
+    FILTER (lang(?wrd) = "nl")
+  }
+  BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
+  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft de eigenschap \"", ?labAsp, "\" met de waarde \"", str(?wrd), "\"." ) as ?rec)
+}

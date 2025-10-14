@@ -1,0 +1,80 @@
+# Datamodel;: Soorten Fysieke objecten in NL-vorm (zie ook Lijsten) (20251013)
+# Distinct toegevoegd, anders dubbeling als SuperClass een multiparent heeft (bij Lijsten, 20150914)
+# Alleen klasse + superklasse in de, dat is voldoende om de soortenboom te herleiden
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?rec
+
+FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
+where
+{
+  BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
+
+  ?Class1 rdf:type owl:Class .
+  FILTER (CONTAINS(str(?Class1), ?aft))
+  ?Class1 rdfs:label ?Class .
+  FILTER (lang(?Class) = "nl")
+  
+  ?Class1 rdfs:subClassOf ?Class2 .
+  ?Class2 rdf:type owl:Class .
+  FILTER (CONTAINS(str(?Class2), ?aft))
+ 	?Class2 rdfs:label ?SuperClass1 .
+  FILTER (lang(?SuperClass1) = "nl")
+
+  OPTIONAL
+  {
+    ?Class2 rdfs:subClassOf ?Class3 .
+    ?Class3 rdf:type owl:Class .
+    FILTER (CONTAINS(str(?Class3), ?aft))
+    ?Class3 rdfs:label ?SuperClass2 .
+    FILTER (lang(?SuperClass2) = "nl")
+
+    OPTIONAL
+    {
+      ?Class3 rdfs:subClassOf ?Class4 .
+      ?Class4 rdf:type owl:Class .
+      FILTER (CONTAINS(str(?Class4), ?aft))
+      ?Class4 rdfs:label ?SuperClass3 .
+      FILTER (lang(?SuperClass3) = "nl")
+
+      OPTIONAL
+      {
+        ?Class4 rdfs:subClassOf ?Class5 .
+        ?Class5 rdf:type owl:Class .
+        FILTER (CONTAINS(str(?Class5), ?aft))
+        ?Class5 rdfs:label ?SuperClass4 .
+        FILTER (lang(?SuperClass4) = "nl")
+
+        OPTIONAL
+        {
+          ?Class5 rdfs:subClassOf ?Class6 .
+          ?Class6 rdf:type owl:Class .
+          FILTER (CONTAINS(str(?Class6), ?aft))
+          ?Class6 rdfs:label ?SuperClass5 .
+          FILTER (lang(?SuperClass5) = "nl")
+
+          OPTIONAL
+          {
+            ?Class6 rdfs:subClassOf ?Class7 .
+            ?Class7 rdf:type owl:Class .
+            FILTER (CONTAINS(str(?Class7), ?aft))
+            ?Class7 rdfs:label ?SuperClass6 .
+            FILTER (lang(?SuperClass6) = "nl")
+          }
+        }
+      }
+    }
+  }
+  FILTER (
+      str(?Class) = "Fysiek object" || str(?SuperClass1) = "Fysiek object" || str(?SuperClass2) = "Fysiek object" || str(?SuperClass3) = "Fysiek object" ||
+      str(?SuperClass4) = "Fysiek object" || str(?SuperClass5) = "Fysiek object" || str(?SuperClass6) = "Fysiek object"
+  )
+  BIND (concat("Klasse \"", ?Class, "\" is een subklasse van klasse \"", ?SuperClass1, "\"." ) as ?rec)
+}

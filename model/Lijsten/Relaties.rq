@@ -3,10 +3,7 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX : <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 
 SELECT DISTINCT ?OwnerOfProperty ?Subject ?Property ?Object
 
@@ -16,7 +13,7 @@ where
 {
  ?Class1 rdfs:subClassOf ?b .
 
- BIND (str(iri(:)) AS ?aft)
+ BIND (str(iri(gwsw:)) AS ?aft)
 
  # zoek de restricties op cardinaliteit
  ?b owl:onProperty ?property .
