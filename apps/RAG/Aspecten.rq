@@ -34,5 +34,5 @@ where
     FILTER (lang(?wrd) = "nl")
   }
   BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
-  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft de eigenschap \"", ?labAsp, "\" met de waarde \"", str(?wrd), "\"." ) as ?rec)
+  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft (ook) als eigenschap \"", ?labAsp, "\" met de waarde \"", str(?wrd), "\"." ) as ?rec)
 }

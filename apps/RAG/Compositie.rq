@@ -32,5 +32,5 @@ where
 
   BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
   BIND (concat(strafter(str(?part), "#"), "/", ?labP) as ?labPart)
-  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft als deel het ", ?grpPart, " met identificatie \"", ?labPart, "\".") as ?rec)
+  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft (ook) als onderdeel het ", ?grpPart, " met identificatie \"", ?labPart, "\".") as ?rec)
 }

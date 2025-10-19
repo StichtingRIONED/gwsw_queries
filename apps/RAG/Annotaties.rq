@@ -3,25 +3,30 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
 PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
 SELECT ?rec
 
+FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
 where
 {
-  ?obj rdf:type gwsw:FysiekObject .
-  ?obj sesame:directType ?typ .
-  ?typ rdfs:label ?labTyp .
+  BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
+
+  ?obj rdf:type owl:Class .
+  FILTER (CONTAINS(str(?obj), ?aft))
+  ?obj rdfs:label ?labTyp .
   FILTER (lang(?labTyp) = "nl")
 
   {
-    ?typ skos:altLabel ?ann .
+    ?obj skos:altLabel ?ann .
     BIND ("heeft als synoniem" as ?pred)
   }
   UNION {
-    ?typ skos:definition ?ann .
+    ?obj skos:definition ?ann .
     BIND ("heeft de definitie" as ?pred) 
   }
   BIND (concat("Type \"", ?labTyp, "\" ", ?pred, " \"", ?ann, "\".") as ?rec)
