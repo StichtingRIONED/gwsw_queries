@@ -6,10 +6,10 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
-PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?rec
+SELECT DISTINCT ?rec #?json
 
 FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
 
@@ -77,4 +77,5 @@ where
       str(?SuperClass4) = "Fysiek object" || str(?SuperClass5) = "Fysiek object" || str(?SuperClass6) = "Fysiek object"
   )
   BIND (concat("Type \"", ?Class, "\" is een subtype van \"", ?SuperClass1, "\"." ) as ?rec)
+  BIND (concat("{\"id\": \"", ?SuperClass1, "\", \"type\": \"klasse\", \"subklasse\": \"" , ?Class, "\"}" ) as ?json)
 }
