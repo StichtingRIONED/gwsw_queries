@@ -5,7 +5,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
 SELECT ?rec #?json
@@ -16,21 +16,26 @@ where
 {
   BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
 
-  ?obj rdf:type owl:Class .
-  FILTER (CONTAINS(str(?obj), ?aft))
-  ?obj rdfs:label ?labTyp .
-  FILTER (lang(?labTyp) = "nl")
+  ?cls rdf:type owl:Class .
+  FILTER (CONTAINS(str(?cls), ?aft))
+  ?cls rdfs:label ?labCls .
+  FILTER (lang(?labCls) = "nl")
 
   {
-    ?obj skos:altLabel ?ann .
+    ?cls skos:altLabel ?ann .
     BIND ("heeft als synoniem" as ?pred)
     BIND ("synoniem" as ?predJ)
   }
   UNION {
-    ?obj skos:definition ?ann .
+    ?cls skos:definition ?ann .
     BIND ("heeft de definitie" as ?pred) 
     BIND ("definitie" as ?predJ)
   }
-  BIND (concat("Type \"", ?labTyp, "\" ", ?pred, " \"", ?ann, "\".") as ?rec)
-  BIND (concat("{\"id\": \"", ?labTyp, "\", \"type\": \"klasse\", \"", ?predJ, "\": \"", ?ann, "\"}" ) as ?json)
+  UNION {
+    ?cls rdfs:seeAlso ?ann .
+    BIND ("is beschreven als" as ?pred) 
+    BIND ("beschreven" as ?predJ)
+  }
+  BIND (concat("Type \"", ?labCls, "\" ", ?pred, " \"", ?ann, "\".") as ?rec)
+  BIND (concat("{\"id\": \"", ?labCls, "\", \"type\": \"klasse\", \"", ?predJ, "\": \"", ?ann, "\"}" ) as ?json)
 }
