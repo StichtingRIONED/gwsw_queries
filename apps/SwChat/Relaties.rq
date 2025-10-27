@@ -48,8 +48,9 @@ where
       owl:onClass ?obj ;
     ] .
     ?obj rdfs:label ?labO .
+    FILTER (lang(?labO) = "nl")
+
     BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
-    
     #BIND ("heeft als eigenschap type" as ?pred) 
     BIND ("heeft type eigenschap:" as ?pred) 
     BIND ("eigenschap" as ?predJ)
@@ -60,8 +61,9 @@ where
       owl:onClass ?obj ;
     ] .
     ?obj rdfs:label ?labO .
+    FILTER (lang(?labO) = "nl")
+    
     BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
-
     #BIND ("heeft als onderdeel type" as ?pred) 
     BIND ("heeft type onderdeel:" as ?pred) 
     BIND ("onderdeel" as ?predJ)

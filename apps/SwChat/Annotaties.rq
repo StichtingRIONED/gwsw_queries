@@ -23,7 +23,7 @@ where
   BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls)
 
   {
-    ?cls skos:altLabel ?ann .
+    ?cls skos:altLabel ?ann . # Ook andere talen
     #BIND ("heeft als synoniem" as ?pred)
     BIND ("heeft als synoniem:" as ?pred)
     BIND ("synoniem" as ?predJ)
