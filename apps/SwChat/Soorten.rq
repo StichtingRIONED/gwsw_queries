@@ -72,10 +72,17 @@ where
       }
     }
   }
-  FILTER (
-      str(?Class) = "Fysiek object" || str(?SuperClass1) = "Fysiek object" || str(?SuperClass2) = "Fysiek object" || str(?SuperClass3) = "Fysiek object" ||
-      str(?SuperClass4) = "Fysiek object" || str(?SuperClass5) = "Fysiek object" || str(?SuperClass6) = "Fysiek object"
-  )
-  BIND (concat("Type \"", ?Class, "\" is een subtype van \"", ?SuperClass1, "\"." ) as ?rec)
-  BIND (concat("{\"id\": \"", ?SuperClass1, "\", \"type\": \"klasse\", \"subklasse\": \"" , ?Class, "\"}" ) as ?json)
+  #FILTER (
+  #    str(?Class) = "Fysiek object" || str(?SuperClass1) = "Fysiek object" || str(?SuperClass2) = "Fysiek object" || str(?SuperClass3) = "Fysiek object" ||
+  #    str(?SuperClass4) = "Fysiek object" || str(?SuperClass5) = "Fysiek object" || str(?SuperClass6) = "Fysiek object"
+  #)
+  BIND (IF (CONTAINS(str(?Class), " "), CONCAT("{{", ?Class, "}}"), ?Class) AS ?labCls)
+
+  BIND (IF (CONTAINS(str(?SuperClass1), " "), CONCAT("{{", ?SuperClass1, "}}"), ?SuperClass1) AS ?labSup)
+
+
+  #BIND (concat("Type \"", ?Class, "\" is een subtype van \"", ?SuperClass1, "\"." ) as ?rec)
+  #BIND (concat("Type ", ?labCls, " is een subtype van ", ?labSup, "." ) as ?rec)
+  BIND (concat("Een ", ?labCls, " is een soortnaam.\nEen ", ?labCls, " is een subtype van ", ?labSup, "." ) as ?rec)
+  #BIND (concat("{\"id\": \"", ?SuperClass1, "\", \"type\": \"klasse\", \"subklasse\": \"" , ?Class, "\"}" ) as ?json)
 }
