@@ -83,6 +83,6 @@ where
 
   #BIND (concat("Type \"", ?Class, "\" is een subtype van \"", ?SuperClass1, "\"." ) as ?rec)
   #BIND (concat("Type ", ?labCls, " is een subtype van ", ?labSup, "." ) as ?rec)
-  BIND (concat("Een ", ?labCls, " is een soortnaam.\nEen ", ?labCls, " is een subtype van ", ?labSup, "." ) as ?rec)
+  BIND (concat("Een ", ?labCls, " is een soortnaam.\nEen ", ?labCls, " is beschreven op: \"", str(?Class1), "\".\nEen ", ?labCls, " is een subtype van ", ?labSup, "." ) as ?rec)
   #BIND (concat("{\"id\": \"", ?SuperClass1, "\", \"type\": \"klasse\", \"subklasse\": \"" , ?Class, "\"}" ) as ?json)
 }

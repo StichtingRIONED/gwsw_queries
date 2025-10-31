@@ -27,7 +27,9 @@ where
       owl:onProperty gwsw:functie ;
       owl:hasValue ?obj ;
     ] .
-    ?obj rdfs:label ?labObj .
+    ?obj rdfs:label ?labO .
+    BIND (CONCAT("\"", ?labO, "\"") AS ?labObj)
+
     #BIND ("heeft als functie" as ?pred) 
     BIND ("heeft als functie:" as ?pred) 
     BIND ("functie" as ?predJ)
@@ -37,7 +39,9 @@ where
       owl:onProperty gwsw:uitvoering ;
       owl:hasValue ?obj ;
     ] .
-    ?obj rdfs:label ?labObj .
+    ?obj rdfs:label ?labO .
+    BIND (CONCAT("\"", ?labO, "\"") AS ?labObj)
+    
     #BIND ("is uitgevoerd als" as ?pred) 
     BIND ("is uitgevoerd als:" as ?pred) 
     BIND ("uitvoering" as ?predJ)
@@ -52,20 +56,34 @@ where
 
     BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
     #BIND ("heeft als eigenschap type" as ?pred) 
-    BIND ("heeft type eigenschap:" as ?pred) 
+    BIND ("heeft als eigenschap:" as ?pred) 
     BIND ("eigenschap" as ?predJ)
   }
   UNION {
-    ?cls rdfs:subClassOf [
-      owl:onProperty gwsw:hasPart ;
-      owl:onClass ?obj ;
-    ] .
+    ?cls rdfs:subClassOf ?sub .
+    ?sub owl:onProperty gwsw:hasPart ;
+         owl:onClass ?obj .
+
     ?obj rdfs:label ?labO .
     FILTER (lang(?labO) = "nl")
-    
     BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
+
+    OPTIONAL { # kardinaliteit erbij (20251031)
+      {
+        ?sub owl:qualifiedCardinality ?at .
+        BIND (CONCAT(" exact ", str(?at)) as ?opm)
+      } 
+      UNION {
+        ?sub owl:maxQualifiedCardinality ?at .
+        BIND (CONCAT(" maximaal ", str(?at)) as ?opm)
+      }
+      UNION {
+        ?sub owl:minQualifiedCardinality ?at .
+        BIND (IF (str(?at) = "0", "", CONCAT(" minimaal ", str(?at))) as ?opm)
+      }
+    }
     #BIND ("heeft als onderdeel type" as ?pred) 
-    BIND ("heeft type onderdeel:" as ?pred) 
+    BIND ( IF (BOUND(?opm), concat("heeft als onderdeel", ?opm), "heeft als onderdeel:") as ?pred) 
     BIND ("onderdeel" as ?predJ)
   }
   #BIND (concat("Type \"", ?labCls, "\" ", ?pred, " \"", ?labObj, "\".") as ?rec)

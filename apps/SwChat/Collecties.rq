@@ -20,12 +20,12 @@ where
   FILTER (CONTAINS(str(?cls), ?aft))
   ?cls rdfs:label ?lab .
   FILTER (lang(?lab) = "nl")
-  BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls)
+  BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls) # De klasse met reference naar individu
 
   ?elem rdf:type ?coll .
   ?elem rdfs:label ?labObj .
   FILTER (lang(?labObj) = "nl")
 
-  BIND (concat("Een ", ?labCls, " kan als waarde hebben: \"", ?labObj, "\".") as ?rec)
+  BIND (concat("De waarde \"", ?labObj, "\" is beschreven op: \"", str(?elem), "\".\nEen ", ?labCls, " kan als waarde hebben: \"", ?labObj, "\".") as ?rec)
 }
 

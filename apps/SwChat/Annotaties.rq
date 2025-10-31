@@ -8,7 +8,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
-SELECT ?rec #?json
+SELECT DISTINCT ?rec #?json # Distinc vanwege meervoudige typering collectie-individuen
 
 FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
 
@@ -16,32 +16,37 @@ where
 {
   BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
 
-  ?cls rdf:type owl:Class .
-  FILTER (CONTAINS(str(?cls), ?aft))
-  ?cls rdfs:label ?lab .
-  FILTER (lang(?lab) = "nl")
-  BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls)
-
+  {
+    ?cls rdf:type owl:Class .
+    FILTER (CONTAINS(str(?cls), ?aft))
+    ?cls rdfs:label ?lab .
+    FILTER (lang(?lab) = "nl")
+    BIND (IF (CONTAINS(str(?lab), " "), CONCAT("Een {{", ?lab, "}}"), CONCAT("Een ", ?lab)) AS ?labCls) # Hier de "Een" voor het sorteerwerk
+  } 
+  UNION { # Ook annotaties van de individuen binnen collecties (20251030)
+    ?coll rdfs:subClassOf gwsw:VerzamelingSoorten .
+    ?cls rdf:type ?coll . # ?cls is hier het waarde-individu 
+    ?cls rdfs:label ?lab .
+    FILTER (lang(?lab) = "nl")
+    BIND (CONCAT("De waarde \"", ?lab, "\"") AS ?labCls) # Hier De "waarde" (waarde-individuen zijn verder niet gesorteerd)
+  }
   {
     ?cls skos:altLabel ?ann . # Ook andere talen
-    #BIND ("heeft als synoniem" as ?pred)
     BIND ("heeft als synoniem:" as ?pred)
     BIND ("synoniem" as ?predJ)
   }
   UNION {
     ?cls skos:definition ?ann .
-    #BIND ("heeft de definitie" as ?pred) 
     BIND ("heeft de definitie:" as ?pred) 
     BIND ("definitie" as ?predJ)
   }
   UNION {
     ?cls rdfs:seeAlso ?ann .
-    #BIND ("is beschreven als" as ?pred) 
-    BIND ("is beschreven als:" as ?pred) 
+    BIND ("is beschreven in:" as ?pred) # was: is beschreven als:
     BIND ("beschreven" as ?predJ)
   }
   #BIND (concat("Type \"", ?labCls, "\" ", ?pred, " \"", ?ann, "\".") as ?rec)
   #BIND (concat("Type ", ?labCls, " ", ?pred, " ", ?ann, ".") as ?rec)
-  BIND (concat("Een ", ?labCls, " ", ?pred, " \"", ?ann, "\".") as ?rec)
+  BIND (concat(?labCls, " ", ?pred, " \"", ?ann, "\".") as ?rec)
   #BIND (concat("{\"id\": \"", ?labCls, "\", \"type\": \"klasse\", \"", ?predJ, "\": \"", ?ann, "\"}" ) as ?json)
 }
