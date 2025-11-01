@@ -26,6 +26,6 @@ where
   ?elem rdfs:label ?labObj .
   FILTER (lang(?labObj) = "nl")
 
-  BIND (concat("De waarde \"", ?labObj, "\" is beschreven op: \"", str(?elem), "\".\nEen ", ?labCls, " kan als waarde hebben: \"", ?labObj, "\".") as ?rec)
+  BIND (concat("De waarde \"", ?labObj, "\" is beschreven in: \"", str(?elem), "\".\nEen ", ?labCls, " kan als waarde hebben: \"", ?labObj, "\".") as ?rec)
 }
 
