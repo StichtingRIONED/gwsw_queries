@@ -27,7 +27,7 @@ WHERE
    ?loz sesame:directType ?type .
 
    FILTER (!(isBlank(?type)))
-   #FILTER(lang(?type) = "nl") # max 1 regel met type-naam
+   #FILTER(lang(?type) = "nl") # de nl-versie is er altijd (20251101)
     
    ?loz rdfs:label ?naam .
 

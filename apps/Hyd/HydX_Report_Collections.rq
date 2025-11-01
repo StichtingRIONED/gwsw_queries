@@ -17,7 +17,7 @@ where
  #voer eerst rdf:rest uit, met object vervolgens rdf:first (rest*: doe voor alle rest-relaties)
  ?list rdf:rest*/rdf:first ?elem .
  ?elem rdfs:label ?LabelElement .
- FILTER (lang(?LabelElement) = "nl")
+ FILTER (lang(?LabelElement) = "nl") # de nl-versie is er altijd (20251101)
  ?elem skos:notation ?CodeElement .
  FILTER (datatype(?CodeElement) = iri(:Dt_Notation_HY)) # Specifiek datatype filteren (vanaf 1.6 komen alle codes mee in HydX) (20230308)
  

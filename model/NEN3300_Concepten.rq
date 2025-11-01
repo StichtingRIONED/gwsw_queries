@@ -37,11 +37,11 @@ WHERE
   }
   optional {
     ?uri rdfs:label ?labNL
-    FILTER(lang(?labNL) = "nl")
+    FILTER(lang(?labNL) = "nl") # de nl-versie is er altijd (20251101)
 	}
   optional {
     ?uri rdfs:label ?labEN
-    FILTER(lang(?labEN) != "nl")
+    FILTER(lang(?labEN) != "nl") # de nl-versie is er altijd (20251101)
 	}
   BIND (COALESCE(?labNL, ?labEN) as ?naam)
 

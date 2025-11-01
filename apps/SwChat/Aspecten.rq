@@ -25,13 +25,13 @@ where
   ?asp sesame:directType [
       rdfs:label ?labAsp ;
   ] .
-  FILTER (lang(?labAsp) = "nl")    
+  FILTER (lang(?labAsp) = "nl") # de nl-versie is er altijd (20251101)
   
   { ?asp gwsw:hasValue ?wrd. }
   UNION { 
     ?asp gwsw:hasReference ?ref. 
     ?ref rdfs:label ?wrd .
-    FILTER (lang(?wrd) = "nl")
+    FILTER (lang(?wrd) = "nl") # de nl-versie is er altijd (20251101)
   }
   BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
   BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft (ook) als eigenschap \"", ?labAsp, "\" met de waarde \"", str(?wrd), "\"." ) as ?rec)

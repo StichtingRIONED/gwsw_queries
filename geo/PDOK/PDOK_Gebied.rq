@@ -30,7 +30,7 @@ WHERE
    
    ?geb rdfs:label ?naam .
    ?type rdfs:label ?typeNaam . # De URI hoeft niet dekkend te zijn
-   FILTER (lang(?typeNaam) = "nl") # ook nodig bij gebruik prefLabel (20250724)
+   FILTER (lang(?typeNaam) = "nl") # de nl-versie is er altijd (20251101)
 
    BIND (strafter(str(?geb), "#") AS ?uri)
 }

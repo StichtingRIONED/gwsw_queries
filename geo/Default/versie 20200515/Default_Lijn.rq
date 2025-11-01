@@ -24,7 +24,7 @@ WHERE
    
    ?lei rdfs:label ?Naam .    
    ?Type rdfs:label ?TypeNaam . # De URI hoeft niet dekkend te zijn
-   FILTER (lang(?TypeNaam) = "nl") # let op! (niet meer nodig in GWSW 2.0 - prefLabel)
+   FILTER (lang(?TypeNaam) = "nl") # de nl-versie is er altijd (20251101)
     
     optional
     {

@@ -64,7 +64,7 @@ where
 			OPTIONAL
 			{
 				?o rdfs:label ?asp .
-				FILTER(lang(?asp) = "nl") # max 1 regel
+				FILTER(lang(?asp) = "nl") # de nl-versie is er altijd (20251101)
 			}
 			BIND (IF(BOUND(?asp), ?asp, IF(CONTAINS(str(?o), ?aft), strafter(str(?o), ?aft), str(?o))) as ?sAsp)
 			#BIND (IF(CONTAINS(str(?o), ?aft), strafter(str(?o), ?aft), str(?o))  as ?sAsp)

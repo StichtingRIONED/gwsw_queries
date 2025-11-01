@@ -22,7 +22,7 @@ where
   ?obj sesame:directType ?type .
   ?obj rdfs:label ?lab . # doe voorlopig alleen dingen met een naam
   ?type rdfs:label ?labTyp .
-  FILTER (lang(?labTyp) = "nl")
+  FILTER (lang(?labTyp) = "nl") # de nl-versie is er altijd (20251101)
 
   BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
   BIND (concat("Het ", ?grp, " met identificatie \"", str(?labObj), "\" is een type \"", ?labTyp, "\"." ) as ?rec)

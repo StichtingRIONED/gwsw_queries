@@ -64,7 +64,7 @@ WHERE
    # { ?geb rdf:type gwsw:Zuiveringsgebied . }
    #}
    # ?type rdfs:label ?typeNaam . # De URI hoeft niet dekkend te zijn
-   # FILTER (lang(?typeNaam) = "nl") # let op! (niet meer nodig in GWSW 2.0 - prefLabel)
+   # FILTER (lang(?typeNaam) = "nl") # de nl-versie is er altijd (20251101)
 #   optional { ?punt gwsw:isPartOf 
 #	[ 
 #      rdf:type gwsw:Afvoernetwerk ;
