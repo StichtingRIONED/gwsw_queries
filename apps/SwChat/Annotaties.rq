@@ -37,13 +37,22 @@ where
   }
   UNION {
     ?cls skos:definition ?ann .
-    BIND ("heeft de definitie:" as ?pred) 
+    BIND ("heeft als definitie:" as ?pred) 
     BIND ("definitie" as ?predJ)
   }
   UNION {
     ?cls rdfs:seeAlso ?ann .
-    BIND ("is beschreven in:" as ?pred) # was: is beschreven als:
+    BIND (IF (CONTAINS(str(?ann), "file:///img"), "heeft als afbeelding:", "heeft als beschrijving:") as ?pred) # was: is beschreven als: ))
     BIND ("beschreven" as ?predJ)
+  }
+  UNION {
+    ?cls gwsw:hasUnit ?ann .
+    BIND ("heeft als waarde-eenheid:" as ?pred) 
+    BIND ("waarde-eenheid" as ?predJ)
+  }
+  UNION {
+    BIND (str(?cls) as ?ann) # De GWSW-verwijzing erbij
+    BIND ("heeft als beschrijving:" as ?pred)
   }
   #BIND (concat("Type \"", ?labCls, "\" ", ?pred, " \"", ?ann, "\".") as ?rec)
   #BIND (concat("Type ", ?labCls, " ", ?pred, " ", ?ann, ".") as ?rec)

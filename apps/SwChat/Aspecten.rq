@@ -21,7 +21,15 @@ where
   BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
 
   ?obj rdfs:label ?lab . # doe voorlopig alleen dingen met een naam
-  ?obj gwsw:hasAspect ?asp . # Voorlopig 1 niveau (Inwinning doet nog niet mee)
+
+  { ?obj gwsw:hasAspect ?asp . }
+  
+  # Doe nog maar even niet, de geometrieën komen dan mee, veel extra overbodige data (20251104)
+  #UNION 
+  #{ ?obj gwsw:hasAspect [ # Ook de aspecten van aspecten (datum inwinning...) (20251104)
+  #  gwsw:hasAspect ?asp ; 
+  #] . }
+
   ?asp sesame:directType [
       rdfs:label ?labAsp ;
   ] .

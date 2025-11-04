@@ -43,20 +43,25 @@ where
     BIND (CONCAT("\"", ?labO, "\"") AS ?labObj)
     
     #BIND ("is uitgevoerd als" as ?pred) 
-    BIND ("is uitgevoerd als:" as ?pred) 
+    BIND ("heeft als uitvoering:" as ?pred) # Geen voltooid deelwoord (20251104)
     BIND ("uitvoering" as ?predJ)
   }
   UNION {
-    ?cls rdfs:subClassOf [
-      owl:onProperty gwsw:hasAspect ;
-      owl:onClass ?obj ;
-    ] .
+    ?cls rdfs:subClassOf ?sub .
+    ?sub owl:onProperty gwsw:hasAspect ;
+         owl:onClass ?obj .
     ?obj rdfs:label ?labO .
-    FILTER (lang(?labO) = "nl") # de nl-versie is er altijd (20251101)
 
+    FILTER (lang(?labO) = "nl") # de nl-versie is er altijd (20251101)
+    
+    OPTIONAL {
+      ?sub owl:qualifiedCardinality ?car . # altijd "1"
+      BIND ("heeft altijd als eigenschap:" as ?carPred)
+    }
     BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
-    #BIND ("heeft als eigenschap type" as ?pred) 
-    BIND ("heeft als eigenschap:" as ?pred) 
+    
+    #BIND (IF (BOUND(?car), "heeft altijd als eigenschap:", "heeft als eigenschap:") as ?pred) Let op: deze werkte niet, via coalesce opgelost
+    BIND (COALESCE(?carPred, "heeft als eigenschap:") AS ?pred) 
     BIND ("eigenschap" as ?predJ)
   }
   UNION {

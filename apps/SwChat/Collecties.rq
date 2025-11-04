@@ -26,6 +26,5 @@ where
   ?elem rdfs:label ?labObj .
   FILTER (lang(?labObj) = "nl") # de nl-versie is er altijd (20251101)
 
-  BIND (concat("De waarde \"", ?labObj, "\" is beschreven in: \"", str(?elem), "\".\nEen ", ?labCls, " kan als waarde hebben: \"", ?labObj, "\".") as ?rec)
+  BIND (concat("Een ", ?labCls, " heeft mogelijk als waarde: \"", ?labObj, "\".") as ?rec)
 }
-
