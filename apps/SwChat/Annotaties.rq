@@ -45,10 +45,27 @@ where
     BIND (IF (CONTAINS(str(?ann), "file:///img"), "heeft als afbeelding:", "heeft als beschrijving:") as ?pred) # was: is beschreven als: ))
     BIND ("beschreven" as ?predJ)
   }
-  UNION {
+  UNION { # (20251104)
     ?cls gwsw:hasUnit ?ann .
     BIND ("heeft als waarde-eenheid:" as ?pred) 
     BIND ("waarde-eenheid" as ?predJ)
+  }
+  UNION { # min/max (20251104)
+    ?cls rdfs:subClassOf [
+      owl:allValuesFrom ?dt ;
+    ] .
+    ?dt owl:equivalentClass [
+      rdf:type rdfs:Datatype ;
+      owl:withRestrictions (
+        [ xsd:minInclusive ?min ; ]
+        [ xsd:maxInclusive ?max ; ]
+      ) ;
+    ] .
+    OPTIONAL { ?cls gwsw:hasUnit ?u . }
+    BIND (IF (BOUND(?u), CONCAT(" ", ?u), "") as ?unit)
+
+    BIND ("heeft als waarde-bereik:" as ?pred)
+    BIND (CONCAT("Tussen ", str(?min), " en ", str(?max), str(?unit)) as ?ann)
   }
   UNION {
     BIND (str(?cls) as ?ann) # De GWSW-verwijzing erbij
