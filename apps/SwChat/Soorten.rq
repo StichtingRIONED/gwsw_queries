@@ -25,12 +25,19 @@ where
   ?Class1 rdfs:subClassOf ?Class2 .
   ?Class2 rdf:type owl:Class .
   FILTER (CONTAINS(str(?Class2), ?aft))
- 	?Class2 rdfs:label ?SuperClass1 .
+  ?Class2 rdfs:label ?SuperClass1 .
   FILTER (lang(?SuperClass1) = "nl") # de nl-versie is er altijd (20251101)
+  
+  #UNION {
+  #  FILTER NOT EXISTS {?Class1 rdfs:subClassOf ?Class2 .}
+  #  BIND ("Topconcept" AS ?SuperClass1)
+  #}
 
-  BIND (IF (CONTAINS(str(?Class), " "), CONCAT("{{", ?Class, "}}"), ?Class) AS ?labCls)
+  #BIND (IF (CONTAINS(str(?Class), " "), CONCAT("{{", ?Class, "}}"), ?Class) AS ?labCls)
+  BIND (CONCAT("{{", ?Class, "}}") AS ?labCls)
 
-  BIND (IF (CONTAINS(str(?SuperClass1), " "), CONCAT("{{", ?SuperClass1, "}}"), ?SuperClass1) AS ?labSup)
+  #BIND (IF (CONTAINS(str(?SuperClass1), " "), CONCAT("{{", ?SuperClass1, "}}"), ?SuperClass1) AS ?labSup)
+  BIND (CONCAT("{{", ?SuperClass1, "}}") AS ?labSup)
 
 
   #BIND (concat("Type \"", ?Class, "\" is een subtype van \"", ?SuperClass1, "\"." ) as ?rec)

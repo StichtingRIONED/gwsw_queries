@@ -20,7 +20,8 @@ where
   FILTER (CONTAINS(str(?cls), ?aft))
   ?cls rdfs:label ?lab .
   FILTER (lang(?lab) = "nl") # de nl-versie is er altijd (20251101)
-  BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls)
+  #BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls)
+  BIND (CONCAT("{{", ?lab, "}}") AS ?labCls)
 
   {
     ?cls rdfs:subClassOf [
@@ -58,7 +59,8 @@ where
       ?sub owl:qualifiedCardinality ?car . # altijd "1"
       BIND ("heeft altijd als eigenschap:" as ?carPred)
     }
-    BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
+    #BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
+    BIND (CONCAT("{{", ?labO, "}}") AS ?labObj)
     
     #BIND (IF (BOUND(?car), "heeft altijd als eigenschap:", "heeft als eigenschap:") as ?pred) Let op: deze werkte niet, via coalesce opgelost
     BIND (COALESCE(?carPred, "heeft als eigenschap:") AS ?pred) 
@@ -71,7 +73,8 @@ where
 
     ?obj rdfs:label ?labO .
     FILTER (lang(?labO) = "nl") # de nl-versie is er altijd (20251101)
-    BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
+    #BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
+    BIND (CONCAT("{{", ?labO, "}}") AS ?labObj)
 
     OPTIONAL { # kardinaliteit erbij (20251031)
       {
