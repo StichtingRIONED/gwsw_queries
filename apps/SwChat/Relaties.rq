@@ -10,7 +10,8 @@ PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 
 SELECT ?rec #?json
 
-FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+# Dit niet doen, relaties worden geërfd (de lijst wordt 4x zo lang) (20251110)
+#FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
 
 where
 {
