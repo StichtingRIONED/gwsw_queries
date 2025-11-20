@@ -1,0 +1,129 @@
+# Algemene vraag of beton/ac/gres-leidingen (20251120)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+# Bij som van de lengte niet meenemen: ?naam ?uri ?bpunt ?epunt 
+SELECT ?dataset ?type ?bpunt_mat ?epunt_mat ?Begindatum ?Materiaal ?Vorm ?BreedteLeiding ?HoogteLeiding ?LengteBuisdeel (SUM(?LengteLeiding) as ?lengte)
+
+WHERE
+{ 
+  ?lei rdf:type gwsw:Leiding .
+  
+  # Alles, behalve: (20190403)
+  FILTER NOT EXISTS { ?lei rdf:type gwsw:Aansluitleiding . }
+  FILTER NOT EXISTS { ?lei rdf:type gwsw:Goot . }
+
+  ?lei sesame:directType ?type .
+  FILTER (!(isBlank(?lei)))
+  FILTER (!(isBlank(?type)))
+  
+  ?lei rdfs:label ?naam .
+  BIND ("{{&repository}}" AS ?dataset )
+
+  ?lei gwsw:hasAspect [ # moet er zijn
+    rdf:type gwsw:LengteLeiding ;
+    gwsw:hasValue ?LengteLeiding ;
+  ] .
+  ?lei gwsw:hasAspect [ # moet er zijn
+    rdf:type gwsw:MateriaalLeiding ;
+    gwsw:hasReference ?mat ;
+  ] .
+  FILTER (?mat IN (gwsw:Asbestcement, gwsw:BetonStalenKern, gwsw:BetonnenSegmenten, gwsw:Beton, gwsw:GespotenBeton, gwsw:GewapendBeton, gwsw:Gres, gwsw:VoorgespannenBeton )) # Filter zoveel mogelijk, beperk de SUM()
+  ?mat rdfs:label ?Materiaal ;
+  FILTER (lang(?Materiaal) = "nl") # de nl-versie is er altijd
+  
+  optional {
+    ?lei gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:Leidingorientatie .
+    optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
+    {
+      ?ori gwsw:hasPart ?bpnt .
+      ?bpnt rdf:type gwsw:BeginpuntLeiding .
+      ?bpnt gwsw:hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
+
+      ?bconn gwsw:isAspectOf ?_uriB . # lei in de query-resultaten voor zoekwerk (20200708)
+      ?_uriB rdfs:label ?bpunt .
+      optional {
+        ?_uriB gwsw:hasAspect 
+        [
+          rdf:type ?aspB ;
+          gwsw:hasReference ?b_mat ;
+        ] .
+        FILTER (?aspB IN (gwsw:MateriaalPut, gwsw:MateriaalBouwwerk ))
+        ?b_mat rdfs:label ?_bpunt_mat .
+        FILTER (lang(?_bpunt_mat) = "nl") # de nl-versie is er altijd
+      }
+    }
+    optional # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
+    {
+      ?ori gwsw:hasPart ?epnt .
+      ?epnt rdf:type gwsw:EindpuntLeiding .
+      ?epnt gwsw:hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
+      ?econn gwsw:isAspectOf ?_uriE . # lei in de query-resultaten voor zoekwerk (20200708)
+      ?_uriE rdfs:label ?epunt .
+      optional {
+        ?_uriE gwsw:hasAspect 
+        [
+          rdf:type ?aspE ;
+          gwsw:hasReference ?e_mat ;
+        ] .
+        FILTER (?aspE IN (gwsw:MateriaalPut, gwsw:MateriaalBouwwerk ))
+        ?e_mat rdfs:label ?_epunt_mat .
+        FILTER (lang(?_epunt_mat) = "nl") # de nl-versie is er altijd
+      }
+    }
+  }
+  optional {?lei gwsw:hasAspect 
+  [
+      rdf:type gwsw:Begindatum ;
+      gwsw:hasValue ?_Begindatum ;
+  ] .}
+  optional {?lei gwsw:hasAspect 
+    [
+      rdf:type gwsw:VormLeiding ;
+      gwsw:hasReference ?VormLeiding ;
+    ] .
+    ?VormLeiding rdfs:label ?_Vorm .
+    FILTER (lang(?_Vorm) = "nl") # de nl-versie is er altijd
+  }
+  optional {?lei gwsw:hasAspect 
+  [
+    rdf:type gwsw:DiameterLeiding ;
+      gwsw:hasValue ?dia ;  
+  ] .}
+  optional {?lei gwsw:hasAspect 
+  [
+    rdf:type gwsw:BreedteLeiding ;
+    gwsw:hasValue ?br ;
+  ] .}
+  BIND (COALESCE (?br, ?dia, "") as ?BreedteLeiding) # de eerst geldende doet mee (20210521)
+  
+  optional {?lei gwsw:hasAspect 
+  [
+      rdf:type gwsw:HoogteLeiding ;
+      gwsw:hasValue ?_HoogteLeiding ;
+  ] .}
+  optional {?lei gwsw:hasPart 
+  [
+      rdf:type gwsw:Buisdeel ;
+      gwsw:hasAspect [
+        rdf:type gwsw:LengteBuisdeel ;
+        gwsw:hasValue ?_LengteBuisdeel ;
+      ] ;
+  ] .}
+  BIND (strafter(str(?lei), "#") AS ?uri)
+
+  # Ook de optionele kolommen vullen:
+  BIND (COALESCE (?_bpunt_mat, "") as ?bpunt_mat)
+  BIND (COALESCE (?_epunt_mat, "") as ?epunt_mat)
+  BIND (COALESCE (?_Begindatum, "") as ?Begindatum)
+  BIND (COALESCE (?_Vorm, "") as ?Vorm)
+  BIND (COALESCE (?_HoogteLeiding, "") as ?HoogteLeiding)
+  BIND (COALESCE (?_LengteBuisdeel, "") as ?LengteBuisdeel)
+}
+GROUP BY ?dataset ?type ?bpunt_mat ?epunt_mat ?Begindatum ?Materiaal ?Vorm ?BreedteLeiding ?HoogteLeiding ?LengteBuisdeel
