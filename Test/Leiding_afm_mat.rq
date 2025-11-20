@@ -37,7 +37,7 @@ WHERE
   ?mat rdfs:label ?Materiaal ;
   FILTER (lang(?Materiaal) = "nl") # de nl-versie is er altijd
   
-  optional {
+  optional { # Hou de optionals bij elkaar, anders loopt de query slecht
     ?lei gwsw:hasAspect ?ori .
     ?ori rdf:type gwsw:Leidingorientatie .
     optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
