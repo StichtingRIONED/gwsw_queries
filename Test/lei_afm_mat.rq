@@ -12,15 +12,17 @@ SELECT ?dataset ?type ?bpunt_mat ?epunt_mat ?Begindatum ?Materiaal ?Vorm ?Breedt
 
 WHERE
 { 
+  BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
+
   ?lei rdf:type gwsw:Leiding .
   
   # Alles, behalve: (20190403)
   FILTER NOT EXISTS { ?lei rdf:type gwsw:Aansluitleiding . }
   FILTER NOT EXISTS { ?lei rdf:type gwsw:Goot . }
 
-  ?lei sesame:directType ?type .
+  ?lei sesame:directType ?typ .
   FILTER (!(isBlank(?lei)))
-  FILTER (!(isBlank(?type)))
+  FILTER (!(isBlank(?typ)))
   
   ?lei rdfs:label ?naam .
   BIND ("{{&repository}}" AS ?dataset )
@@ -36,7 +38,7 @@ WHERE
   FILTER (?mat IN (gwsw:Asbestcement, gwsw:BetonStalenKern, gwsw:BetonnenSegmenten, gwsw:Beton, gwsw:GespotenBeton, gwsw:GewapendBeton, gwsw:Gres, gwsw:VoorgespannenBeton )) # Filter zoveel mogelijk, beperk de SUM()
   ?mat rdfs:label ?Materiaal ;
   FILTER (lang(?Materiaal) = "nl") # de nl-versie is er altijd
-  
+
   optional { # Hou de optionals bij elkaar, anders loopt de query slecht
     ?lei gwsw:hasAspect ?ori .
     ?ori rdf:type gwsw:Leidingorientatie .
@@ -116,7 +118,8 @@ WHERE
         gwsw:hasValue ?_LengteBuisdeel ;
       ] ;
   ] .}
-  BIND (strafter(str(?lei), "#") AS ?uri)
+  BIND (strafter(str(?lei), ?aft) AS ?uri)
+  BIND (strafter(str(?typ), ?aft) AS ?type)
 
   # Ook de optionele kolommen vullen:
   BIND (COALESCE (?_bpunt_mat, "") as ?bpunt_mat)
