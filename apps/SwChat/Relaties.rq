@@ -24,57 +24,102 @@ where
   #BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls)
   BIND (CONCAT("{{", ?lab, "}}") AS ?labCls)
 
-  {
-    ?cls rdfs:subClassOf [
-      owl:onProperty gwsw:functie ;
-      owl:hasValue ?obj ;
-    ] .
-    ?obj rdfs:label ?labO .
-    BIND (CONCAT("\"", ?labO, "\"") AS ?labObj)
-
-    #BIND ("heeft als functie" as ?pred) 
-    BIND ("heeft als functie:" as ?pred) 
-    BIND ("functie" as ?predJ)
-  }
-  UNION {
-    ?cls rdfs:subClassOf [
-      owl:onProperty gwsw:uitvoering ;
-      owl:hasValue ?obj ;
-    ] .
-    ?obj rdfs:label ?labO .
-    BIND (CONCAT("\"", ?labO, "\"") AS ?labObj)
-    
-    #BIND ("is uitgevoerd als" as ?pred) 
-    BIND ("heeft als uitvoering:" as ?pred) # Geen voltooid deelwoord (20251104)
-    BIND ("uitvoering" as ?predJ)
-  }
-  UNION {
-    ?cls rdfs:subClassOf ?sub .
-    ?sub owl:onProperty gwsw:hasAspect ;
-         owl:onClass ?obj .
-    ?obj rdfs:label ?labO .
-
-    FILTER (lang(?labO) = "nl") # de nl-versie is er altijd (20251101)
-    
-    OPTIONAL {
-      ?sub owl:qualifiedCardinality ?car . # altijd "1"
-      BIND ("heeft altijd als eigenschap:" as ?carPred)
+  { # datatype-properties (ok'en)
+    { 
+      ?cls rdfs:subClassOf [
+        owl:onProperty gwsw:functie ;
+        owl:hasValue ?obj ;
+      ] .
+      BIND ("heeft als functie:" as ?pred) 
+      BIND ("functie" as ?predJ)
     }
-    #BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
-    BIND (CONCAT("{{", ?labO, "}}") AS ?labObj)
-    
-    #BIND (IF (BOUND(?car), "heeft altijd als eigenschap:", "heeft als eigenschap:") as ?pred) Let op: deze werkte niet, via coalesce opgelost
-    BIND (COALESCE(?carPred, "heeft als eigenschap:") AS ?pred) 
-    BIND ("eigenschap" as ?predJ)
+    UNION {
+      ?cls rdfs:subClassOf [
+        owl:onProperty gwsw:uitvoering ;
+        owl:hasValue ?obj ;
+        #BIND ("is uitgevoerd als" as ?pred) 
+      ] .
+      BIND ("heeft als uitvoering:" as ?pred) # Geen voltooid deelwoord (20251104)
+      BIND ("uitvoering" as ?predJ)
+    }
+    UNION {
+      ?cls rdfs:subClassOf [
+        owl:onProperty gwsw:doel ; # (20251129)
+        owl:hasValue ?obj ;
+      ] .
+      BIND ("heeft als doel:" as ?pred)
+    }
+    UNION {
+      ?cls rdfs:subClassOf [
+        owl:onProperty gwsw:toepassing ; # (20251129)
+        owl:hasValue ?obj ;
+      ] .
+      BIND ("heeft als toepassing:" as ?pred) # "wordt toegepast als/voor/bij" (20251104)
+    }
+    UNION {
+      ?cls rdfs:subClassOf [
+        owl:onProperty gwsw:structuur ; # (20251130)
+        owl:hasValue ?obj ;
+      ] .
+      BIND ("is opgebouwd als:" as ?pred) 
+    }
+    UNION {
+      ?cls rdfs:subClassOf [
+        owl:onProperty gwsw:technologie ; # (20251129)
+        owl:hasValue ?obj ;
+      ] .
+      BIND ("gebruikt als techniek:" as ?pred) 
+    }
+    UNION {
+      ?cls rdfs:subClassOf [
+        owl:onProperty gwsw:mechanisme ; # (20251130)
+        owl:hasValue ?obj ;
+      ] .
+      BIND ("wordt uitgevoerd met:" as ?pred) 
+    }
+    ?obj rdfs:label ?labO .
+    BIND (CONCAT("\"", ?labO, "\"") AS ?labObj)
   }
-  UNION {
+  UNION { # Relaties zonder kardinaliteit, bij eigenschappen is kardinatliteit een soort kwaliteitsmeting, geen model-definitie. (20251122)
     ?cls rdfs:subClassOf ?sub .
-    ?sub owl:onProperty gwsw:hasPart ;
-         owl:onClass ?obj .
-
+    {
+      ?sub  owl:onProperty gwsw:hasAspect ;
+            owl:onClass ?obj .
+      BIND ("heeft als eigenschap:" AS ?pred) 
+    }
+    UNION {
+      ?sub  owl:onProperty gwsw:hasRepresentation ;
+            owl:onClass ?obj .
+      BIND ("heeft als representatie:" AS ?pred) 
+    }
     ?obj rdfs:label ?labO .
     FILTER (lang(?labO) = "nl") # de nl-versie is er altijd (20251101)
-    #BIND (IF (CONTAINS(str(?labO), " "), CONCAT("{{", ?labO, "}}"), ?labO) AS ?labObj)
+    BIND (CONCAT("{{", ?labO, "}}") AS ?labObj)
+  }
+  UNION { # Relaties met (optionele) kardinaliteit
+    ?cls rdfs:subClassOf ?sub .
+    {
+      ?sub  owl:onProperty gwsw:hasPart ;
+            owl:onClass ?obj .
+      BIND ("heeft als onderdeel" as ?prd)
+    }
+    UNION {
+      ?sub  owl:onProperty gwsw:hasInput ; # (20251130)
+            owl:onClass ?obj .
+      BIND ("heeft als inbreng" as ?prd)
+    }
+    UNION {
+      ?sub  owl:onProperty gwsw:hasOutput ; # (20251130)
+            owl:onClass ?obj .
+      BIND ("heeft als resultaat" as ?prd)
+    }
+    UNION {
+      ?sub  owl:onProperty gwsw:hasConnection ; # (20251130)
+            owl:onClass ?obj .
+      BIND ("is verbonden met" as ?prd)
+    }
+    ?obj rdfs:label ?labO .
+    FILTER (lang(?labO) = "nl") # de nl-versie is er altijd (20251101)
     BIND (CONCAT("{{", ?labO, "}}") AS ?labObj)
 
     OPTIONAL { # kardinaliteit erbij (20251031)
@@ -92,11 +137,9 @@ where
       }
     }
     #BIND ("heeft als onderdeel type" as ?pred) 
-    BIND ( IF (BOUND(?opm), concat("heeft als onderdeel", ?opm), "heeft als onderdeel:") as ?pred) 
+    BIND ( IF (STRLEN(?opm), concat(?prd, ?opm), concat(?prd, ":")) as ?pred) # BOUND(?opm) werkt niet... (20251130)
     BIND ("onderdeel" as ?predJ)
   }
-  #BIND (concat("Type \"", ?labCls, "\" ", ?pred, " \"", ?labObj, "\".") as ?rec)
-  #BIND (concat("Type ", ?labCls, " ", ?pred, " ", ?labObj, ".") as ?rec)
   BIND (concat("Een ", ?labCls, " ", ?pred, " ", ?labObj, ".") as ?rec)
   #BIND (concat("{\"id\": \"", ?labCls, "\", \"type\": \"klasse\", \"", ?predJ, "\": \"", ?labObj, "\"}" ) as ?json)
 }

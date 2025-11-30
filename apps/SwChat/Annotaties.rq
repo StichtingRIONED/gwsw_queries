@@ -33,7 +33,8 @@ where
   }
   {
     ?cls skos:altLabel ?ann . # Ook andere talen
-    BIND ("heeft als synoniem:" as ?pred)
+    #BIND ("heeft als synoniem:" as ?pred)
+    BIND ("wordt ook wel genoemd:" as ?pred) # Normale mensen-taal (20251128)
     BIND ("synoniem" as ?predJ)
   }
   UNION {
@@ -46,10 +47,17 @@ where
     BIND (IF (CONTAINS(str(?ann), "file:///img"), "heeft als afbeelding:", "heeft als beschrijving:") as ?pred) # was: is beschreven als: ))
     BIND ("beschreven" as ?predJ)
   }
-  UNION { # (20251104)
-    ?cls gwsw:hasUnit ?ann .
+  UNION {
+    ?cls gwsw:hasUnit ?ann . # (20251104)
     BIND ("heeft als waarde-eenheid:" as ?pred) 
     BIND ("waarde-eenheid" as ?predJ)
+  }
+  UNION {
+    ?cls skos:notation ?cod . # (20251130)
+    BIND (str(?cod) as ?ann) # omzetten naar string, code kan datatype hebben
+    BIND ("heeft als code:" as ?pred)
+    BIND (strafter(str(datatype(?cod)), "Dt_Notation_") AS ?dattyp) .
+    BIND (IF (?dattyp != "", CONCAT(?co, " (", ?dattyp, ")"), ?co) as ?code) .
   }
   UNION { # min/max (20251104)
     ?cls rdfs:subClassOf [

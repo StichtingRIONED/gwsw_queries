@@ -121,7 +121,7 @@ WHERE
   BIND (strafter(str(?lei), ?aft) AS ?uri)
   BIND (strafter(str(?typ), ?aft) AS ?type)
 
-  # Ook de optionele kolommen vullen:
+  # Altijd de optionele kolommen vullen:
   BIND (COALESCE (?_bpunt_mat, "") as ?bpunt_mat)
   BIND (COALESCE (?_epunt_mat, "") as ?epunt_mat)
   BIND (COALESCE (?_Begindatum, "") as ?Begindatum)
