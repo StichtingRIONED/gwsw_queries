@@ -1,0 +1,35 @@
+# Model - Controleer collecties (20251219)
+# Collectie-item in "coll"-oneOf moet ook van type "coll" zijn, en andersom
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+
+select ?gwswColl ?gwswElem ?mld
+
+FROM <http://www.ontotext.com/explicit> # GraphDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
+where
+{
+  BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
+  ?coll rdfs:subClassOf gwsw:VerzamelingSoorten ;
+        rdfs:subClassOf [
+          owl:oneOf ?list ;
+        ] .
+
+  {
+    ?list rdf:rest*/rdf:first ?elem .
+    FILTER NOT EXISTS { ?elem rdf:type owl:Class .} # Het element is ook een klasse, sla 'm over (collectie is een type-groepering)
+    FILTER NOT EXISTS { ?elem rdf:type ?coll . }
+    BIND ("Geen type" AS ?mld)
+  } 
+  UNION 
+  {
+    ?elem rdf:type ?coll .
+    FILTER (NOT EXISTS { ?list rdf:rest*/rdf:first ?elem . })
+    BIND ("Geen oneOf" AS ?mld)
+  }
+  BIND (CONCAT("gwsw:", strafter(str(?coll), ?aft)) AS ?gwswColl)
+  BIND (CONCAT("gwsw:", strafter(str(?elem), ?aft)) AS ?gwswElem)
+}

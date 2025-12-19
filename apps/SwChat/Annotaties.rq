@@ -29,7 +29,7 @@ where
     ?cls rdf:type ?coll . # ?cls is hier het waarde-individu 
     ?cls rdfs:label ?lab .
     FILTER (lang(?lab) = "nl") # de nl-versie is er altijd (20251101)
-    BIND (CONCAT("De waarde \"", ?lab, "\"") AS ?labCls) # Hier De "waarde" (waarde-individuen zijn verder niet gesorteerd)
+    BIND (CONCAT("De waarde \"", ?lab, "\"") AS ?labCls) # De waarde "..."
   }
   {
     ?cls skos:altLabel ?ann . # Ook andere talen
