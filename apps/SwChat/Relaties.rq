@@ -30,7 +30,7 @@ where
         owl:onProperty gwsw:functie ;
         owl:hasValue ?obj ;
       ] .
-      BIND ("heeft als functie:" as ?pred) 
+      BIND (".05.heeft als functie:" as ?pred) 
       BIND ("functie" as ?predJ)
     }
     UNION {
@@ -39,7 +39,7 @@ where
         owl:hasValue ?obj ;
         #BIND ("is uitgevoerd als" as ?pred) 
       ] .
-      BIND ("heeft als uitvoering:" as ?pred) # Geen voltooid deelwoord (20251104)
+      BIND (".06.heeft als uitvoering:" as ?pred) # Geen voltooid deelwoord (20251104)
       BIND ("uitvoering" as ?predJ)
     }
     UNION {
@@ -47,14 +47,14 @@ where
         owl:onProperty gwsw:doel ; # (20251129)
         owl:hasValue ?obj ;
       ] .
-      BIND ("heeft als doel:" as ?pred)
+      BIND (".03.heeft als doel:" as ?pred)
     }
     UNION {
       ?cls rdfs:subClassOf [
         owl:onProperty gwsw:toepassing ; # (20251129)
         owl:hasValue ?obj ;
       ] .
-      BIND ("heeft als toepassing:" as ?pred) # "wordt toegepast als/voor/bij" (20251104)
+      BIND (".04.heeft als toepassing:" as ?pred) # "wordt toegepast als/voor/bij" (20251104)
     }
     UNION {
       ?cls rdfs:subClassOf [

@@ -41,7 +41,7 @@ where
 
   # met sorteer-volgnummer (20251219) "  1  " enz
   # subtype wordt soort, normale-mensen-taal
-  BIND (concat("Een ", ?labCls, "  1  is een soortnaam.\nEen ", ?labCls, "  2  is een soort ", ?labSup, "." ) as ?rec) 
+  BIND (concat("Een ", ?labCls, " is een soortnaam.\nEen ", ?labCls, " .01.is een soort ", ?labSup, "." ) as ?rec) 
   
   #BIND (concat("Type \"", ?Class, "\" is een subtype van \"", ?SuperClass1, "\"." ) as ?rec)
   #BIND (concat("Type ", ?labCls, " is een subtype van ", ?labSup, "." ) as ?rec)
