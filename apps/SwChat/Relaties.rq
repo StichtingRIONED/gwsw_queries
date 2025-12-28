@@ -1,4 +1,6 @@
-# Datamodel: Onderscheidende kenmerken
+# SWchat: Relevante relaties (ook onderscheidende kenmerken)
+
+# Sorteermarkers .01. enzo, zie readme.md 
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -80,7 +82,7 @@ where
     ?obj rdfs:label ?labO .
     BIND (CONCAT("\"", ?labO, "\"") AS ?labObj)
   }
-  UNION { # Relaties zonder kardinaliteit, bij eigenschappen is kardinatliteit een soort kwaliteitsmeting, geen model-definitie. (20251122)
+  UNION { # Relaties zonder kardinaliteit. Bij eigenschappen is kardinatliteit een soort kwaliteitsmeting, geen model-definitie. (20251122)
     ?cls rdfs:subClassOf ?sub .
     {
       ?sub  owl:onProperty gwsw:hasAspect ;

@@ -1,6 +1,8 @@
-# Datamodel;: Soorten Fysieke objecten in NL-vorm (zie ook Lijsten) (20251013)
+# SWchat: Soorten Fysieke objecten in NL-vorm (zie ook Lijsten) (20251013)
 # Distinct toegevoegd, anders dubbeling als SuperClass een multiparent heeft (bij Lijsten, 20150914)
-# Alleen klasse + superklasse in de, dat is voldoende om de soortenboom te herleiden
+# Alleen klasse + superklasse, dat is voldoende om de soortenboom te herleiden
+
+# Sorteermarkers .01. enzo, zie readme.md 
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

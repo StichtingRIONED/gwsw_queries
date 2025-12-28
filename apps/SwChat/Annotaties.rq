@@ -1,4 +1,5 @@
 # Datamodel: Enkele Annotaties van fysieke objecten (20251013)
+
 # Sorteermarkers .01. enzo, zie readme.md 
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -9,7 +10,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?rec #?json # Distinc vanwege meervoudige typering collectie-individuen
+SELECT DISTINCT ?rec # Distinct vanwege meervoudige typering collectie-individuen
 
 FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
 
@@ -41,11 +42,13 @@ where
   UNION {
     ?cls skos:definition ?ann .
     BIND (".02.heeft als definitie:" as ?pred) 
-    BIND ("definitie" as ?predJ)
+    BIND ("definitie" as ?predJ)  
   }
   UNION {
-    ?cls rdfs:seeAlso ?ann .
-    BIND (IF (CONTAINS(str(?ann), "file:///img"), ".08.heeft als afbeelding:", ".09.heeft als beschrijving:") as ?pred) # was: is beschreven als: ))
+    ?cls rdfs:seeAlso ?an .
+    BIND (IF (CONTAINS(str(?an), "file:///img"), ".08.heeft als afbeelding:", ".09.heeft als beschrijving:") as ?pred)
+    # Van lokaal naar web-adres. Zet om in de query-resultaten, anders concludeert het LLM dat het lokale bestand niet bruikbaar is (20251228)
+    BIND (IF (CONTAINS(str(?an), "file:///img"), CONCAT(STRBEFORE(str(?an), "file:///img"), "https://data.gwsw.nl/img", STRAFTER(str(?an), "file:///img")), ?an) as ?ann)
     BIND ("beschreven" as ?predJ)
   }
   UNION {
