@@ -11,18 +11,20 @@ SELECT ?rec #?json
 
 where
 {
+  # Eerst type en naam van het object (20260113)
+
   ?obj rdf:type gwsw:FysiekObject .
+  #BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
+  ?obj rdfs:label ?labObj . # doe voorlopig alleen dingen met een naam
 
-  #BIND 
-  #  (IF (EXISTS{?obj rdf:type gwsw:Stelsel.}, "Stelsel", 
-  #          IF(EXISTS{?obj rdf:type gwsw:Put. }, "Put",
-  #               IF(EXISTS{?obj rdf:type gwsw:Bouwwerk .}, "Bouwwerk", 
-  #                  IF(EXISTS{?obj rdf:type gwsw:Leiding .}, "Leiding", "Object")))) as ?grp)
-  BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
+  ?obj sesame:directType ?type .
+  ?type rdfs:label ?labT .
+  FILTER (lang(?labT) = "nl") # de nl-versie is er altijd (20251101)
+  BIND (CONCAT("{{", ?labT, "}}") AS ?labTyp)
 
-  ?obj rdfs:label ?lab . # doe voorlopig alleen dingen met een naam
+  # Nu de eigenschapppen (20260113)
 
-  { ?obj gwsw:hasAspect ?asp . }
+  ?obj gwsw:hasAspect ?asp .
   
   # Doe nog maar even niet, de geometrieën komen dan mee, veel extra overbodige data (20251104)
   #UNION 
@@ -31,18 +33,22 @@ where
   #] . }
 
   ?asp sesame:directType [
-      rdfs:label ?labAsp ;
+    rdfs:label ?labA ;
   ] .
-  FILTER (lang(?labAsp) = "nl") # de nl-versie is er altijd (20251101)
-  
-  { ?asp gwsw:hasValue ?wrd. }
+  FILTER (lang(?labA) = "nl") # de nl-versie is er altijd (20251101)
+
+  #BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
+  BIND (CONCAT("{{", ?labA, "}}") AS ?labAsp)
+
+  { 
+    ?asp gwsw:hasValue ?wrd. 
+  }
   UNION { 
     ?asp gwsw:hasReference ?ref. 
     ?ref rdfs:label ?wrd .
     FILTER (lang(?wrd) = "nl") # de nl-versie is er altijd (20251101)
   }
-  BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
-  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft (ook) als eigenschap \"", ?labAsp, "\" met de waarde \"", str(?wrd), "\"." ) as ?rec)
+  BIND (concat("Het objecttype ", ?labTyp, " met de naam \"", ?labObj, "\" .01.heeft als eigenschap ", ?labAsp, " met de waarde \"", str(?wrd), "\"." ) as ?rec)
 
-  BIND (concat("{\"id\": \"", ?labObj, "\", \"type\": \"object\", \"naam eigenschap\": \"", ?labAsp, "\", \"waarde eigenschap\": \"", str(?wrd), "\"}" ) as ?json)
+  #BIND (concat("{\"id\": \"", ?labObj, "\", \"type\": \"object\", \"naam eigenschap\": \"", ?labAsp, "\", \"waarde eigenschap\": \"", str(?wrd), "\"}" ) as ?json)
 }

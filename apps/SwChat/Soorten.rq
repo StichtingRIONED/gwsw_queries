@@ -19,33 +19,37 @@ where
 {
   BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
 
-  ?Class1 rdf:type owl:Class .
-  FILTER (CONTAINS(str(?Class1), ?aft))
-  ?Class1 rdfs:label ?Class .
-  FILTER (lang(?Class) = "nl") # de nl-versie is er altijd (20251101)
+  ?cls rdf:type owl:Class .
   
-  ?Class1 rdfs:subClassOf ?Class2 .
-  ?Class2 rdf:type owl:Class .
-  FILTER (CONTAINS(str(?Class2), ?aft))
-  ?Class2 rdfs:label ?SuperClass1 .
-  FILTER (lang(?SuperClass1) = "nl") # de nl-versie is er altijd (20251101)
+  FILTER (?cls != gwsw:VerzamelingSoorten) # Heeft geen toegevoegde waarde en veroorzaakt ruis (20251229) [sync] met annotaties.rq
+  FILTER NOT EXISTS {?cls rdfs:subClassOf gwsw:VerzamelingSoorten .} # Heeft geen toegevoegde waarde en veroorzaakt ruis (20251229) [sync] met soorten.rq
+
+  FILTER (CONTAINS(str(?cls), ?aft))
+  ?cls rdfs:label ?lab .
+  FILTER (lang(?lab) = "nl") # de nl-versie is er altijd (20251101)
+  
+  ?cls rdfs:subClassOf ?sup .
+  ?sup rdf:type owl:Class .
+  FILTER (CONTAINS(str(?sup), ?aft))
+  ?sup rdfs:label ?labS .
+  FILTER (lang(?labS) = "nl") # de nl-versie is er altijd (20251101)
   
   #UNION {
-  #  FILTER NOT EXISTS {?Class1 rdfs:subClassOf ?Class2 .}
-  #  BIND ("Topconcept" AS ?SuperClass1)
+  #  FILTER NOT EXISTS {?cls rdfs:subClassOf ?sup .}
+  #  BIND ("Topconcept" AS ?labS)
   #}
 
-  #BIND (IF (CONTAINS(str(?Class), " "), CONCAT("{{", ?Class, "}}"), ?Class) AS ?labCls)
-  BIND (CONCAT("{{", ?Class, "}}") AS ?labCls)
+  #BIND (IF (CONTAINS(str(?lab), " "), CONCAT("{{", ?lab, "}}"), ?lab) AS ?labCls)
+  BIND (CONCAT("{{", ?lab, "}}") AS ?labCls)
 
-  #BIND (IF (CONTAINS(str(?SuperClass1), " "), CONCAT("{{", ?SuperClass1, "}}"), ?SuperClass1) AS ?labSup)
-  BIND (CONCAT("{{", ?SuperClass1, "}}") AS ?labSup)
+  #BIND (IF (CONTAINS(str(?labS), " "), CONCAT("{{", ?labS, "}}"), ?labS) AS ?labSup)
+  BIND (CONCAT("{{", ?labS, "}}") AS ?labSup)
 
   # met sorteer-volgnummer (20251219) "  1  " enz
   # subtype wordt soort, normale-mensen-taal
   BIND (concat("Een ", ?labCls, " is een soortnaam.\nEen ", ?labCls, " .01.is een soort ", ?labSup, "." ) as ?rec) 
   
-  #BIND (concat("Type \"", ?Class, "\" is een subtype van \"", ?SuperClass1, "\"." ) as ?rec)
+  #BIND (concat("Type \"", ?lab, "\" is een subtype van \"", ?labS, "\"." ) as ?rec)
   #BIND (concat("Type ", ?labCls, " is een subtype van ", ?labSup, "." ) as ?rec)
-  #BIND (concat("{\"id\": \"", ?SuperClass1, "\", \"type\": \"klasse\", \"subklasse\": \"" , ?Class, "\"}" ) as ?json)
+  #BIND (concat("{\"id\": \"", ?labS, "\", \"type\": \"klasse\", \"subklasse\": \"" , ?lab, "\"}" ) as ?json)
 }

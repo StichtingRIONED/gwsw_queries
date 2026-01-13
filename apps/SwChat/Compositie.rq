@@ -11,27 +11,30 @@ SELECT ?rec #?json
 
 where
 {
+  # Eerst type en naam van het object (20260113)
+
   ?obj rdf:type gwsw:FysiekObject .
+  #BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
+  ?obj rdfs:label ?labObj . # doe voorlopig alleen dingen met een naam
 
-  #BIND 
-  #  (IF (EXISTS{?obj rdf:type gwsw:Stelsel.}, "Stelsel", 
-  #          IF(EXISTS{?obj rdf:type gwsw:Put. }, "Put",
-  #               IF(EXISTS{?obj rdf:type gwsw:Bouwwerk .}, "Bouwwerk", 
-  #                  IF(EXISTS{?obj rdf:type gwsw:Leiding .}, "Leiding", "Object")))) as ?grp)
-  BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
- 
-  ?obj rdfs:label ?lab . # doe voorlopig alleen dingen met een naam
+  ?obj sesame:directType ?type .
+  ?type rdfs:label ?labT .
+  FILTER (lang(?labT) = "nl") # de nl-versie is er altijd (20251101)
+  BIND (CONCAT("{{", ?labT, "}}") AS ?labTyp)
+
+  # Nu de onderdelen (20260113)
+
   ?obj gwsw:hasPart ?part . # Voorlopig 1 niveau (Inwinning doet nog niet mee)
-  ?part rdfs:label ?labP .
-  #BIND 
-  #  (IF (EXISTS{?part rdf:type gwsw:Stelsel.}, "Stelsel", 
-  #          IF(EXISTS{?part rdf:type gwsw:Put. }, "Put",
-  #               IF(EXISTS{?part rdf:type gwsw:Bouwwerk .}, "Bouwwerk", 
-  #                  IF(EXISTS{?part rdf:type gwsw:Leiding .}, "Leiding", "Object")))) as ?grpPart)
-  BIND ("object" as ?grpPart) # hou het snel, waarschijnlijk voor AI niet essentieel
+  ?part rdfs:label ?labPart .
+  ?part sesame:directType ?typP .
+  ?typP rdfs:label ?labP .
+  FILTER (lang(?labP) = "nl") # de nl-versie is er altijd (20251101)
+  BIND (CONCAT("{{", ?labP, "}}") AS ?labTypP)
 
-  BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
-  BIND (concat(strafter(str(?part), "#"), "/", ?labP) as ?labPart)
-  BIND (concat("Het ", ?grp, " met identificatie \"", ?labObj, "\" heeft (ook) als onderdeel het ", ?grpPart, " met identificatie \"", ?labPart, "\".") as ?rec)
-  BIND (concat("{\"id\": \"", ?labObj, "\", \"type\": \"", ?grp, "\", \"type onderdeel\": \"", ?grpPart, "\", \"id onderdeel\": \"", ?labPart, "\"}" ) as ?json)
+  #BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
+  #BIND (concat(strafter(str(?part), "#"), "/", ?labP) as ?labPart)
+  #BIND ("object" as ?grpPart) # hou het snel, waarschijnlijk voor AI niet essentieel
+
+  BIND (concat("Het objecttype ", ?labTyp, " met de naam \"", ?labObj, "\" .02.heeft als onderdeel het objecttype ", ?labTypP, " met de naam \"", ?labPart, "\".") as ?rec)
+  #BIND (concat("{\"id\": \"", ?labObj, "\", \"type\": \"", ?grp, "\", \"type onderdeel\": \"", ?grpPart, "\", \"id onderdeel\": \"", ?labPart, "\"}" ) as ?json)
 }

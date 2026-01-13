@@ -1,0 +1,37 @@
+# SHACL: Datamodel-definitie; kort en bondig de klassen (20260113)
+#        Vul GWSW_Classes_v1.6.ttl
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
+
+SELECT ?rec
+
+FROM <http://www.ontotext.com/explicit> # GrpahDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
+where
+{
+  BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
+  ?cls rdf:type owl:Class .
+  FILTER (CONTAINS(str(?cls), ?aft))
+  
+  {
+    SELECT ?cls (GROUP_CONCAT(?sub; separator = "; ") as ?supCls)
+    WHERE
+    {
+      BIND (str(iri(gwsw:)) AS ?aft)
+
+      OPTIONAL
+      {
+        ?cls rdfs:subClassOf ?sup .
+        FILTER (CONTAINS(str(?sup), ?aft))
+        BIND (CONCAT("rdfs:subClassOf gwsw:", strafter(str(?sup), ?aft)) AS ?sub)
+      }
+    }
+    GROUP BY ?cls # GraphDB: groeperen incl ?lab, anders verschijnt SuperClass soms dubbel
+  }
+  BIND (CONCAT("gwsw:", strafter(str(?cls), ?aft), " rdf:type owl:Class; ", ?supCls, " .") as ?rec) 
+}

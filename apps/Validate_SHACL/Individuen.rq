@@ -1,0 +1,26 @@
+# SHACL: Datamodel-definitie; kort en bondig de individuen (20260113)
+#        Vul GWSW_Classes_v1.6.ttl
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <{{&version}}>
+
+select ?rec
+
+FROM <http://www.ontotext.com/explicit> # GraphDB: gebruik alleen expliciete (not-inferred) binnen default Graph
+
+where
+{
+  BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
+
+  ?coll rdfs:subClassOf gwsw:VerzamelingSoorten .
+  FILTER (CONTAINS(str(?coll), ?aft))
+
+  ?elem rdf:type ?coll .
+  FILTER (CONTAINS(str(?elem), ?aft))
+
+  BIND (CONCAT("gwsw:", strafter(str(?elem), ?aft), " rdf:type gwsw:", strafter(str(?coll), ?aft), " .") as ?rec) 
+}
