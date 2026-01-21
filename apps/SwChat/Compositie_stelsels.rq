@@ -1,4 +1,5 @@
-# Dataset: Compositie van fysieke objecten (20251013)
+# Dataset: Compositie van afvalwater-systeem: stelsels indelen (20260114)
+# Voor de zekerheid, als er geen gebieden met stelsels zijn gedefinieerd
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -7,33 +8,20 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX gwsw: <http://data.gwsw.nl/1.5/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
-SELECT ?rec #?json
+SELECT ?rec
 
 where
 {
-  # Eerst type en naam van het object (20260113)
+  BIND ("Stelsels Alphen en Chaam" as ?labObj)
+  #BIND ("Stelsels {{&repository}}" as ?labObj)
+  BIND ("{{Afvalwatersysteem}}" as ?labTyp) # Label bij URI GemeentelijkGebied
 
-  ?obj rdf:type gwsw:FysiekObject .
-  #BIND ("object" as ?grp) # hou het snel, waarschijnlijk voor AI niet essentieel
-  ?obj rdfs:label ?labObj . # doe voorlopig alleen dingen met een naam
-
-  ?obj sesame:directType ?type .
-  ?type rdfs:label ?labT .
-  FILTER (lang(?labT) = "nl") # de nl-versie is er altijd (20251101)
-  BIND (CONCAT("{{", ?labT, "}}") AS ?labTyp)
-
-  # Nu de onderdelen (20260113)
-
-  ?obj gwsw:hasPart ?part . # Voorlopig 1 niveau (Inwinning doet nog niet mee)
+  ?part rdf:type gwsw:Stelsel .
   ?part rdfs:label ?labPart .
   ?part sesame:directType ?typP .
   ?typP rdfs:label ?labP .
   FILTER (lang(?labP) = "nl") # de nl-versie is er altijd (20251101)
   BIND (CONCAT("{{", ?labP, "}}") AS ?labTypP)
-
-  #BIND (concat(strafter(str(?obj), "#"), "/", ?lab) as ?labObj)
-  #BIND (concat(strafter(str(?part), "#"), "/", ?labP) as ?labPart)
-  #BIND ("object" as ?grpPart) # hou het snel, waarschijnlijk voor AI niet essentieel
 
   BIND (concat("Het object van type ", ?labTypP, " met de naam \"", ?labPart, "\" .02.is onderdeel van het object van type ", ?labTyp, " met de naam \"", ?labObj, "\".") as ?rec) # (20260116)
   #BIND (concat("Het object ", ?labTyp, " \"", ?labObj, "\" .02.heeft als onderdeel ", ?labTypP, " \"", ?labPart, "\".") as ?rec) # (20260116)
