@@ -1,0 +1,69 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?naam ?uri ?type ?Punt ?Afvoercoëfficiënt ?Begindatum ?BeginpuntonderdeelId ?ConstructieId ?Drempelbreedte ?Drempeldikte ?Drempelniveau ?Eigenaar ?Einddatum ?EindpuntonderdeelId ?Fabrikant ?Gegevensbeheerder ?Leverancier ?Rioleringsbeheerder ?Stromingsrichting ?TheoretischeLevensduur ?VormDrempel ?VrijeOverstorthoogte
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Wand .
+  }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:Punt .
+    ?ori gwsw:hasValue ?Punt .
+  }
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Begindatum; gwsw:hasValue ?Begindatum] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Einddatum; gwsw:hasValue ?Einddatum] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Drempelbreedte; gwsw:hasValue ?Drempelbreedte] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Drempeldikte; gwsw:hasValue ?Drempeldikte] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Drempelniveau; gwsw:hasValue ?Drempelniveau] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Afvoercoëfficiënt; gwsw:hasValue ?Afvoercoëfficiënt] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Stromingsrichting; gwsw:hasValue ?Stromingsrichting] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VrijeOverstorthoogte; gwsw:hasValue ?VrijeOverstorthoogte] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:TheoretischeLevensduur; gwsw:hasValue ?TheoretischeLevensduur] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VormDrempel; gwsw:hasReference ?VormDrempel] .}
+
+  optional {
+    ?obj gwsw:isPartOf ?constructie .
+    ?constructie rdf:type gwsw:Constructie .
+    ?constructie rdfs:label ?ConstructieId .
+  }
+
+
+  optional {
+    ?obj gwsw:hasConnection ?beginconn .
+    ?beginconn rdf:type gwsw:BeginpuntOnderdeel .
+    ?beginobj gwsw:hasAspect ?beginconn .
+    optional { ?beginobj rdfs:label ?BeginpuntonderdeelId . }
+  }
+
+  optional {
+    ?obj gwsw:hasConnection ?eindconn .
+    ?eindconn rdf:type gwsw:EindpuntOnderdeel .
+    ?eindobj gwsw:hasAspect ?eindconn .
+    optional { ?eindobj rdfs:label ?EindpuntonderdeelId . }
+  }
+
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Eigenaar; rdfs:label ?Eigenaar] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Gegevensbeheerder; rdfs:label ?Gegevensbeheerder] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Rioleringsbeheerder; rdfs:label ?Rioleringsbeheerder] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Fabrikant; rdfs:label ?Fabrikant] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Leverancier; rdfs:label ?Leverancier] .}
+
+  BIND (?obj AS ?uri)
+}

@@ -1,0 +1,37 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?naam ?uri ?type ?Geometrie ?OnderdeelvanId
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Gebied .
+  }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:Gebiedsorientatie .
+    ?ori gwsw:hasAspect [
+      rdf:type gwsw:Buitengrens ;
+      gwsw:hasValue ?Geometrie ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf ?parentgebied .
+    ?parentgebied rdf:type gwsw:Gebied .
+    ?parentgebied rdfs:label ?OnderdeelvanId .
+  }
+
+  BIND (?obj AS ?uri)
+}

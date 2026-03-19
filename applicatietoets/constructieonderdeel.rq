@@ -1,0 +1,52 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?naam ?uri ?type ?Punt ?Begindatum ?ConstructieId ?Eigenaar ?Einddatum ?Fabricaat ?Fabrikant ?Gegevensbeheerder ?Leverancier ?Rioleringsbeheerder ?Serienummer
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Constructieonderdeel .
+  }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori sesame:directType ?oriType .
+  }
+
+  optional {
+    ?ori gwsw:hasAspect [
+      rdf:type gwsw:Punt ;
+      gwsw:hasValue ?Punt ;
+    ] .
+  }
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Begindatum; gwsw:hasValue ?Begindatum] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Einddatum; gwsw:hasValue ?Einddatum] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Fabricaat; gwsw:hasValue ?Fabricaat] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Serienummer; gwsw:hasValue ?Serienummer] .}
+
+  optional {
+    ?obj gwsw:isPartOf ?constructie .
+    ?constructie rdf:type gwsw:Constructieonderdeel .
+    ?constructie rdfs:label ?ConstructieId .
+  }
+
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Eigenaar; rdfs:label ?Eigenaar] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Gegevensbeheerder; rdfs:label ?Gegevensbeheerder] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Rioleringsbeheerder; rdfs:label ?Rioleringsbeheerder] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Fabrikant; rdfs:label ?Fabrikant] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Leverancier; rdfs:label ?Leverancier] .}
+
+  BIND (?obj AS ?uri)
+}

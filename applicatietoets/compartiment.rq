@@ -1,0 +1,51 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?naam ?uri ?type ?Punt ?BreedteCompartiment ?LengteCompartiment ?HoogteCompartiment ?VormCompartiment ?ConstructieId ?StelselId
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Compartiment .
+  }
+
+  ?obj sesame:directType ?type .
+
+  optional {
+    ?obj gwsw:hasAspect [
+      rdf:type gwsw:Compartimentorientatie ;
+      gwsw:hasValue ?Punt ;
+    ] .
+  }
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:BreedteCompartiment; gwsw:hasValue ?BreedteCompartiment] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:LengteCompartiment; gwsw:hasValue ?LengteCompartiment] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:HoogteCompartiment; gwsw:hasValue ?HoogteCompartiment] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VormCompartiment; gwsw:hasReference ?VormCompartiment] .}
+
+
+  optional {
+    ?obj gwsw:isPartOf ?parent .
+    ?parent rdfs:label ?ConstructieId .
+    ?parent rdf:type ?parentType .
+    FILTER(?parentType IN (gwsw:Put, gwsw:Bouwwerk))
+  }
+
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Stelsel ;
+      rdfs:label ?StelselId ;
+    ] .
+  }
+
+  BIND (?obj AS ?uri)
+}

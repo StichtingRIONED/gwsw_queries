@@ -1,0 +1,82 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?naam ?uri ?type ?Punt ?Begindatum ?BeginpuntonderdeelId ?BreedteOpening ?ConstructieId ?ContractiecoëfficiëntDoorlaatprofiel ?DiameterOpening ?Doorlaatniveau ?Eigenaar ?Einddatum ?EindpuntonderdeelId ?Energieverliescoëfficiënt ?Fabricaat ?Fabrikant ?Gegevensbeheerder ?HoogteOpening ?IdentificatieTelemetriesysteem ?Leverancier ?MateriaalAfsluiter ?MaximaleCapaciteitDoorlaat ?NiveauBenedenstrooms_Openen ?NiveauBenedenstrooms_Sluiten ?NiveauBovenstrooms_Openen ?NiveauBovenstrooms_Sluiten ?Rioleringsbeheerder ?Serienummer ?Standaard_Afsluiterstand ?StroopCodeStroomgroep ?Stromingsrichting ?TheoretischeLevensduur ?VormOpening
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Doorlaat .
+  }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:Punt .
+    ?ori gwsw:hasValue ?Punt .
+  }
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Begindatum; gwsw:hasValue ?Begindatum] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Einddatum; gwsw:hasValue ?Einddatum] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:BreedteOpening; gwsw:hasValue ?BreedteOpening] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:DiameterOpening; gwsw:hasValue ?DiameterOpening] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:HoogteOpening; gwsw:hasValue ?HoogteOpening] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Doorlaatniveau; gwsw:hasValue ?Doorlaatniveau] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:ContractiecoëfficiëntDoorlaatprofiel; gwsw:hasValue ?ContractiecoëfficiëntDoorlaatprofiel] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Energieverliescoëfficiënt; gwsw:hasValue ?Energieverliescoëfficiënt] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:MaximaleCapaciteitDoorlaat; gwsw:hasValue ?MaximaleCapaciteitDoorlaat] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Stromingsrichting; gwsw:hasValue ?Stromingsrichting] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:NiveauBenedenstrooms_Openen; gwsw:hasValue ?NiveauBenedenstrooms_Openen] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:NiveauBenedenstrooms_Sluiten; gwsw:hasValue ?NiveauBenedenstrooms_Sluiten] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:NiveauBovenstrooms_Openen; gwsw:hasValue ?NiveauBovenstrooms_Openen] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:NiveauBovenstrooms_Sluiten; gwsw:hasValue ?NiveauBovenstrooms_Sluiten] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Standaard_Afsluiterstand; gwsw:hasValue ?Standaard_Afsluiterstand] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Fabricaat; gwsw:hasValue ?Fabricaat] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:IdentificatieTelemetriesysteem; gwsw:hasValue ?IdentificatieTelemetriesysteem] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Serienummer; gwsw:hasValue ?Serienummer] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:StroopCodeStroomgroep; gwsw:hasValue ?StroopCodeStroomgroep] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:TheoretischeLevensduur; gwsw:hasValue ?TheoretischeLevensduur] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:MateriaalAfsluiter; gwsw:hasReference ?MateriaalAfsluiter] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VormOpening; gwsw:hasReference ?VormOpening] .}
+
+  optional {
+    ?obj gwsw:isPartOf ?constructie .
+    ?constructie rdf:type gwsw:Constructie .
+    ?constructie rdfs:label ?ConstructieId .
+  }
+
+  optional {
+    ?obj gwsw:hasConnection ?beginconn .
+    ?beginconn rdf:type gwsw:BeginpuntOnderdeel .
+    ?beginobj gwsw:hasAspect ?beginconn .
+    optional { ?beginobj rdfs:label ?BeginpuntonderdeelId . }
+  }
+
+  optional {
+    ?obj gwsw:hasConnection ?eindconn .
+    ?eindconn rdf:type gwsw:EindpuntOnderdeel .
+    ?eindobj gwsw:hasAspect ?eindconn .
+    optional { ?eindobj rdfs:label ?EindpuntonderdeelId . }
+  }
+
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Eigenaar; rdfs:label ?Eigenaar] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Gegevensbeheerder; rdfs:label ?Gegevensbeheerder] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Rioleringsbeheerder; rdfs:label ?Rioleringsbeheerder] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Fabrikant; rdfs:label ?Fabrikant] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Leverancier; rdfs:label ?Leverancier] .}
+
+  BIND (?obj AS ?uri)
+}

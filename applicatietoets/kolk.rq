@@ -1,0 +1,118 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?naam ?uri ?type ?Punt ?AansluitingId ?Aansluitingszijde ?Adresgegevens ?Begindatum ?BreedtePut ?Buurt ?AfdekkingId ?DiameterPut ?Einddatum ?GebiedId ?Grondsoort ?HoogtePut ?Kern ?LengtePut ?Maaiveldhoogte ?MateriaalPut ?Revisietekening ?StatusFunctioneren ?Straatnaam ?TheoretischeLevensduur ?VerwachteTypeReiniging ?VormPut ?Wanddikte ?WibonThema ?Wijk
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Kolk .
+  }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori sesame:directType ?oriType .
+    FILTER (?oriType IN (gwsw:Putorientatie))
+
+    optional {
+      ?ori gwsw:hasAspect [
+        rdf:type gwsw:Punt ;
+        gwsw:hasValue ?Punt ;
+      ] .
+    }
+
+    optional {
+      ?ori gwsw:hasConnection [
+        rdf:type gwsw:Maaiveldorientatie ;
+        gwsw:hasAspect [
+          rdf:type gwsw:Maaiveldhoogte ;
+          gwsw:hasValue ?Maaiveldhoogte ;
+        ];
+      ] .
+    }
+  }
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Begindatum; gwsw:hasValue ?Begindatum] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Einddatum; gwsw:hasValue ?Einddatum] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:BreedtePut; gwsw:hasValue ?BreedtePut] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:DiameterPut; gwsw:hasValue ?DiameterPut] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:HoogtePut; gwsw:hasValue ?HoogtePut] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:LengtePut; gwsw:hasValue ?LengtePut] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Wanddikte; gwsw:hasValue ?Wanddikte] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Adresgegevens; gwsw:hasValue ?Adresgegevens] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Revisietekening; gwsw:hasValue ?Revisietekening] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:TheoretischeLevensduur; gwsw:hasValue ?TheoretischeLevensduur] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Grondsoort; gwsw:hasReference ?Grondsoort] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:MateriaalPut; gwsw:hasReference ?MateriaalPut] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:StatusFunctioneren; gwsw:hasReference ?StatusFunctioneren] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VormPut; gwsw:hasReference ?VormPut] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:WibonThema; gwsw:hasReference ?WibonThema] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Aansluitingszijde; gwsw:hasReference ?Aansluitingszijde] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VerwachteTypeReiniging; gwsw:hasReference ?VerwachteTypeReiniging] .}
+
+  optional {
+    ?obj gwsw:hasPart [
+      rdf:type gwsw:Afdekking ;
+      rdfs:label ?AfdekkingId ;
+    ] .
+  }
+
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Gebied ;
+      rdfs:label ?GebiedId ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Buurt ;
+      rdfs:label ?Buurt ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Kern ;
+      rdfs:label ?Kern ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Straat ;
+      gwsw:hasAspect [
+        rdf:type gwsw:Straatnaam ;
+        gwsw:hasValue ?Straatnaam ;
+      ]
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:District ;
+      rdfs:label ?Wijk ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf ?aansluiting .
+    ?aansluiting rdf:type gwsw:Aansluiting .
+    ?aansluiting rdfs:label ?AansluitingId .
+  }
+
+  BIND (?obj AS ?uri)
+}

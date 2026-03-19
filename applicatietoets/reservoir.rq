@@ -1,0 +1,151 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+
+SELECT DISTINCT ?naam ?uri ?type ?Punt ?Begindatum ?Belastingklasse ?BergendOppervlak ?BergendVermogen ?BreedteBouwwerk ?Buurt ?DakoppervlakHellend ?DakoppervlakVlak ?DakoppervlakVlakUitgestrekt ?AfdekkingId ?Doorlaatbaarheid ?Eigenaar ?Einddatum ?Fabrikant ?Fundering ?GebiedId ?Gegevensbeheerder ?GeslotenVerhardOppervlakHellend ?GeslotenVerhardOppervlakVlak ?GeslotenVerhardOppervlakVlakUitgestrekt ?Grondsoort ?HoogteBouwwerk ?InfiltrerendOppervlak ?Kern ?LengteBouwwerk ?Leverancier ?Maaiveldhoogte ?MateriaalBouwwerk ?OnverhardOppervlakHellend ?OnverhardOppervlakVlak ?OnverhardOppervlakVlakUitgestrekt ?OpenVerhardOppervlakHellend ?OpenVerhardOppervlakVlak ?OpenVerhardOppervlakVlakUitgestrekt ?Porositeit ?Revisietekening ?Rioleringsbeheerder ?StatusFunctioneren ?StelselId ?Straatnaam ?TheoretischeLevensduur ?Uitstroomniveau ?VormBouwwerk ?Wijk
+
+WHERE
+{
+   {
+     ?obj rdf:type gwsw:Reservoir .
+   }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori sesame:directType ?oriType .
+    FILTER (?oriType IN (gwsw:Bouwwerkorientatie))
+
+    optional {
+      ?ori gwsw:hasAspect [
+        rdf:type gwsw:Punt ;
+        gwsw:hasValue ?Punt ;
+      ] .
+    }
+
+    optional {
+      ?ori gwsw:hasConnection [
+        rdf:type gwsw:Maaiveldorientatie ;
+        gwsw:hasAspect [
+          rdf:type gwsw:Maaiveldhoogte ;
+          gwsw:hasValue ?Maaiveldhoogte ;
+        ];
+      ] .
+    }
+  }
+
+
+  optional { ?obj rdfs:label ?naam . }
+
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Begindatum; gwsw:hasValue ?Begindatum] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Einddatum; gwsw:hasValue ?Einddatum] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:BreedteBouwwerk; gwsw:hasValue ?BreedteBouwwerk] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:HoogteBouwwerk; gwsw:hasValue ?HoogteBouwwerk] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:LengteBouwwerk; gwsw:hasValue ?LengteBouwwerk] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Belastingklasse; gwsw:hasValue ?Belastingklasse] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:BergendOppervlak; gwsw:hasValue ?BergendOppervlak] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:BergendVermogen; gwsw:hasValue ?BergendVermogen] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:InfiltrerendOppervlak; gwsw:hasValue ?InfiltrerendOppervlak] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Uitstroomniveau; gwsw:hasValue ?Uitstroomniveau] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Doorlaatbaarheid; gwsw:hasValue ?Doorlaatbaarheid] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Porositeit; gwsw:hasValue ?Porositeit] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Revisietekening; gwsw:hasValue ?Revisietekening] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:TheoretischeLevensduur; gwsw:hasValue ?TheoretischeLevensduur] .}
+
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:DakoppervlakHellend; gwsw:hasValue ?DakoppervlakHellend] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:DakoppervlakVlak; gwsw:hasValue ?DakoppervlakVlak] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:DakoppervlakVlakUitgestrekt; gwsw:hasValue ?DakoppervlakVlakUitgestrekt] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:GeslotenVerhardOppervlakHellend; gwsw:hasValue ?GeslotenVerhardOppervlakHellend] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:GeslotenVerhardOppervlakVlak; gwsw:hasValue ?GeslotenVerhardOppervlakVlak] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:GeslotenVerhardOppervlakVlakUitgestrekt; gwsw:hasValue ?GeslotenVerhardOppervlakVlakUitgestrekt] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:OnverhardOppervlakHellend; gwsw:hasValue ?OnverhardOppervlakHellend] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:OnverhardOppervlakVlak; gwsw:hasValue ?OnverhardOppervlakVlak] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:OnverhardOppervlakVlakUitgestrekt; gwsw:hasValue ?OnverhardOppervlakVlakUitgestrekt] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:OpenVerhardOppervlakHellend; gwsw:hasValue ?OpenVerhardOppervlakHellend] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:OpenVerhardOppervlakVlak; gwsw:hasValue ?OpenVerhardOppervlakVlak] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:OpenVerhardOppervlakVlakUitgestrekt; gwsw:hasValue ?OpenVerhardOppervlakVlakUitgestrekt] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Grondsoort; gwsw:hasReference ?Grondsoort] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:MateriaalBouwwerk; gwsw:hasReference ?MateriaalBouwwerk] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:StatusFunctioneren; gwsw:hasReference ?StatusFunctioneren] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VormBouwwerk; gwsw:hasReference ?VormBouwwerk] .}
+
+  optional {
+    ?obj gwsw:hasPart [
+      rdf:type gwsw:Afdekking ;
+      rdfs:label ?AfdekkingId ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:hasPart [
+      rdf:type gwsw:Fundering ;
+      sesame:directType ?Fundering ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Gebied ;
+      rdfs:label ?GebiedId ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Stelsel ;
+      rdfs:label ?StelselId ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Buurt ;
+      rdfs:label ?Buurt ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Kern ;
+      rdfs:label ?Kern ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Straat ;
+      gwsw:hasAspect [
+        rdf:type gwsw:Straatnaam ;
+        gwsw:hasValue ?Straatnaam ;
+      ]
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:District ;
+      rdfs:label ?Wijk ;
+    ] .
+  }
+
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Eigenaar; rdfs:label ?Eigenaar] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Gegevensbeheerder; rdfs:label ?Gegevensbeheerder] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Rioleringsbeheerder; rdfs:label ?Rioleringsbeheerder] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Fabrikant; rdfs:label ?Fabrikant] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Leverancier; rdfs:label ?Leverancier] .}
+
+  BIND (?obj AS ?uri)
+}

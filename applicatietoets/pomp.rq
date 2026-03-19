@@ -1,0 +1,71 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?naam ?uri ?type ?Punt ?AanslagniveauBenedenstrooms ?AanslagniveauBovenstrooms ?AfslagniveauBenedenstrooms ?AfslagniveauBovenstrooms ?Begindatum ?BeginpuntonderdeelId ?ConstructieId ?Einddatum ?EindpuntonderdeelId ?LozingspuntId ?Motorvermogen ?OntwerpCapaciteitPomp ?Pompcapaciteit ?Pompfabrikaat ?Serienummer ?TheoretischeLevensduur ?TypePompwaaier
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Pomp .
+  }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:Punt .
+    ?ori gwsw:hasValue ?Punt .
+  }
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Begindatum; gwsw:hasValue ?Begindatum] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Einddatum; gwsw:hasValue ?Einddatum] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:AanslagniveauBenedenstrooms; gwsw:hasValue ?AanslagniveauBenedenstrooms] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:AanslagniveauBovenstrooms; gwsw:hasValue ?AanslagniveauBovenstrooms] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:AfslagniveauBenedenstrooms; gwsw:hasValue ?AfslagniveauBenedenstrooms] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:AfslagniveauBovenstrooms; gwsw:hasValue ?AfslagniveauBovenstrooms] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Motorvermogen; gwsw:hasValue ?Motorvermogen] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:OntwerpCapaciteitPomp; gwsw:hasValue ?OntwerpCapaciteitPomp] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Pompcapaciteit; gwsw:hasValue ?Pompcapaciteit] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:TypePompwaaier; gwsw:hasValue ?TypePompwaaier] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Pompfabrikaat; gwsw:hasValue ?Pompfabrikaat] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Serienummer; gwsw:hasValue ?Serienummer] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:TheoretischeLevensduur; gwsw:hasValue ?TheoretischeLevensduur] .}
+
+  optional {
+    ?obj gwsw:isPartOf ?constructie .
+    ?constructie rdf:type gwsw:Constructie .
+    ?constructie rdfs:label ?ConstructieId .
+  }
+
+
+  optional {
+    ?obj gwsw:hasConnection ?lozingspunt .
+    ?lozingspunt rdfs:label ?LozingspuntId .
+  }
+
+  optional {
+    ?obj gwsw:hasConnection ?beginconn .
+    ?beginconn rdf:type gwsw:BeginpuntOnderdeel .
+    ?beginobj gwsw:hasAspect ?beginconn .
+    optional { ?beginobj rdfs:label ?BeginpuntonderdeelId . }
+  }
+
+  optional {
+    ?obj gwsw:hasConnection ?eindconn .
+    ?eindconn rdf:type gwsw:EindpuntOnderdeel .
+    ?eindobj gwsw:hasAspect ?eindconn .
+    optional { ?eindobj rdfs:label ?EindpuntonderdeelId . }
+  }
+
+  BIND (?obj AS ?uri)
+}

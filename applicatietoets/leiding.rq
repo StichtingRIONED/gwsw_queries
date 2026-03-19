@@ -1,0 +1,193 @@
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?DiameterLeiding ?Begindatum ?Beheerder ?Rioleringsbeheerder ?Eigenaar ?Verbindingstype ?SDR_waarde ?SysteemdId ?TheoretischeLevensduur ?Doorlaatbaarheid ?Einddatum ?Fabrikant ?Leverancier ?GebiedId ?Gegevensbeheerder ?Grondsoort ?Kleur ?Buurt ?Kern ?Wijk ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Fundering ?Revisietekening ?Straatnaam ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
+
+WHERE
+{
+  {
+    ?obj rdf:type gwsw:Leiding .
+  }
+
+  FILTER (!(isBlank(?obj)))
+  ?obj sesame:directType ?type .
+  FILTER (!(isBlank(?type)))
+
+  optional { ?obj rdfs:label ?naam . }
+
+  optional {
+    ?obj gwsw:hasAspect ?ori .
+    ?ori sesame:directType ?oriType .
+    FILTER (?oriType IN (gwsw:Leidingorientatie))
+
+    optional {
+      ?ori gwsw:hasAspect [
+        rdf:type gwsw:Lijn ;
+        gwsw:hasValue ?Lijn ;
+      ] .
+    }
+
+    optional {
+      ?ori gwsw:hasPart ?bpnt .
+      ?bpnt rdf:type gwsw:BeginpuntLeiding .
+      ?bpnt gwsw:hasConnection ?bconn .
+
+      optional {
+        ?bpnt gwsw:hasAspect [
+          rdf:type gwsw:BobBeginpuntLeiding ;
+          gwsw:hasValue ?BobBeginpuntLeiding ;
+        ] .
+      }
+
+      ?_uriB gwsw:hasAspect ?bconn .
+      optional { ?_uriB rdfs:label ?beginpunt . }
+      BIND (?_uriB AS ?uriB)
+    }
+
+    optional {
+      ?ori gwsw:hasPart ?epnt .
+      ?epnt rdf:type gwsw:EindpuntLeiding .
+      ?epnt gwsw:hasConnection ?econn .
+
+      optional {
+        ?epnt gwsw:hasAspect [
+          rdf:type gwsw:BobEindpuntLeiding ;
+          gwsw:hasValue ?BobEindpuntLeiding ;
+        ] .
+      }
+
+      ?_uriE gwsw:hasAspect ?econn .
+      optional { ?_uriE rdfs:label ?eindpunt . }
+      BIND (?_uriE AS ?uriE)
+    }
+  }
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Begindatum; gwsw:hasValue ?Begindatum] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Einddatum; gwsw:hasValue ?Einddatum] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:MateriaalLeiding; gwsw:hasReference ?MateriaalLeiding] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:VormLeiding; gwsw:hasReference ?VormLeiding] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:StatusFunctioneren; gwsw:hasReference ?StatusFunctioneren] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Verbindingstype; gwsw:hasReference ?Verbindingstype] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:WIONThema; gwsw:hasReference ?WIONThema] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:DiameterLeiding; gwsw:hasValue ?DiameterLeiding] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:BreedteLeiding; gwsw:hasValue ?BreedteLeiding] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:HoogteLeiding; gwsw:hasValue ?HoogteLeiding] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:LengteLeiding; gwsw:hasValue ?LengteLeiding] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Wanddikte; gwsw:hasValue ?Wanddikte] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Doorlaatbaarheid; gwsw:hasValue ?Doorlaatbaarheid] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:TheoretischeLevensduur; gwsw:hasValue ?TheoretischeLevensduur] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:SDR_waarde; gwsw:hasValue ?SDR_waarde] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Kleur; gwsw:hasValue ?Kleur] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Revisietekening; gwsw:hasValue ?Revisietekening] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:AantalWoningen; gwsw:hasValue ?AantalWoningen] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Aantal_ieBedrijven; gwsw:hasValue ?Aantal_ieBedrijven] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:Aantal_ieRecreatie; gwsw:hasValue ?Aantal_ieRecreatie] .}
+
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:LateraalDebietDWA; gwsw:hasValue ?LateraalDebietDWA] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:LateraalDebietHWA; gwsw:hasValue ?LateraalDebietHWA] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:LateraalAfvoerendOppervlak; gwsw:hasValue ?LateraalAfvoerendOppervlak] .}
+
+
+  optional {
+    SELECT ?obj (sum(?ao) as ?AfvoerendOppervlak)
+    WHERE {
+      ?obj gwsw:hasAspect [
+        rdf:type gwsw:AfvoerendOppervlak ;
+        gwsw:hasValue ?ao ;
+      ] .
+    }
+    GROUP BY ?obj
+  }
+
+
+  optional {
+    ?obj gwsw:hasPart [
+      rdf:type gwsw:Fundering ;
+      sesame:directType ?Fundering ;
+    ] .
+  }
+
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Stelsel ;
+      sesame:directType ?stelseltype ;
+      rdfs:label ?Stelsel ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Rioleringsgebied ;
+      rdfs:label ?GebiedId ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Systeem ;
+      rdfs:label ?SysteemdId ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Buurt ;
+      rdfs:label ?Buurt ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Kern ;
+      rdfs:label ?Kern ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Straat ;
+      gwsw:hasAspect [
+        rdf:type gwsw:Straatnaam ;
+        gwsw:hasValue ?Straatnaam ;
+      ]
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:District ;
+      rdfs:label ?Wijk ;
+    ] .
+  }
+
+  optional {
+    ?obj gwsw:isPartOf [
+      rdf:type gwsw:Ondergrond ;
+      gwsw:hasAspect [
+        rdf:type gwsw:Grondsoort ;
+        gwsw:hasReference ?Grondsoort ;
+      ]
+    ] .
+  }
+
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Eigenaar; rdfs:label ?Eigenaar] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Beheerder; rdfs:label ?Beheerder] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Gegevensbeheerder; rdfs:label ?Gegevensbeheerder] .}
+  optional {?obj gwsw:isInputOf [rdf:type gwsw:Rioleringsbeheerder; rdfs:label ?Rioleringsbeheerder] .}
+
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Fabrikant; rdfs:label ?Fabrikant] .}
+  optional {?obj gwsw:isOutputOf [rdf:type gwsw:Leverancier; rdfs:label ?Leverancier] .}
+
+  BIND (?obj AS ?uri)
+  BIND (IF (BOUND(?_uriB), ?_uriB, "") AS ?uriB)
+  BIND (IF (BOUND(?_uriE), ?_uriE, "") AS ?uriE)
+}
