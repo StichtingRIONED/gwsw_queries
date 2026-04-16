@@ -1,4 +1,5 @@
 # Alle punt-objecten (alleen de compositieobjecten) (20250915)
+# 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -141,25 +142,37 @@ WHERE
    [
        rdf:type gwsw:Fundering ;
        sesame:directType ?Fundering ;
-   ] .}   
-   optional {?obj gwsw:isInputOf 
-   [
-     rdf:type gwsw:Inspecteren ;
-     gwsw:hasAspect
-     [
-        rdf:type gwsw:DatumMaatregel ;
-        gwsw:hasValue ?DatumInspectie ;
-     ];
    ] .}
-  optional {?obj gwsw:isInputOf 
-   [
-     rdf:type gwsw:Reinigen ;
-     gwsw:hasAspect
-     [
-        rdf:type gwsw:DatumMaatregel ;
-        gwsw:hasValue ?DatumReiniging ;
-     ];
-   ] .}
+  optional { # Bepaal de meest recente datum. Niet groeperen, veldformaat = xsd:date  (20260416)
+    SELECT ?obj (MAX(?dat) as ?DatumInspectie)
+    WHERE
+    {
+        ?obj gwsw:isInputOf [
+          rdf:type gwsw:Inspecteren ;
+          gwsw:hasAspect
+          [
+            rdf:type gwsw:DatumMaatregel ;
+            gwsw:hasValue ?dat ;
+          ] ; 
+        ] .
+    }
+    GROUP BY ?obj
+  }
+  optional { # Bepaal de meest recente datum. Niet groeperen, veldformaat = xsd:date  (20260416)
+    SELECT ?obj (MAX(?dat) as ?DatumReiniging)
+    WHERE
+    {
+        ?obj gwsw:isInputOf [
+          rdf:type gwsw:Reinigen ;
+          gwsw:hasAspect
+          [
+            rdf:type gwsw:DatumMaatregel ;
+            gwsw:hasValue ?dat ;
+          ] ; 
+        ] .
+    }
+    GROUP BY ?obj
+  }
   optional {?obj gwsw:hasAspect 
    [
        rdf:type gwsw:AantalWoningen ;

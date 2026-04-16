@@ -1,10 +1,11 @@
-# Beheer_Leiding.rq (20170930-20200521)
+# Beheer_Leiding.rq (20170930)
+# 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
+#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
 PREFIX : <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?datumInwinningBobBegin ?wijzeInwinningBobBegin ?BobEindpuntLeiding ?datumInwinningBobEind ?wijzeInwinningBobEind ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?datumLining ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak
@@ -229,24 +230,36 @@ WHERE
 	  :hasValue ?datumLining ;
      ];
    ] .}
-   optional {?lei :isInputOf 
-   [
-     rdf:type :Inspecteren ;
-     :hasAspect
-     [
-	rdf:type :DatumMaatregel ;
-	:hasValue ?DatumInspectie ;
-     ];
-   ] .}
-   optional {?lei :isInputOf 
-   [
-     rdf:type :Reinigen ;
-     :hasAspect
-     [
-	rdf:type :DatumMaatregel ;
-	:hasValue ?DatumReiniging ;
-     ];
-   ] .}
+  optional { # Bepaal de meest recente datum (20260416)
+    SELECT ?lei (MAX(?dat) as ?DatumInspectie)
+    WHERE
+    {
+        ?lei :isInputOf [
+          rdf:type :Inspecteren ;
+          :hasAspect
+          [
+            rdf:type :DatumMaatregel ;
+            :hasValue ?dat ;
+          ] ; 
+        ] .
+    }
+    GROUP BY ?lei
+  }
+  optional { # Bepaal de meest recente datum (20260416)
+    SELECT ?lei (MAX(?dat) as ?DatumReiniging)
+    WHERE
+    {
+        ?lei :isInputOf [
+          rdf:type :Reinigen ;
+          :hasAspect
+          [
+            rdf:type :DatumMaatregel ;
+            :hasValue ?dat ;
+          ] ; 
+        ] .
+    }
+    GROUP BY ?lei
+  }
    optional {?lei :hasAspect 
    [
        rdf:type :WIONThema ;
