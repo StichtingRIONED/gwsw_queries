@@ -1,5 +1,6 @@
-# Hyd_Leiding.rq (20170901/20190903/20230302)
+# Hyd_Leiding.rq (20230302/20190903/20170901)
 # Tbv conversie naar GWSW.hydx
+# 20260514/mv: BreedteLeiding vullen op basis DiameterLeiding liep niet altijd goed, gecorrigeerd
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -118,12 +119,15 @@ WHERE
    optional {?uri gwsw:hasAspect 
    [
        rdf:type gwsw:DiameterLeiding ;
-       gwsw:hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+       # Deze werkt niet altijd goed, coalesce gebruiken (20260514) (zie ook Beheer_Leiding.rq, daar opgelost in 2021)
+       # gwsw:hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
+       gwsw:hasValue ?dia ;
    ] .}
    optional {?uri gwsw:hasAspect 
    [
        rdf:type gwsw:BreedteLeiding ;
-       gwsw:hasValue ?BreedteLeiding ;
+       #gwsw:hasValue ?BreedteLeiding ;
+       gwsw:hasValue ?br ;
    ] .}
    optional {?uri gwsw:hasAspect 
    [
@@ -150,4 +154,5 @@ WHERE
 #       rdf:type gwsw:AfvoerendOppervlak ;
 #       gwsw:hasValue ?AfvoerendOppervlak ;
 #   ] .}
+    BIND (COALESCE (?br, ?dia) as ?BreedteLeiding) # de eerst geldende doet mee (20260514)
 }
