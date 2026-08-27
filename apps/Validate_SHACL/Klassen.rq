@@ -1,11 +1,12 @@
 # SHACL: Datamodel-definitie; kort en bondig de klassen (20260113)
-#        Vul GWSW_Classes_v1.6.ttl
+#        Vul GWSW_Classes_v1.7.ttl op basis van GWSW_Dataset_v170 (20260825)
+#        
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
-PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
 SELECT ?rec

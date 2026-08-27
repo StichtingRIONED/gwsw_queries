@@ -1,4 +1,4 @@
-# GWSW_Lijsten Soortenboom (20241112) (20220119) 
+# GWSW_Lijsten Soortenboom (20260827) (20241112) (20220119) 
 
 # Restrictie-superclasses overslaan (v1.5.2)
 # SuperClass6 toegevoegd (20200520)
@@ -15,7 +15,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX : <http://data.gwsw.nl/1.6/totaal/>
+PREFIX : <http://data.gwsw.nl/1.7/totaal/> # [sync versie]
 
 select DISTINCT ?Class ?SuperClass1 ?SuperClass2 ?SuperClass3 ?SuperClass4 ?SuperClass5 ?SuperClass6
 

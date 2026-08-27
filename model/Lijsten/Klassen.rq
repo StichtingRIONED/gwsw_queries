@@ -1,5 +1,5 @@
 
-# GWSW_Lijsten Klassen (20241112) (20220118) (20190429)
+# GWSW_Lijsten Klassen (20260827) (20241112) (20220118) (20190429)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -7,7 +7,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-PREFIX : <http://data.gwsw.nl/1.6/totaal/>
+PREFIX : <http://data.gwsw.nl/1.7/totaal/> # [sync versie]
 
 #SELECT ?Name ?Labels ?AltLabels ?Number ?Unit ?Code ?Definition (GROUP_CONCAT(?SeeAlso) as ?SeeAlsos) ?SuperClass
 SELECT ?Name ?Labels ?AltLabels ?Number ?Unit ?Code ?Definitions ?SeeAlsos ?SuperClass
