@@ -1,4 +1,4 @@
-# Default_Punt_deel (20250915 20201016)
+# Default_Punt_deel (20260828) (20250915 20201016)
 # Alle delen van een punt-compositieobject (Doorlaat, Pomp, Wand, Deksel) (ook die met eigen geometrie)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -14,7 +14,10 @@ WHERE
 { 
   ?obj gwsw:hasAspect ?oriObj . #rdf:type gwsw:TopologischElement ;
   ?oriObj sesame:directType ?oriType .
-  FILTER (?oriType IN (gwsw:Bouwwerkorientatie, gwsw:Putorientatie, gwsw:Hulpstukorientatie)) # Alleen de punt-compositieobjecten (sync met Default_Punt_deel)
+
+  # De compositieobjecten met een topologie en met onderdelen die mogelijk een punt-geometrie hebben 
+  # Ook Rioolafsluiter, Schildmuur als deel van een Leiding: Leidingorientatie erbij (20260828)
+  FILTER (?oriType IN (gwsw:Bouwwerkorientatie, gwsw:Putorientatie, gwsw:Hulpstukorientatie, gwsw:Leidingorientatie)) 
 
   ?oriObj gwsw:hasAspect
   [ 
