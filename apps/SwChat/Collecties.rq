@@ -1,4 +1,4 @@
-# SwChat - Collecties (20251027)
+# Datamodel: Collecties (20251027)
 # De mogelijke waarden per kenmerk, de collectieclass ?coll is niet relevant
 
 # Sorteermarkers .01. enzo, zie readme.md 
@@ -6,7 +6,7 @@
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 
 select ?rec
 

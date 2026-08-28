@@ -1,4 +1,4 @@
-# SWchat: Relevante relaties (ook onderscheidende kenmerken)
+# Datamodel: Relevante relaties (ook onderscheidende kenmerken)
 
 # Sorteermarkers .01. enzo, zie readme.md 
 
@@ -7,7 +7,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 #PREFIX gwsw: <{{&version}}>
 
 SELECT ?rec #?json
