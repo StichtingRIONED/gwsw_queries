@@ -2,7 +2,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?name ?NameColl
 WHERE 
 { 
-	?name rdfs:label ?lab .
-  FILTER (CONTAINS(LCASE(STR(?lab)), "collectie_"))
+  ?name rdfs:label ?lab .
+  FILTER (regex(STR(?lab), "collectie_", "i"))
   BIND (STRAFTER(LCASE(STR(?lab)), "collectie_") as ?NameColl)
 }
