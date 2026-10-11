@@ -1,11 +1,12 @@
 # Geo-thema Default (20210521)
+# 20261011/mv: Stelsel ook via Aansluiting bepalen
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
@@ -26,21 +27,27 @@ WHERE
   ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
 
-  ?ori gwsw:hasAspect
-    [ 
-        rdf:type gwsw:Lijn ;
-        gwsw:hasValue ?Lijn ;
-    ] .
-
+  ?ori gwsw:hasAspect [ 
+    rdf:type gwsw:Lijn ;
+    gwsw:hasValue ?Lijn ;
+  ] .
   optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
   
   optional
   {
-    ?obj gwsw:isPartOf 
-    [ rdf:type gwsw:Stelsel ;
-      rdfs:label ?Stelsel ;
-      sesame:directType ?stelseltype ;
-    ] .
+    ?obj gwsw:isPartOf ?cps .
+    {
+      ?cps rdf:type gwsw:Stelsel ;
+           rdfs:label ?Stelsel ;
+           sesame:directType ?stelseltype .
+    } UNION { # (20261011)
+      ?cps rdf:type gwsw:Aansluiting .
+      ?cps gwsw:isPartOf [
+           rdf:type gwsw:Stelsel ;
+           rdfs:label ?Stelsel ;
+           sesame:directType ?stelseltype ;
+      ] .
+    }
   }
   # Bijgewerkt: ?ori en ?lijn werden dubbel bepaald (20210521)
   #?obj gwsw:hasAspect ?ori .
