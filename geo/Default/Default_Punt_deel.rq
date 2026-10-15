@@ -1,5 +1,6 @@
 # Default_Punt_deel (20260828) (20250915 20201016)
 # Alle delen van een punt-compositieobject (Doorlaat, Pomp, Wand, Deksel) (ook die met eigen geometrie)
+# 20261015/mv: Afmetingen compartiment erbij
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
