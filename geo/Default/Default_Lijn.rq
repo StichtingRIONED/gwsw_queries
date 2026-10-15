@@ -1,4 +1,7 @@
 # Geo-thema Default (20210521)
+# 20261013/mv: Filter op alleen functionele types
+# 20261013/mv: Selecteer op datum inwinning, alleen meest recente waarde gebruiken (SPARQL-bug? opgelost)
+# 20261012/mv: Datum inwinning toevoegen aan BobB en BobE (dubbele geo-objecten blijven, samenvoegen is te traag - zie default_punt)
 # 20261011/mv: Stelsel ook via Aansluiting bepalen
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
@@ -26,6 +29,7 @@ WHERE
   FILTER (!(isBlank(?obj)))
   ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
+  FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261013)
 
   ?ori gwsw:hasAspect [ 
     rdf:type gwsw:Lijn ;
@@ -57,40 +61,66 @@ WHERE
   #  rdf:type gwsw:Lijn ;
   #  gwsw:hasValue ?Lijn ;
   #] .
-
-  optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
-  {
+  optional { # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
     ?ori gwsw:hasPart ?bpnt .
     ?bpnt rdf:type gwsw:BeginpuntLeiding .
-    ?bpnt gwsw:hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
-
-    optional {?bpnt gwsw:hasAspect
-    [ 
-        rdf:type gwsw:BobBeginpuntLeiding ;
-        gwsw:hasValue ?BobBeginpuntLeiding ;
-    ] .}
-
-    # Hou het kort voor MDS (Delft liep vast op het vervolg)
-
-    ?bconn gwsw:isAspectOf ?_uriB . # lei in de query-resultaten voor zoekwerk (20200708)
+    ?bpnt gwsw:hasConnection [ gwsw:isAspectOf ?_uriB ;] . # lei in de query-resultaten voor zoekwerk (20200708)
     ?_uriB rdfs:label ?beginpunt .
+
+    optional { # Bob
+      { # Inwinning erbij?
+        { 
+          SELECT ?bpnt (MAX(?maxDat1) as ?maxDat1) # Zoek de meest recente waarde (hou var-naam uniek: 2x maxAsp?, 3x maxDat?) (20261015)
+            WHERE {
+              ?bpnt gwsw:hasAspect ?maxAsp1 .
+              ?maxAsp1 rdf:type gwsw:BobBeginpuntLeiding ;
+                      gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?maxDat1 ; ] ; ] .
+            } GROUP BY ?bpnt
+        }
+        # Lees de gegevens bij maxDat? (hou var-naam uniek: 2x asp?)
+        ?bpnt gwsw:hasAspect ?asp1 .
+        ?asp1 rdf:type gwsw:BobBeginpuntLeiding ; 
+              gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?maxDat1 ; ] ; ] ;
+              gwsw:hasValue ?BobBeginpuntLeiding .
+      }
+      UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
+        ?bpnt gwsw:hasAspect ?asp1 .
+        # de boel is al verwerkt in de subquery?
+        FILTER NOT EXISTS {?asp1 rdf:type gwsw:BobBeginpuntLeiding; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; ] ; ] .}
+        ?asp1 gwsw:hasValue  ?BobBeginpuntLeiding . 
+      }
+    }
   }
   optional # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
   {
     ?ori gwsw:hasPart ?epnt .
     ?epnt rdf:type gwsw:EindpuntLeiding .
-    ?epnt gwsw:hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
+    ?epnt gwsw:hasConnection [ gwsw:isAspectOf ?_uriE ;] . # lei in de query-resultaten voor zoekwerk (20200708)
+    ?_uriE rdfs:label ?eindpunt .
 
-      optional {?epnt gwsw:hasAspect
-      [ 
-          rdf:type gwsw:BobEindpuntLeiding ;
-          gwsw:hasValue ?BobEindpuntLeiding ;
-      ] .}
-      
-  # Hou het kort voor MDS (Delft liep vast op het vervolg)
-
-      ?econn gwsw:isAspectOf ?_uriE . # lei in de query-resultaten voor zoekwerk (20200708)
-      ?_uriE rdfs:label ?eindpunt .
+    optional { # Bob
+      { # Inwinning erbij?
+        { 
+          SELECT ?epnt (MAX(?maxDat2) as ?maxDat2) # Zoek de meest recente waarde (hou var-naam uniek: 2x maxAsp?, 3x maxDat?) (20261015)
+            WHERE {
+              ?epnt gwsw:hasAspect ?maxAsp2 .
+              ?maxAsp2 rdf:type gwsw:BobEindpuntLeiding ;
+                      gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?maxDat2 ; ] ; ] .
+            } GROUP BY ?epnt
+        }
+        # Lees de gegevens bij maxDat? (hou var-naam uniek: 2x asp?)
+        ?epnt gwsw:hasAspect ?asp2 .
+        ?asp2 rdf:type gwsw:BobEindpuntLeiding ; 
+              gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?maxDat2 ; ] ; ] ;
+              gwsw:hasValue ?BobEindpuntLeiding .
+      }
+      UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
+        ?epnt gwsw:hasAspect ?asp2 .
+        # de boel is al verwerkt in de subquery?
+        FILTER NOT EXISTS {?asp2 rdf:type gwsw:BobEindpuntLeiding; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; ] ; ] .}
+        ?asp2 gwsw:hasValue  ?BobEindpuntLeiding . 
+      }
+    }
   }
   optional {?obj gwsw:hasAspect 
   [

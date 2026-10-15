@@ -1,15 +1,18 @@
 # Alle punt-objecten (alleen de compositieobjecten) (20250915)
+# 20261015/mv: Ook zelfstandige compartimenten meenemen (LET OP: dataset-fout!! Water bij de wijn)
+# 20261014/mv: Selecteer op datum inwinning, alleen meest recente waarde gebruiken (query-snelheid gelijk aan 20250916)
+# 20261012/mv: Werkt niet goed, het datatype van mvdhgt niet wijzigen: Datum inwinning toegevoegd aan maaiveldhoogte
+# 20261013/mv: Filter op alleen functionele types
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?BreedteBouwwerk ?LengteBouwwerk ?BreedteCompartiment ?LengteCompartiment ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak ?aantalPompen ?aantalDrempels
-#SELECT ?Stelsel ?Naam ?Type ?TypeNaam ?Geometrie
 
 WHERE
 { 
@@ -17,7 +20,7 @@ WHERE
     ?obj gwsw:hasAspect ?ori .
     #?ori rdf:type gwsw:TopologischElement . 
     ?ori sesame:directType ?oriType .
-    FILTER (?oriType IN (gwsw:Bouwwerkorientatie, gwsw:Putorientatie, gwsw:Hulpstukorientatie)) # Alleen de compositieobjecten (sync met Default_Punt_deel) (20250915)
+    FILTER (?oriType IN (gwsw:Bouwwerkorientatie, gwsw:Putorientatie, gwsw:Hulpstukorientatie)) # Alleen de compositieobjecten. [sync] met Default_Punt_deel (20250915)
   }
   UNION # ook de zelfstandige topologische elementen
   {
@@ -29,46 +32,63 @@ WHERE
     ?obj rdf:type gwsw:Aansluitpunt . # Supertype van Uitlaatpunt en zo (20230426) (hier stond het foute gwsw:Aanvoerpunt)
     BIND (?obj as ?ori)
   }
+  UNION # ook de zelfstandige compartimenten (LET OP: dataset-fout, maar komt vaak voor: water bij de wijn) (20261015)
+  {
+    ?obj rdf:type gwsw:Compartiment .
+    FILTER NOT EXISTS {?obj gwsw:isPartOf [rdf:type gwsw:Put ;] . } # komt al mee in Default_Punt_deel
+    FILTER NOT EXISTS {?obj gwsw:isPartOf [rdf:type gwsw:Bouwwerk ;] . } # komt al mee in Default_Punt_deel
+    ?obj gwsw:hasAspect ?ori .
+    ?ori rdf:type gwsw:Compartimentorientatie .
+  }
   FILTER (!(isBlank(?obj)))
   ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
+  FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261011)
 
   ?ori gwsw:hasAspect
   [ 
     rdf:type gwsw:Punt ;
     gwsw:hasValue ?Punt ;
   ] .
-   # ?uri_type rdfs:label ?lab_type . # de conceptnaam
-   # FILTER (lang(?lab_type) = "nl")
-   # BIND (CONCAT(STR(?lab_type), " ", STR(?uri_type)) AS ?type)
-    
-   optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
-
-   # De uri verwijst naar de GWSW-definitie, daar is de naam enz. te vinden
-   #?Type rdfs:label ?TypeNaam . # De URI hoeft niet dekkend te zijn
-   #FILTER (lang(?TypeNaam) = "nl")
+  optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
  
-   optional
+  optional
    {
       ?obj gwsw:isPartOf 
       [ rdf:type gwsw:Stelsel ;
         rdfs:label ?Stelsel ;
         sesame:directType ?stelseltype ;
-        # sesame:directType ?uri_stelseltype ;
      ] .
-    # ?uri_stelseltype rdfs:label ?lab_stelseltype .
-    # FILTER (lang(?lab_stelseltype) = "nl")
-    # BIND (CONCAT(STR(?lab_stelseltype), " ", STR(?uri_stelseltype)) AS ?stelseltype)
    }
-   optional {?ori gwsw:hasConnection
-   [
-     rdf:type gwsw:Maaiveldorientatie ;
-     gwsw:hasAspect
-     [
-        rdf:type gwsw:Maaiveldhoogte ;
-        gwsw:hasValue ?Maaiveldhoogte ;
-     ];
-   ] .}
+  optional { # Meest recente maaiveldhoogte
+
+    ?ori gwsw:hasConnection ?oriMvd .
+    ?oriMvd rdf:type gwsw:Maaiveldorientatie .
+
+    # Gebruik UNION met bepaling maximum DatumInwinnnig, deze werkt (eindelijk) (20261014)
+  
+    { # Inwinning erbij?
+      { 
+        SELECT ?oriMvd (MAX(?maxDat1) as ?maxDat1) # Zoek de meest recente waarde (hou var-naam uniek: 2x maxAsp?, 3x maxDat?) (20261015)
+          WHERE {
+            ?oriMvd gwsw:hasAspect ?maxAsp1 .
+            ?maxAsp1 rdf:type gwsw:Maaiveldhoogte ;
+                     gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?maxDat1 ; ] ; ] .
+          } GROUP BY ?oriMvd
+      }
+      # Lees de gegevens bij maxDat? (hou var-naam uniek: 2x asp?)
+      ?oriMvd gwsw:hasAspect ?asp1 .
+      ?asp1 rdf:type gwsw:Maaiveldhoogte ; 
+            gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?maxDat1 ; ] ; ] ;
+            gwsw:hasValue ?Maaiveldhoogte .
+    }
+    UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
+      ?oriMvd gwsw:hasAspect ?asp1 .
+      # de boel is al verwerkt in de subquery?
+      FILTER NOT EXISTS {?asp1 rdf:type gwsw:Maaiveldhoogte; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; ] ; ] .}
+      ?asp1 gwsw:hasValue  ?Maaiveldhoogte . 
+    }
+   }
    optional {?obj gwsw:hasAspect 
    [
        rdf:type gwsw:Begindatum ;
@@ -101,8 +121,6 @@ WHERE
        rdf:type gwsw:BreedtePut ;
        gwsw:hasValue ?br ;
    ] .}
-   BIND (COALESCE (?br, ?dia) as ?BreedtePut) # de eerst geldende doet mee (20230710)
-
    optional {?obj gwsw:hasAspect 
    [
        rdf:type gwsw:LengtePut ;
@@ -125,16 +143,6 @@ WHERE
    ] .}
    optional {?obj gwsw:hasAspect 
    [
-     rdf:type gwsw:BreedteCompartiment ;
-     gwsw:hasValue ?BreedteCompartiment ;
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
-     rdf:type gwsw:LengteCompartiment ;
-     gwsw:hasValue ?LengteCompartiment ;
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
        rdf:type gwsw:Wanddikte ;
        gwsw:hasValue ?Wanddikte ;
    ] .}
@@ -143,7 +151,7 @@ WHERE
        rdf:type gwsw:Fundering ;
        sesame:directType ?Fundering ;
    ] .}
-  optional { # Bepaal de meest recente datum. Niet groeperen, veldformaat = xsd:date  (20260416)
+  optional { # Bepaal de meest recente datum. Niet groeperen, veldformaat blijft xsd:date  (20260416)
     SELECT ?obj (MAX(?dat) as ?DatumInspectie)
     WHERE
     {
@@ -158,7 +166,7 @@ WHERE
     }
     GROUP BY ?obj
   }
-  optional { # Bepaal de meest recente datum. Niet groeperen, veldformaat = xsd:date  (20260416)
+  optional { # Bepaal de meest recente datum. Niet groeperen, veldformaat blijft xsd:date  (20260416)
     SELECT ?obj (MAX(?dat) as ?DatumReiniging)
     WHERE
     {
@@ -229,6 +237,6 @@ WHERE
       ?pmp rdf:type gwsw:Pomp .
     } GROUP BY ?obj
   }
+  BIND (COALESCE (?br, ?dia) as ?BreedtePut) # de eerst geldende doet mee (20230710)
   BIND (?obj AS ?uri) # De complete IRI in de uitvoer (20230416)
-  #BIND (strafter(str(?obj), "#") AS ?uri)
 }

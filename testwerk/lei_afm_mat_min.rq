@@ -1,0 +1,56 @@
+# Overzicht alle voorkomende leidingafmeting en -materiaal (verzoek PipelineLinq) (20260714)
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT DISTINCT ?dataset ?Materiaal ?Vorm ?BreedteLeiding ?HoogteLeiding
+
+WHERE
+{ 
+  BIND (str(iri(gwsw:)) AS ?aft) # De datamodel-prefix
+
+  ?lei rdf:type gwsw:Leiding .
+  FILTER (!(isBlank(?lei)))
+  
+  BIND ("{{&repository}}" AS ?dataset )
+
+  ?lei gwsw:hasAspect [ # moet er zijn
+    rdf:type gwsw:MateriaalLeiding ;
+    gwsw:hasReference ?mat ;
+  ] .
+  ?mat rdfs:label ?Materiaal ;
+  FILTER (lang(?Materiaal) = "nl") # de nl-versie is er altijd
+
+  optional {?lei gwsw:hasAspect 
+    [
+      rdf:type gwsw:VormLeiding ;
+      gwsw:hasReference ?VormLeiding ;
+    ] .
+    ?VormLeiding rdfs:label ?_Vorm .
+    FILTER (lang(?_Vorm) = "nl") # de nl-versie is er altijd
+  }
+  optional {?lei gwsw:hasAspect 
+  [
+    rdf:type gwsw:DiameterLeiding ;
+      gwsw:hasValue ?dia ;  
+  ] .}
+  optional {?lei gwsw:hasAspect 
+  [
+    rdf:type gwsw:BreedteLeiding ;
+    gwsw:hasValue ?br ;
+  ] .}
+  BIND (COALESCE (?br, ?dia, "") as ?BreedteLeiding) # de eerst geldende doet mee (20210521)
+  
+  optional {?lei gwsw:hasAspect 
+  [
+      rdf:type gwsw:HoogteLeiding ;
+      gwsw:hasValue ?_HoogteLeiding ;
+  ] .}
+  BIND (COALESCE (?_Vorm, "") as ?Vorm)
+  BIND (COALESCE (?_HoogteLeiding, "") as ?HoogteLeiding)
+  BIND (COALESCE (?_LengteBuisdeel, "") as ?LengteBuisdeel)
+}

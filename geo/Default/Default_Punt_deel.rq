@@ -8,13 +8,12 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Stelsel ?stelseltype ?naamPunt ?uriPunt ?naam ?uri ?type ?Punt ?begin ?eind ?BreedteOpening ?HoogteOpening ?VormOpening ?Doorlaatniveau ?Contractiecoef ?MaxCapDoorlaat  ?Pompcapaciteit ?AanslagniveauBeneden ?AfslagniveauBeneden ?AanslagniveauBoven ?AfslagniveauBoven ?Drempelbreedte ?Drempelniveau ?Stromingsrichting
+SELECT ?Stelsel ?stelseltype ?naamPunt ?uriPunt ?naam ?uri ?type ?Punt ?begin ?eind ?BreedteOpening ?HoogteOpening ?VormOpening ?Doorlaatniveau ?Contractiecoef ?MaxCapDoorlaat  ?Pompcapaciteit ?AanslagniveauBeneden ?AfslagniveauBeneden ?AanslagniveauBoven ?AfslagniveauBoven ?Drempelbreedte ?Drempelniveau ?BreedteCompartiment ?LengteCompartiment ?Stromingsrichting
 
 WHERE
 { 
-  ?obj gwsw:hasAspect ?oriObj . #rdf:type gwsw:TopologischElement ;
+  ?obj gwsw:hasAspect ?oriObj .
   ?oriObj sesame:directType ?oriType .
-
   # De compositieobjecten met een topologie en met onderdelen die mogelijk een punt-geometrie hebben 
   # Ook Rioolafsluiter, Schildmuur als deel van een Leiding: Leidingorientatie erbij (20260828)
   FILTER (?oriType IN (gwsw:Bouwwerkorientatie, gwsw:Putorientatie, gwsw:Hulpstukorientatie, gwsw:Leidingorientatie)) 
@@ -24,7 +23,6 @@ WHERE
     rdf:type gwsw:Punt ;
     gwsw:hasValue ?objPunt ;
   ] .
-  #FILTER (!(isBlank(?obj)))
 
   # Alleen de delen van een compositie-object
 
@@ -185,6 +183,16 @@ WHERE
   [
     rdf:type gwsw:Drempelniveau ;
     gwsw:hasValue ?Drempelniveau ;
+  ] .}
+  optional {?ond gwsw:hasAspect 
+  [
+    rdf:type gwsw:BreedteCompartiment ;
+    gwsw:hasValue ?BreedteCompartiment ;
+  ] .}
+  optional {?ond gwsw:hasAspect 
+  [
+    rdf:type gwsw:LengteCompartiment ;
+    gwsw:hasValue ?LengteCompartiment ;
   ] .}
   optional {?ond gwsw:hasAspect 
   [

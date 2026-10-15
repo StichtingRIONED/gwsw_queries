@@ -1,134 +1,181 @@
 # Beheer_Put.rq (20170930)
+# 20261013/mv: Selecteer op datum inwinning, alleen meest recente waarde gebruiken
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak
 
 WHERE
 { 
-   { ?put rdf:type :Rioolput . }
+   ?put rdf:type gwsw:Rioolput .
    
    # Via thema Aansluiting (20190403)
    #UNION
-   #{ ?put rdf:type :Kolk . }
+   #{ ?put rdf:type gwsw:Kolk . }
    
    ?put sesame:directType ?type .
     
    FILTER (!(isBlank(?put)))
    FILTER (!(isBlank(?type)))
-    
+ 
+   # Nog niet actief gemaakt, kloppen de datasets voldoende?
+   #FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261011)
+   
    ?put rdfs:label ?naam .
 
    optional
    {   
-      ?put :isPartOf 
-      [ rdf:type :Stelsel ;
+      ?put gwsw:isPartOf 
+      [ rdf:type gwsw:Stelsel ;
         rdfs:label ?Stelsel ;
         sesame:directType ?stelseltype ;
       ] .
    }
-   ?put :hasAspect ?ori .
-   ?ori rdf:type :Putorientatie ;
-       :hasAspect
+   ?put gwsw:hasAspect ?ori .
+   ?ori rdf:type gwsw:Putorientatie ;
+       gwsw:hasAspect
    [ 
-       rdf:type :Punt ;
-       :hasValue ?Punt ;
+       rdf:type gwsw:Punt ;
+       gwsw:hasValue ?Punt ;
    ] .
-   optional {?ori :hasConnection
-     [
-        rdf:type :Maaiveldorientatie ;
-        :hasAspect ?maaiveld ;
-     ] . 
-     ?maaiveld  rdf:type :Maaiveldhoogte ;
-                :hasValue ?Maaiveldhoogte .
-     optional {?maaiveld :hasAspect
-     [
-        rdf:type :Inwinning ;
-        :hasAspect [
-        rdf:type :DatumInwinning ;
-        :hasValue ?datumInwinningMaaiveld ;
-        ] ;
-     ] . }
-     optional {?maaiveld :hasAspect
-     [
-        rdf:type :Inwinning ;
-        :hasAspect [
-        rdf:type :WijzeVanInwinning ;
-        :hasReference ?wijzeInwinningMaaiveld ;
-        ] ;
-     ] . }
-   }
-   optional {?put :hasAspect 
+  optional { # waarden met inwinning-meta (hou var-naam uniek: 3x asp?, 2x dat?) (zie Default_Punt.rq) (20261013)
+    
+    optional {
+      { SELECT ?ori (COUNT(*) AS ?count)
+        WHERE {
+          ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?aspX ; ] . # optionele selectie binnen de subquery (20261013)
+          ?aspX rdf:type gwsw:Maaiveldhoogte ; gwsw:hasValue ?mvdX .
+          ?aspX gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datX ; ] ; ] .
+        } GROUP BY ?ori
+      }
+    }
+    { 
+      SELECT ?ori ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?count
+      WHERE {
+        FILTER (BOUND(?count) && ?count = 1)
+        ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?asp1 ; ] . # optionele selectie binnen de subquery (20261013)
+        ?asp1 rdf:type gwsw:Maaiveldhoogte ; gwsw:hasValue ?Maaiveldhoogte .
+        ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datumInwinningMaaiveld ; ] ; ] .
+        optional { # wijze van inwinning?
+          ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningMaaiveld ; ] ; ] .
+        }
+      }
+    }
+    UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
+      SELECT ?ori ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?count
+      WHERE {
+        FILTER (BOUND(?count) && ?count > 1)
+        ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?asp1 ; ] . # optionele selectie binnen de subquery (20261013)
+        ?asp1 rdf:type gwsw:Maaiveldhoogte ; gwsw:hasValue ?Maaiveldhoogte .
+        ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datumInwinningMaaiveld ; ] ; ] .
+        optional { # wijze van inwinning?
+          ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningMaaiveld ; ] ; ] .
+        }
+      }
+      ORDER BY DESC(?datumInwinningMaaiveld) # sorteer aflopend
+      LIMIT 1
+    }
+    UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
+      FILTER (!BOUND(?count))
+      ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?asp1 ; ] .
+      #FILTER NOT EXISTS {?asp1 rdf:type gwsw:Maaiveldhoogte; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; ] .} # de boel is al verwerkt in de subquery
+      ?asp1 gwsw:hasValue  ?Maaiveldhoogte . 
+    }
+  }
+    # vervalt (20261013)
+    #optional {?ori gwsw:hasConnection
+    # [
+    #    rdf:type gwsw:Maaiveldorientatie ;
+    #    gwsw:hasAspect ?maaiveld ;
+    # ] . 
+    # ?maaiveld  rdf:type gwsw:Maaiveldhoogte ;
+    #            gwsw:hasValue ?Maaiveldhoogte .
+    # optional {?maaiveld gwsw:hasAspect
+    # [
+    #    rdf:type gwsw:Inwinning ;
+    #    gwsw:hasAspect [
+    #    rdf:type gwsw:DatumInwinning ;
+    #    gwsw:hasValue ?datumInwinningMaaiveld ;
+    #    ] ;
+    # ] . }
+    # optional {?maaiveld gwsw:hasAspect
+    # [
+    #    rdf:type gwsw:Inwinning ;
+    #    gwsw:hasAspect [
+    #    rdf:type gwsw:WijzeVanInwinning ;
+    #    gwsw:hasReference ?wijzeInwinningMaaiveld ;
+    #    ] ;
+    # ] . }
+    #}
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :Begindatum ;
-       :hasValue ?Begindatum ;
+       rdf:type gwsw:Begindatum ;
+       gwsw:hasValue ?Begindatum ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :Einddatum ;
-       :hasValue ?Einddatum ;
+       rdf:type gwsw:Einddatum ;
+       gwsw:hasValue ?Einddatum ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :MateriaalPut ;
-       :hasReference ?MateriaalPut ;
+       rdf:type gwsw:MateriaalPut ;
+       gwsw:hasReference ?MateriaalPut ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :VormPut ;
-       :hasReference ?VormPut ;
+       rdf:type gwsw:VormPut ;
+       gwsw:hasReference ?VormPut ;
    ] .}
 
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :DiameterPut ;
+       rdf:type gwsw:DiameterPut ;
    # Werkt niet altijd goed? Opgelost via COALESCE (20230710)
-   #      :hasValue ?BreedtePut ; # Diameter als breedte vermelden
-       :hasValue ?dia ;  
+   #      gwsw:hasValue ?BreedtePut ; # Diameter als breedte vermelden
+       gwsw:hasValue ?dia ;  
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :BreedtePut ;
-       :hasValue ?br ;
+       rdf:type gwsw:BreedtePut ;
+       gwsw:hasValue ?br ;
    ] .}
-   BIND (COALESCE (?br, ?dia) as ?BreedtePut) # de eerst geldende doet mee (20230710)   
-   
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :LengtePut ;
-       :hasValue ?LengtePut ;
+       rdf:type gwsw:LengtePut ;
+       gwsw:hasValue ?LengtePut ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :HoogtePut ;
-       :hasValue ?HoogtePut ;
+       rdf:type gwsw:HoogtePut ;
+       gwsw:hasValue ?HoogtePut ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :Wanddikte ;
-       :hasValue ?Wanddikte ;
+       rdf:type gwsw:Wanddikte ;
+       gwsw:hasValue ?Wanddikte ;
    ] .}
-   optional {?put :hasPart 
+   optional {?put gwsw:hasPart 
    [
-       rdf:type :Fundering ;
+       rdf:type gwsw:Fundering ;
        sesame:directType ?Fundering ;
    ] .}
   optional { # Bepaal de meest recente datum (20260416)
     SELECT ?put (MAX(?dat) as ?DatumInspectie)
     WHERE
     {
-        ?put :isInputOf [
-          rdf:type :Inspecteren ;
-          :hasAspect
+        ?put gwsw:isInputOf [
+          rdf:type gwsw:Inspecteren ;
+          gwsw:hasAspect
           [
-            rdf:type :DatumMaatregel ;
-            :hasValue ?dat ;
+            rdf:type gwsw:DatumMaatregel ;
+            gwsw:hasValue ?dat ;
           ] ; 
         ] .
     }
@@ -138,41 +185,42 @@ WHERE
     SELECT ?put (MAX(?dat) as ?DatumReiniging)
     WHERE
     {
-        ?put :isInputOf [
-          rdf:type :Reinigen ;
-          :hasAspect
+        ?put gwsw:isInputOf [
+          rdf:type gwsw:Reinigen ;
+          gwsw:hasAspect
           [
-            rdf:type :DatumMaatregel ;
-            :hasValue ?dat ;
+            rdf:type gwsw:DatumMaatregel ;
+            gwsw:hasValue ?dat ;
           ] ; 
         ] .
     }
     GROUP BY ?put
   }
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :AantalWoningen ;
-       :hasValue ?AantalWoningen ;
+       rdf:type gwsw:AantalWoningen ;
+       gwsw:hasValue ?AantalWoningen ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :Aantal_ieBedrijven ;
-       :hasValue ?Aantal_ieBedrijven ;
+       rdf:type gwsw:Aantal_ieBedrijven ;
+       gwsw:hasValue ?Aantal_ieBedrijven ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :Aantal_ieRecreatie ;
-       :hasValue ?Aantal_ieRecreatie ;
+       rdf:type gwsw:Aantal_ieRecreatie ;
+       gwsw:hasValue ?Aantal_ieRecreatie ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :AfvoerendOppervlak ;
-       :hasValue ?AfvoerendOppervlak ;
+       rdf:type gwsw:AfvoerendOppervlak ;
+       gwsw:hasValue ?AfvoerendOppervlak ;
    ] .}
-   optional {?put :hasAspect 
+   optional {?put gwsw:hasAspect 
    [
-       rdf:type :BergendOppervlak ;
-       :hasValue ?BergendOppervlak ;
+       rdf:type gwsw:BergendOppervlak ;
+       gwsw:hasValue ?BergendOppervlak ;
    ] .}
+   BIND (COALESCE (?br, ?dia) as ?BreedtePut) # de eerst geldende doet mee (20230710)   
    BIND (strafter(str(?put), "#") AS ?uri)
 }
