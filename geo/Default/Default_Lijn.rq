@@ -29,7 +29,10 @@ WHERE
   FILTER (!(isBlank(?obj)))
   ?obj sesame:directType ?type .
   FILTER (!(isBlank(?type)))
-  FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261013)
+  
+  # Nog even uitgeschakeld houden (20261016)
+  # In datamodel 1.7.0 werd hiermee ook gwsw:Persleiding uitgesloten, modelleerfout gecorrigeerd in datamodel en serverfile (20261016)
+  #FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261013)
 
   ?ori gwsw:hasAspect [ 
     rdf:type gwsw:Lijn ;

@@ -1,13 +1,15 @@
 # Beheer_Pomp.rq - Alle pomp-constructies (pompput/gemaal) (20240819) (20240718)
+# 20261016/mv: Voor 3D weergave: contouren bouwwerk en hoogte-bouwwerk erbij (?Buitengrens, ?HoogteBouwwerk)
+#              Buitengrens en HoogteBouwwerk alleen voor 3D nabewerking (export CityGML), niet in GML/XSD ivm PDOK-afstemming
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Pompcapaciteit1 ?Pompcapaciteit2
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Buitengrens ?Begindatum ?Einddatum ?Pompcapaciteit1 ?Pompcapaciteit2 ?HoogteBouwwerk
 
 WHERE
 { 
@@ -47,11 +49,8 @@ WHERE
   UNION
   { ?ori rdf:type gwsw:Bouwwerkorientatie . } # werkt vanaf 1.3.3 voor gemalen
   
-  ?ori gwsw:hasAspect
-      [ 
-        rdf:type gwsw:Punt ;
-        gwsw:hasValue ?Punt ;
-      ] .
+  ?ori gwsw:hasAspect [ rdf:type gwsw:Punt ; gwsw:hasValue ?Punt ; ] .
+  optional {?ori gwsw:hasAspect [ rdf:type gwsw:Buitengrens ; gwsw:hasValue ?Buitengrens ; ] .} # Toegevoegd (niet in XSD, alleen voor 3D bewerking) (20261016)
 
   optional {?pmp gwsw:hasAspect 
   [
@@ -62,6 +61,11 @@ WHERE
   [
       rdf:type gwsw:Einddatum ;
       gwsw:hasValue ?Einddatum ;
+  ] .}
+  optional {?pmp gwsw:hasAspect # (20261016)
+  [
+    rdf:type gwsw:HoogteBouwwerk ;
+    gwsw:hasValue ?HoogteBouwwerk ;
   ] .}
 
   # Gemaalcapaciteit opnemen (20240718)

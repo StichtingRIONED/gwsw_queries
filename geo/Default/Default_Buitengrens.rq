@@ -1,11 +1,13 @@
+# 20261016/mv: Stelsel erbij, buitengrens ook/meer voor bouwwerk. 3D-voorbereiding.
+
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Systeem ?systeemtype ?naam ?uri ?type ?Buitengrens
+SELECT ?Systeem ?systeemtype ?Stelsel ?stelseltype ?naam ?uri ?type ?Buitengrens
 
 WHERE
 { 
@@ -25,8 +27,16 @@ WHERE
    {
       ?obj gwsw:isPartOf 
       [ rdf:type gwsw:Systeem ; 
-        rdfs:label ?Systeem ; # systeem/stelsel/gebied
+        rdfs:label ?Systeem ;
          sesame:directType ?systeemtype ;
+     ] .
+   }
+   optional # (20261016)
+   {
+      ?obj gwsw:isPartOf 
+      [ rdf:type gwsw:Stelsel ; 
+        rdfs:label ?Stelsel ;
+         sesame:directType ?stelseltype ;
      ] .
    }
    
