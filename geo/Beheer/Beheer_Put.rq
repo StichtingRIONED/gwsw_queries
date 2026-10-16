@@ -1,5 +1,8 @@
 # Beheer_Put.rq (20170930)
-# 20261013/mv: Selecteer op datum inwinning, alleen meest recente waarde gebruiken
+
+# 20261016/mv: Voor 3D weergave: contouren put erbij (?Buitengrens)
+#              Buitengrens alleen voor 3D nabewerking (export CityGML), niet in GML/XSD
+# 20261013/mv: Selecteer op datum inwinning maaiveld, alleen meest recente waarde gebruiken
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -9,83 +12,73 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak
+SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Buitengrens ?Begindatum ?Einddatum ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak
 
 WHERE
 { 
-   ?put rdf:type gwsw:Rioolput .
-   
-   # Via thema Aansluiting (20190403)
-   #UNION
-   #{ ?put rdf:type gwsw:Kolk . }
-   
-   ?put sesame:directType ?type .
-    
-   FILTER (!(isBlank(?put)))
-   FILTER (!(isBlank(?type)))
- 
-   # Nog niet actief gemaakt, kloppen de datasets voldoende?
-   #FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261011)
-   
-   ?put rdfs:label ?naam .
+  ?put rdf:type gwsw:Rioolput .
 
-   optional
-   {   
-      ?put gwsw:isPartOf 
-      [ rdf:type gwsw:Stelsel ;
-        rdfs:label ?Stelsel ;
-        sesame:directType ?stelseltype ;
-      ] .
-   }
-   ?put gwsw:hasAspect ?ori .
-   ?ori rdf:type gwsw:Putorientatie ;
-       gwsw:hasAspect
-   [ 
-       rdf:type gwsw:Punt ;
-       gwsw:hasValue ?Punt ;
-   ] .
-  optional { # waarden met inwinning-meta (hou var-naam uniek: 3x asp?, 2x dat?) (zie Default_Punt.rq) (20261013)
-    
-    optional {
-      { SELECT ?ori (COUNT(*) AS ?count)
-        WHERE {
-          ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?aspX ; ] . # optionele selectie binnen de subquery (20261013)
-          ?aspX rdf:type gwsw:Maaiveldhoogte ; gwsw:hasValue ?mvdX .
-          ?aspX gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datX ; ] ; ] .
-        } GROUP BY ?ori
+  # Via thema Aansluiting (20190403)
+  #UNION
+  #{ ?put rdf:type gwsw:Kolk . }
+
+  ?put sesame:directType ?type .
+
+  FILTER (!(isBlank(?put)))
+  FILTER (!(isBlank(?type)))
+
+  # Nog niet actief gemaakt, kloppen de datasets voldoende?
+  #FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261011)
+
+  ?put rdfs:label ?naam .
+
+  optional
+  {   
+    ?put gwsw:isPartOf 
+    [ rdf:type gwsw:Stelsel ;
+      rdfs:label ?Stelsel ;
+      sesame:directType ?stelseltype ;
+    ] .
+  }
+  ?put gwsw:hasAspect ?ori .
+  ?ori rdf:type gwsw:Putorientatie ;
+      gwsw:hasAspect [ rdf:type gwsw:Punt ; gwsw:hasValue ?Punt ; ] .
+  optional {?ori gwsw:hasAspect [ rdf:type gwsw:Buitengrens ; gwsw:hasValue ?Buitengrens ; ] .} # Toegevoegd (niet in XSD, alleen voor 3D bewerking) (20261016)
+
+  optional { # Meest recente maaiveldhoogte (20261016)
+
+    ?ori gwsw:hasConnection ?oriMvd .
+    ?oriMvd rdf:type gwsw:Maaiveldorientatie .
+
+    # Gebruik UNION met bepaling maximum DatumInwinnnig, deze werkt (eindelijk) (20261014)
+  
+    { # Inwinning erbij?
+      { 
+        SELECT ?oriMvd (MAX(?datInw1) as ?datumInwinningMaaiveld)  # Zoek de meest recente waarde (hou var-naam uniek: 2x aspInw?, 2x datInw?, 1x maxDat?)
+          WHERE {
+            ?oriMvd gwsw:hasAspect ?aspInw1 .
+            ?aspInw1 rdf:type gwsw:Maaiveldhoogte ;
+                     gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datInw1 ; ] ; ] .
+          } GROUP BY ?oriMvd
       }
-    }
-    { 
-      SELECT ?ori ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?count
-      WHERE {
-        FILTER (BOUND(?count) && ?count = 1)
-        ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?asp1 ; ] . # optionele selectie binnen de subquery (20261013)
-        ?asp1 rdf:type gwsw:Maaiveldhoogte ; gwsw:hasValue ?Maaiveldhoogte .
-        ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datumInwinningMaaiveld ; ] ; ] .
-        optional { # wijze van inwinning?
-          ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningMaaiveld ; ] ; ] .
-        }
+      # Lees de gegevens bij maxDat? (hou var-naam uniek: 2x asp?)
+      ?oriMvd gwsw:hasAspect ?asp1 .
+      ?asp1 rdf:type gwsw:Maaiveldhoogte ; 
+            gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datumInwinningMaaiveld ; ] ; ] ;
+            gwsw:hasValue ?Maaiveldhoogte .
+      optional {
+        ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningMaaiveld ; ] ; ] ;
       }
     }
     UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
-      SELECT ?ori ?Maaiveldhoogte ?datumInwinningMaaiveld ?wijzeInwinningMaaiveld ?count
-      WHERE {
-        FILTER (BOUND(?count) && ?count > 1)
-        ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?asp1 ; ] . # optionele selectie binnen de subquery (20261013)
-        ?asp1 rdf:type gwsw:Maaiveldhoogte ; gwsw:hasValue ?Maaiveldhoogte .
-        ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datumInwinningMaaiveld ; ] ; ] .
-        optional { # wijze van inwinning?
-          ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningMaaiveld ; ] ; ] .
-        }
-      }
-      ORDER BY DESC(?datumInwinningMaaiveld) # sorteer aflopend
-      LIMIT 1
-    }
-    UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
-      FILTER (!BOUND(?count))
-      ?ori gwsw:hasConnection [ rdf:type gwsw:Maaiveldorientatie ; gwsw:hasAspect ?asp1 ; ] .
-      #FILTER NOT EXISTS {?asp1 rdf:type gwsw:Maaiveldhoogte; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; ] .} # de boel is al verwerkt in de subquery
+      ?oriMvd gwsw:hasAspect ?asp1 .
+      # de boel is al verwerkt in de subquery?
+      FILTER NOT EXISTS {?asp1 rdf:type gwsw:Maaiveldhoogte; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; ] ; ] .}
       ?asp1 gwsw:hasValue  ?Maaiveldhoogte . 
+
+      optional { # geen datum maar wel wijze van inwinning?
+        ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningMaaiveld ; ] ; ] ;
+      }
     }
   }
     # vervalt (20261013)
@@ -137,8 +130,6 @@ WHERE
    optional {?put gwsw:hasAspect 
    [
        rdf:type gwsw:DiameterPut ;
-   # Werkt niet altijd goed? Opgelost via COALESCE (20230710)
-   #      gwsw:hasValue ?BreedtePut ; # Diameter als breedte vermelden
        gwsw:hasValue ?dia ;  
    ] .}
    optional {?put gwsw:hasAspect 

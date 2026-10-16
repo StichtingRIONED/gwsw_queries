@@ -1,9 +1,13 @@
-# Alle punt-objecten (alleen de compositieobjecten) (20250915)
+# Alle punt-objecten
+# 
+# 20261016/mv: Voor 3D weergave: contouren (put en bouwwerk) en hoogte-bouwwerk erbij (?Buitengrens, ?HoogteBouwwerk)
+#              Buitengrens alleen voor 3D nabewerking (export CityGML), niet in GML/XSD
 # 20261015/mv: Ook zelfstandige compartimenten meenemen (LET OP: dataset-fout!! Water bij de wijn)
 # 20261014/mv: Selecteer op datum inwinning, alleen meest recente waarde gebruiken (query-snelheid gelijk aan 20250916)
 # 20261012/mv: Werkt niet goed, het datatype van mvdhgt niet wijzigen: Datum inwinning toegevoegd aan maaiveldhoogte
 # 20261013/mv: Filter op alleen functionele types
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
+# 20250915/mv: Alleen de compositieobjecten
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -12,7 +16,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?Maaiveldhoogte ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?BreedteBouwwerk ?LengteBouwwerk ?BreedteCompartiment ?LengteCompartiment ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak ?aantalPompen ?aantalDrempels
+SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Buitengrens ?Begindatum ?Einddatum ?Maaiveldhoogte ?MateriaalPut ?VormPut ?BreedtePut ?LengtePut ?HoogtePut ?BreedteBouwwerk ?LengteBouwwerk ?HoogteBouwwerk ?BreedteCompartiment ?LengteCompartiment ?Wanddikte ?Fundering ?DatumReiniging ?DatumInspectie ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?BergendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak ?aantalPompen ?aantalDrempels
 
 WHERE
 { 
@@ -45,11 +49,9 @@ WHERE
   FILTER (!(isBlank(?type)))
   FILTER NOT EXISTS { ?type rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20261011)
 
-  ?ori gwsw:hasAspect
-  [ 
-    rdf:type gwsw:Punt ;
-    gwsw:hasValue ?Punt ;
-  ] .
+  ?ori gwsw:hasAspect [ rdf:type gwsw:Punt ; gwsw:hasValue ?Punt ; ] .
+  optional {?ori gwsw:hasAspect [ rdf:type gwsw:Buitengrens ; gwsw:hasValue ?Buitengrens ; ] .} # Toegevoegd (niet in XSD, alleen voor 3D bewerking) (20261016)
+
   optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
  
   optional
@@ -65,15 +67,15 @@ WHERE
     ?ori gwsw:hasConnection ?oriMvd .
     ?oriMvd rdf:type gwsw:Maaiveldorientatie .
 
-    # Gebruik UNION met bepaling maximum DatumInwinnnig, deze werkt (eindelijk) (20261014)
+    # Gebruik UNION met bepaling maximum DatumInwinnnig
   
     { # Inwinning erbij?
       { 
-        SELECT ?oriMvd (MAX(?maxDat1) as ?maxDat1) # Zoek de meest recente waarde (hou var-naam uniek: 2x maxAsp?, 3x maxDat?) (20261015)
+        SELECT ?oriMvd (MAX(?datInw1) as ?maxDat1) # Zoek de meest recente waarde (hou var-naam uniek: 2x aspInw?, 2x datInw?, 1x maxDat?) (20261015)
           WHERE {
-            ?oriMvd gwsw:hasAspect ?maxAsp1 .
-            ?maxAsp1 rdf:type gwsw:Maaiveldhoogte ;
-                     gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?maxDat1 ; ] ; ] .
+            ?oriMvd gwsw:hasAspect ?aspInw1 .
+            ?aspInw1 rdf:type gwsw:Maaiveldhoogte ;
+                     gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datInw1 ; ] ; ] .
           } GROUP BY ?oriMvd
       }
       # Lees de gegevens bij maxDat? (hou var-naam uniek: 2x asp?)
@@ -89,68 +91,29 @@ WHERE
       ?asp1 gwsw:hasValue  ?Maaiveldhoogte . 
     }
    }
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:Begindatum ;
-       gwsw:hasValue ?Begindatum ;
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:Einddatum ;
-       gwsw:hasValue ?Einddatum ;
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:MateriaalPut ;
-       gwsw:hasReference ?MateriaalPut ;
-   ] . }
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:VormPut ;
-       gwsw:hasReference ?VormPut ;
-   ] . }
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:DiameterPut ;
-   # Werkt niet altijd goed? Opgelost via COALESCE (20230710)
-   #      gwsw:hasValue ?BreedtePut ; # Diameter als breedte vermelden
-       gwsw:hasValue ?dia ;  
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:BreedtePut ;
-       gwsw:hasValue ?br ;
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:LengtePut ;
-       gwsw:hasValue ?LengtePut ;
-   ] .}
-      optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:HoogtePut ;
-       gwsw:hasValue ?HoogtePut ;
-   ] .}
-    optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:BreedteBouwwerk ;
-       gwsw:hasValue ?BreedteBouwwerk ;
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:LengteBouwwerk ;
-       gwsw:hasValue ?LengteBouwwerk ;
-   ] .}
-   optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:Wanddikte ;
-       gwsw:hasValue ?Wanddikte ;
-   ] .}
-   optional {?obj gwsw:hasPart 
-   [
-       rdf:type gwsw:Fundering ;
-       sesame:directType ?Fundering ;
-   ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:Begindatum ; gwsw:hasValue ?Begindatum ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:Einddatum ; gwsw:hasValue ?Einddatum ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:MateriaalPut ; gwsw:hasReference ?MateriaalPut ; ] . }
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:VormPut ; gwsw:hasReference ?VormPut ; ] . }
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:DiameterPut ; gwsw:hasValue ?dia ; ] .} # # Diameter als breedte. Gebruik ?BreedtePut werkt niet altijd goed? Opgelost via COALESCE (20230710)
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:BreedtePut ; gwsw:hasValue ?br ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:LengtePut ; gwsw:hasValue ?LengtePut ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:HoogtePut ; gwsw:hasValue ?HoogtePut ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:BreedteBouwwerk ; gwsw:hasValue ?BreedteBouwwerk ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:LengteBouwwerk ; gwsw:hasValue ?LengteBouwwerk ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:HoogteBouwwerk ; gwsw:hasValue ?HoogteBouwwerk ; ] .} # Toegevoegd tbv 3D (20261016)
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:Wanddikte ; gwsw:hasValue ?Wanddikte ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:AantalWoningen ; gwsw:hasValue ?AantalWoningen ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:Aantal_ieBedrijven ; gwsw:hasValue ?Aantal_ieBedrijven ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:Aantal_ieRecreatie ; gwsw:hasValue ?Aantal_ieRecreatie ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:AfvoerendOppervlak ; gwsw:hasValue ?AfvoerendOppervlak ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:BergendOppervlak ; gwsw:hasValue ?BergendOppervlak ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:LateraalDebietDWA ; gwsw:hasValue ?LateraalDebietDWA ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:LateraalDebietHWA ; gwsw:hasValue ?LateraalDebietHWA ; ] .}
+  optional {?obj gwsw:hasAspect [ rdf:type gwsw:LateraalAfvoerendOppervlak ; gwsw:hasValue ?LateraalAfvoerendOppervlak ; ] .}
+
+  optional {?obj gwsw:hasPart [ rdf:type gwsw:Fundering ; sesame:directType ?Fundering ; ] .}
+
   optional { # Bepaal de meest recente datum. Niet groeperen, veldformaat blijft xsd:date  (20260416)
     SELECT ?obj (MAX(?dat) as ?DatumInspectie)
     WHERE
@@ -181,46 +144,6 @@ WHERE
     }
     GROUP BY ?obj
   }
-  optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:AantalWoningen ;
-       gwsw:hasValue ?AantalWoningen ;
-   ] .}
-  optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:Aantal_ieBedrijven ;
-       gwsw:hasValue ?Aantal_ieBedrijven ;
-   ] .}
-  optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:Aantal_ieRecreatie ;
-       gwsw:hasValue ?Aantal_ieRecreatie ;
-   ] .}
-  optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:AfvoerendOppervlak ;
-       gwsw:hasValue ?AfvoerendOppervlak ;
-   ] .}
-  optional {?obj gwsw:hasAspect 
-   [
-       rdf:type gwsw:BergendOppervlak ;
-       gwsw:hasValue ?BergendOppervlak ;
-   ] .}
-  optional {?obj gwsw:hasAspect 
-  [
-      rdf:type gwsw:LateraalDebietDWA ;
-      gwsw:hasValue ?LateraalDebietDWA ;
-  ] .}
-  optional {?obj gwsw:hasAspect 
-  [
-      rdf:type gwsw:LateraalDebietHWA ;
-      gwsw:hasValue ?LateraalDebietHWA ;
-  ] .}
-  optional {?obj gwsw:hasAspect 
-  [
-      rdf:type gwsw:LateraalAfvoerendOppervlak ;
-      gwsw:hasValue ?LateraalAfvoerendOppervlak ;
-  ] .}
   optional {
     SELECT ?obj (count(*) as ?aantalDrempels) # tel het aantal triples
     WHERE

@@ -1,245 +1,222 @@
 # Beheer_Leiding.rq (20170930)
+
+# 20261016/mv: Selecteer op datum inwinning bobB bobE, alleen meest recente waarde gebruiken
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.6/totaal/>
-PREFIX : <{{&version}}>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
+PREFIX gwsw: <{{&version}}>
 
 SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?datumInwinningBobBegin ?wijzeInwinningBobBegin ?BobEindpuntLeiding ?datumInwinningBobEind ?wijzeInwinningBobEind ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?datumLining ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak
 
 WHERE
 { 
-   ?lei rdf:type :Leiding .
-   
-   # Alles, behalve: (20190403)
-   FILTER NOT EXISTS { ?lei rdf:type :Aansluitleiding . }
-   FILTER NOT EXISTS { ?lei rdf:type :Goot . }
+  ?lei rdf:type gwsw:Leiding .
+  
+  # Alles, behalve: (20190403)
+  FILTER NOT EXISTS { ?lei rdf:type gwsw:Aansluitleiding . }
+  FILTER NOT EXISTS { ?lei rdf:type gwsw:Goot . }
 
-   ?lei sesame:directType ?type .
-   FILTER (!(isBlank(?lei)))
-   FILTER (!(isBlank(?type)))
-    
-   ?lei rdfs:label ?naam .
+  ?lei sesame:directType ?type .
+  FILTER (!(isBlank(?lei)))
+  FILTER (!(isBlank(?type)))
+  
+  ?lei rdfs:label ?naam .
 
-	optional {?lei :isPartOf 
-	[ rdf:type :Stelsel ;
+	optional {?lei gwsw:isPartOf 
+	[ rdf:type gwsw:Stelsel ;
 	rdfs:label ?Stelsel ;
 	sesame:directType ?stelseltype ;
 	] . }
 	  
-   ?lei :hasAspect ?ori .
-   ?ori rdf:type :Leidingorientatie .
+  ?lei gwsw:hasAspect ?ori .
+  ?ori rdf:type gwsw:Leidingorientatie .
 
-   ?ori :hasAspect # geometrie moet er zijn vanaf GWSW 1.4
-   [ 
-      rdf:type :Lijn ;
-      :hasValue ?Lijn ;
-   ] .
+  ?ori gwsw:hasAspect # geometrie moet er zijn vanaf GWSW 1.4
+  [ 
+    rdf:type gwsw:Lijn ;
+    gwsw:hasValue ?Lijn ;
+  ] .
+  optional { # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
+    ?ori gwsw:hasPart ?bpnt .
+    ?bpnt rdf:type gwsw:BeginpuntLeiding .
+    ?bpnt gwsw:hasConnection [ gwsw:isAspectOf ?_uriB ;] . # lei in de query-resultaten voor zoekwerk (20200708)
+    ?_uriB rdfs:label ?beginpunt .
 
-    optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
-    {
-        ?ori :hasPart ?bpnt .
-        ?bpnt rdf:type :BeginpuntLeiding .
-        ?bpnt :hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
-		
-        optional {
-            ?bpnt :hasAspect ?bobB .
-            ?bobB rdf:type :BobBeginpuntLeiding ;
-                  :hasValue ?BobBeginpuntLeiding .
-
-            optional {?bobB :hasAspect
-            [
-                rdf:type :Inwinning ;
-                :hasAspect [
-                rdf:type :DatumInwinning ;
-                :hasValue ?datumInwinningBobBegin ;
-                ] ;
-            ] . }
-            optional {?bobB :hasAspect
-            [
-                rdf:type :Inwinning ;
-                :hasAspect [
-                rdf:type :WijzeVanInwinning ;
-                :hasReference ?wijzeInwinningBobBegin ;
-                ] ;
-            ] . }
+    optional { # Bob
+      { # Inwinning erbij?
+        { 
+          SELECT ?bpnt (MAX(?datInw1) as ?datumInwinningBobBegin) # Zoek de meest recente waarde (hou var-naam uniek: 2x aspInw?, 2x datInw?, 1x maxDat?) (20261015)
+            WHERE {
+              ?bpnt gwsw:hasAspect ?aspInw1 .
+              ?aspInw1 rdf:type gwsw:BobBeginpuntLeiding ;
+                      gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datInw1 ; ] ; ] .
+            } GROUP BY ?bpnt
         }
-		
-		# Hou het kort voor MDS (Delft liep vast op het vervolg)
-        #?bconn :isAspectOf [ rdfs:label ?beginpunt; ] .
+        # Lees de gegevens bij maxDat? (hou var-naam uniek: 3x asp?)
+        ?bpnt gwsw:hasAspect ?asp1 .
+        ?asp1 rdf:type gwsw:BobBeginpuntLeiding ; 
+              gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datumInwinningBobBegin ; ] ; ] ;
+              gwsw:hasValue ?BobBeginpuntLeiding .
 
-        ?bconn :isAspectOf ?_uriB . # lei in de query-resultaten voor zoekwerk (20200708)
-        ?_uriB rdfs:label ?beginpunt .
-
-        # uitgeschakeld, gebruik object-URI
-        #optional # Stelselnaam erbij, voor unieke identificatie (20200706)
-        #{
-        #    ?bP :isPartOf* ?bS . # Doorzoeken naar stelseltype (ook vanuit compartimenten)
-        #    ?bS rdf:type :Stelsel ;
-        #        rdfs:label ?bStelsel .
-        #}
-
-		#optional {?bconn :hasAspect
-		#[ 
-		#	rdf:type :Punt ;
-		#	:hasValue ?bgeo ;
-		#] .	}
-		## Bepaal naam van de aansluiting
-		#
- 		#{ ?bconn :isAspectOf ?bconn1 . }
-        #union
-        #{ ?bconn :isPartOf [ :isAspectOf ?bconn1 ; ] . } # rechtstreekse aansluiting op pomp
-        #    
-        #?bconn1 rdfs:label ?beginpunt1 .
-		#
-        #optional # toegevoegde naam?
-		#{
-		#	?bconn1 :isPartOf ?bconn2 . # deel van put / bouwwerk
-        #    filter not exists {?bconn2 rdf:type :Stelsel .} # alles behalve Stelsel-types
-		#	?bconn2 rdfs:label ?beginpunt2 .
-		#}
-        #bind (if(bound(?beginpunt1) && bound(?beginpunt2), concat(str(?beginpunt2), "/", str(?beginpunt1)), if (bound(?beginpunt1), ?beginpunt1, "")) as ?beginpunt)
-	}
-    optional # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
-    {
-		?ori :hasPart ?epnt .
-		?epnt rdf:type :EindpuntLeiding .
-      	?epnt :hasConnection ?econn . # Let op: niet optioneel, anders loopt query slecht
-
-        optional {
-            ?epnt :hasAspect ?bobE .
-            ?bobE rdf:type :BobEindpuntLeiding ;
-                  :hasValue ?BobEindpuntLeiding .
-           
-            optional {?bobE :hasAspect
-            [
-                rdf:type :Inwinning ;
-                :hasAspect [
-                rdf:type :DatumInwinning ;
-                :hasValue ?datumInwinningBobEind ;
-                ] ;
-            ] . }
-            optional {?bobE :hasAspect
-            [
-                rdf:type :Inwinning ;
-                :hasAspect [
-                rdf:type :WijzeVanInwinning ;
-                :hasReference ?wijzeInwinningBobEind ;
-                ] ;
-            ] . }
+        optional { # wijze van inwinning?
+          ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningBobBegin ; ] ; ] ;
         }
-				
-		# Hou het kort voor MDS (Delft liep vast op het vervolg)
-        #?econn :isAspectOf [ rdfs:label ?eindpunt; ] .
+      }
+      UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
+        ?bpnt gwsw:hasAspect ?asp1 .
+        # de boel is al verwerkt in de subquery?
+        FILTER NOT EXISTS {?asp1 rdf:type gwsw:BobBeginpuntLeiding; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; ] ; ] .}
+        ?asp1 gwsw:hasValue  ?BobBeginpuntLeiding . 
 
-        ?econn :isAspectOf ?_uriE . # lei in de query-resultaten voor zoekwerk (20200708)
-        ?_uriE rdfs:label ?eindpunt .
+        optional { # geen datum maar wel wijze van inwinning?
+          ?asp1 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningBobBegin ; ] ; ] ;
+        }
 
-        # uitgeschakeld, gebruik object-URI
-        #optional # Stelselnaam erbij, voor unieke identificatie (20200706)
-        #{
-        #    ?eP :isPartOf* ?eS . # Doorzoeken naar stelseltype (ook vanuit compartimenten)
-        #    ?eS rdf:type :Stelsel ;
-        #        rdfs:label ?eStelsel .
-        #}
-        
-		#optional {?econn :hasAspect
-		#[ 
-		#	rdf:type :Punt ;
-		#	:hasValue ?egeo ;
-		#] . }
-		## Bepaal naam van de aansluiting
-        #    
-        #{ ?econn :isAspectOf ?econn1 . }
-        #union
-        #{ ?econn :isPartOf [ :isAspectOf ?econn1 ; ] . } # rechtstreekse aansluiting op pomp
-        #    
-      	#?econn1 rdfs:label ?eindpunt1 .
-        #
-        #optional # toegevoegde naam?
-		#{
-		#	?econn1 :isPartOf ?econn2 . # deel van put / bouwwerk
-        #    filter not exists {?econn2 rdf:type :Stelsel .} # alles behalve Stelsel-types
-		#	?econn2 rdfs:label ?eindpunt2 .
-		#}
-        #bind (if(bound(?eindpunt1) && bound(?eindpunt2), concat(str(?eindpunt2), "/", str(?eindpunt1)), if (bound(?eindpunt1), ?eindpunt1, "")) as ?eindpunt)
+      }
     }
-   optional {?lei :hasAspect 
+  }
+  optional { # aansluiting eind. Hou synchroon: hyd_verbinding, mds_leiding
+    ?ori gwsw:hasPart ?epnt .
+    ?epnt rdf:type gwsw:EindpuntLeiding .
+    ?epnt gwsw:hasConnection [ gwsw:isAspectOf ?_uriE ;] . # lei in de query-resultaten voor zoekwerk (20200708)
+    ?_uriE rdfs:label ?eindpunt .
+
+    optional { # Bob
+      { # Inwinning erbij?
+        { 
+          SELECT ?epnt (MAX(?datInw2) as ?datumInwinningBobEind) # Zoek de meest recente waarde (hou var-naam uniek: 2x aspInw?, 2x datInw?, 1x maxDat?) (20261015)
+            WHERE {
+              ?epnt gwsw:hasAspect ?aspInw2 .
+              ?aspInw2 rdf:type gwsw:BobEindpuntLeiding ;
+                      gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datInw2 ; ] ; ] .
+            } GROUP BY ?epnt
+        }
+        # Lees de gegevens bij maxDat? (hou var-naam uniek: 3x asp?)
+        ?epnt gwsw:hasAspect ?asp2 .
+        ?asp2 rdf:type gwsw:BobEindpuntLeiding ; 
+              gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; gwsw:hasValue ?datumInwinningBobEind ; ] ; ] ;
+              gwsw:hasValue ?BobEindpuntLeiding .
+
+        optional { # wijze van inwinning?
+          ?asp2 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningBobEind ; ] ; ] ;
+        }
+      }
+      UNION { # waarden zonder inwinning-meta (hou var-naam uniek: 3x asp?) (20261013)
+        ?epnt gwsw:hasAspect ?asp2 .
+        # de boel is al verwerkt in de subquery?
+        FILTER NOT EXISTS {?asp2 rdf:type gwsw:BobEindpuntLeiding; gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:DatumInwinning ; ] ; ] .}
+        ?asp2 gwsw:hasValue ?BobEindpuntLeiding . 
+
+        optional { # geen datum maar wel wijze van inwinning?
+          ?asp2 gwsw:hasAspect [ rdf:type gwsw:Inwinning ; gwsw:hasAspect [ rdf:type gwsw:WijzeVanInwinning ; gwsw:hasReference ?wijzeInwinningBobEind ; ] ; ] ;
+        }
+      }
+    }
+  }
+
+  #optional # aansluiting begin. Hou synchroon: hyd_verbinding, mds_leiding
+  #{
+  #  ?ori gwsw:hasPart ?bpnt .
+  #  ?bpnt rdf:type gwsw:BeginpuntLeiding .
+  #  ?bpnt gwsw:hasConnection ?bconn . # Let op: niet optioneel, anders loopt query slecht
+  #  optional {
+  #      ?bpnt gwsw:hasAspect ?bobB .
+  #      ?bobB rdf:type gwsw:BobBeginpuntLeiding ;
+  #            gwsw:hasValue ?BobBeginpuntLeiding .
+  #      optional {?bobB gwsw:hasAspect
+  #      [
+  #          rdf:type gwsw:Inwinning ;
+  #          gwsw:hasAspect [
+  #          rdf:type gwsw:DatumInwinning ;
+  #          gwsw:hasValue ?datumInwinningBobBegin ;
+  #          ] ;
+  #      ] . }
+  #      optional {?bobB gwsw:hasAspect
+  #      [
+  #          rdf:type gwsw:Inwinning ;
+  #          gwsw:hasAspect [
+  #          rdf:type gwsw:WijzeVanInwinning ;
+  #          gwsw:hasReference ?wijzeInwinningBobBegin ;
+  #          ] ;
+  #      ] . }
+  #  }
+  #  ?bconn gwsw:isAspectOf ?_uriB . # lei in de query-resultaten voor zoekwerk (20200708)
+  #  ?_uriB rdfs:label ?beginpunt .
+  #}
+
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :Begindatum ;
-       :hasValue ?Begindatum ;
+       rdf:type gwsw:Begindatum ;
+       gwsw:hasValue ?Begindatum ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :MateriaalLeiding ;
-       :hasReference ?MateriaalLeiding ;
+       rdf:type gwsw:MateriaalLeiding ;
+       gwsw:hasReference ?MateriaalLeiding ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :VormLeiding ;
-       :hasReference ?VormLeiding ;
+       rdf:type gwsw:VormLeiding ;
+       gwsw:hasReference ?VormLeiding ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-      rdf:type :DiameterLeiding ;
-# Werkt niet altijd goed? Opgelost via COALESCE (20210521)
-#      :hasValue ?BreedteLeiding ; # Diameter als breedte vermelden
-       :hasValue ?dia ;  
+      rdf:type gwsw:DiameterLeiding ;
+       gwsw:hasValue ?dia ;  
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-      rdf:type :BreedteLeiding ;
-      :hasValue ?br ;
+      rdf:type gwsw:BreedteLeiding ;
+      gwsw:hasValue ?br ;
    ] .}
-   BIND (COALESCE (?br, ?dia) as ?BreedteLeiding) # de eerst geldende doet mee (20210521)
-   
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :HoogteLeiding ;
-       :hasValue ?HoogteLeiding ;
+       rdf:type gwsw:HoogteLeiding ;
+       gwsw:hasValue ?HoogteLeiding ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :LengteLeiding ;
-       :hasValue ?LengteLeiding ;
+       rdf:type gwsw:LengteLeiding ;
+       gwsw:hasValue ?LengteLeiding ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :Wanddikte ;
-       :hasValue ?Wanddikte ;
+       rdf:type gwsw:Wanddikte ;
+       gwsw:hasValue ?Wanddikte ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :Verbindingstype ;
-       :hasReference ?Verbindingstype ;
+       rdf:type gwsw:Verbindingstype ;
+       gwsw:hasReference ?Verbindingstype ;
    ] .}
-   optional {?lei :hasPart 
+   optional {?lei gwsw:hasPart 
    [
-       rdf:type :Fundering ;
+       rdf:type gwsw:Fundering ;
        sesame:directType ?Fundering ;
    ] .}
-   optional {?lei :hasPart 
+   optional {?lei gwsw:hasPart 
    [
-     rdf:type :Lining ;
-     :hasAspect
+     rdf:type gwsw:Lining ;
+     gwsw:hasAspect
      [
-	  rdf:type :Begindatum ;
-	  :hasValue ?datumLining ;
+	  rdf:type gwsw:Begindatum ;
+	  gwsw:hasValue ?datumLining ;
      ];
    ] .}
   optional { # Bepaal de meest recente datum (20260416)
     SELECT ?lei (MAX(?dat) as ?DatumInspectie)
     WHERE
     {
-        ?lei :isInputOf [
-          rdf:type :Inspecteren ;
-          :hasAspect
+        ?lei gwsw:isInputOf [
+          rdf:type gwsw:Inspecteren ;
+          gwsw:hasAspect
           [
-            rdf:type :DatumMaatregel ;
-            :hasValue ?dat ;
+            rdf:type gwsw:DatumMaatregel ;
+            gwsw:hasValue ?dat ;
           ] ; 
         ] .
     }
@@ -249,51 +226,52 @@ WHERE
     SELECT ?lei (MAX(?dat) as ?DatumReiniging)
     WHERE
     {
-        ?lei :isInputOf [
-          rdf:type :Reinigen ;
-          :hasAspect
+        ?lei gwsw:isInputOf [
+          rdf:type gwsw:Reinigen ;
+          gwsw:hasAspect
           [
-            rdf:type :DatumMaatregel ;
-            :hasValue ?dat ;
+            rdf:type gwsw:DatumMaatregel ;
+            gwsw:hasValue ?dat ;
           ] ; 
         ] .
     }
     GROUP BY ?lei
   }
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :WIONThema ;
-       :hasReference ?WIONThema ;
+       rdf:type gwsw:WIONThema ;
+       gwsw:hasReference ?WIONThema ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :AantalWoningen ;
-       :hasValue ?AantalWoningen ;
+       rdf:type gwsw:AantalWoningen ;
+       gwsw:hasValue ?AantalWoningen ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :Aantal_ieBedrijven ;
-       :hasValue ?Aantal_ieBedrijven ;
+       rdf:type gwsw:Aantal_ieBedrijven ;
+       gwsw:hasValue ?Aantal_ieBedrijven ;
    ] .}
-   optional {?lei :hasAspect 
+   optional {?lei gwsw:hasAspect 
    [
-       rdf:type :Aantal_ieRecreatie ;
-       :hasValue ?Aantal_ieRecreatie ;
+       rdf:type gwsw:Aantal_ieRecreatie ;
+       gwsw:hasValue ?Aantal_ieRecreatie ;
    ] .}
    optional
    {
         SELECT ?lei (sum(?ao) as ?AfvoerendOppervlak) # sommeer de types ao
         WHERE
         {
-           optional {?lei :hasAspect 
+           optional {?lei gwsw:hasAspect 
            [
-               rdf:type :AfvoerendOppervlak ;
-               :hasValue ?ao ;
+               rdf:type gwsw:AfvoerendOppervlak ;
+               gwsw:hasValue ?ao ;
            ] .}
         }
         GROUP BY ?lei
    }
-    BIND (strafter(str(?lei), "#") AS ?uri)
-    BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
-    BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)
+  BIND (strafter(str(?lei), "#") AS ?uri)
+  BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
+  BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)
+  BIND (COALESCE (?br, ?dia) as ?BreedteLeiding) # de eerst geldende doet mee (20210521)
 }

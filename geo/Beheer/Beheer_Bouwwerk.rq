@@ -1,25 +1,27 @@
 # Beheer_Bouwwerk.rq - Alle bouwwwerken
 
-# Geometrie gespecialiseerd naar Punt (20200128)
-# Alle bouwwerken meenemen, ook Gemaal (geen pompput) en Uitlaatconstructie: op kleine schaal zichtbaar in PDOK (20200128)
+# 20261016/mv: Voor 3D weergave: contouren bouwwerk en hoogte-bouwwerk erbij (?Buitengrens, ?HoogteBouwwerk)
+#              Buitengrens en HoogteBouwwerk alleen voor 3D nabewerking (export CityGML), niet in GML/XSD ivm PDOK-afstemming
+# 20200128/mv: Geometrie gespecialiseerd naar Punt
+#              Alle bouwwerken meenemen, ook Gemaal (geen pompput) en Uitlaatconstructie: op kleine schaal zichtbaar in PDOK
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-#PREFIX : <http://data.gwsw.nl/1.5/totaal/>
-PREFIX : <{{&version}}> 
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
+PREFIX gwsw: <{{&version}}> 
 
-SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Begindatum ?Einddatum ?BreedteBouwwerk ?LengteBouwwerk
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Punt ?Buitengrens ?Begindatum ?Einddatum ?BreedteBouwwerk ?LengteBouwwerk ?HoogteBouwwerk
 
 WHERE
 { 
 
 # (20200128)
-#   { ?bwk rdf:type :Reservoir . }
+#   { ?bwk rdf:type gwsw:Reservoir . }
 #   UNION
-#   { ?bwk rdf:type :RWZI .}
-   ?bwk rdf:type :Bouwwerk .   
+#   { ?bwk rdf:type gwsw:RWZI .}
+   ?bwk rdf:type gwsw:Bouwwerk .   
 
    ?bwk sesame:directType ?type .
     
@@ -30,42 +32,42 @@ WHERE
    
    optional
    {   
-      ?bwk :isPartOf 
-      [ rdf:type :Stelsel ;
+      ?bwk gwsw:isPartOf 
+      [ rdf:type gwsw:Stelsel ;
         rdfs:label ?Stelsel ;
         sesame:directType ?stelseltype ;
       ] .
    }
-   ?bwk :hasAspect ?ori .
-   ?ori rdf:type :Bouwwerkorientatie .
+   ?bwk gwsw:hasAspect ?ori .
+   ?ori rdf:type gwsw:Bouwwerkorientatie .
    
-   ?ori :hasAspect
-   [ 
-# (20200128)
-#	   rdf:type :Geometrie ;
-#	   :hasValue ?Geometrie ;
-  	   rdf:type :Punt ;
-	   :hasValue ?Punt ;
-   ] .
-   optional {?bwk :hasAspect 
+   ?ori gwsw:hasAspect [ rdf:type gwsw:Punt ; gwsw:hasValue ?Punt ; ] .
+   optional {?ori gwsw:hasAspect [ rdf:type gwsw:Buitengrens ; gwsw:hasValue ?Buitengrens ; ] .} # Toegevoegd (niet in XSD, alleen voor 3D bewerking) (20261016)
+
+   optional {?bwk gwsw:hasAspect 
    [
-       rdf:type :Begindatum ;
-       :hasValue ?Begindatum ;
+       rdf:type gwsw:Begindatum ;
+       gwsw:hasValue ?Begindatum ;
    ] .}
-   optional {?bwk :hasAspect 
+   optional {?bwk gwsw:hasAspect 
    [
-       rdf:type :Einddatum ;
-       :hasValue ?Einddatum ;
+       rdf:type gwsw:Einddatum ;
+       gwsw:hasValue ?Einddatum ;
    ] .}
-   optional {?bwk :hasAspect 
+   optional {?bwk gwsw:hasAspect 
    [
-       rdf:type :BreedteBouwwerk ;
-       :hasValue ?BreedteBouwwerk ;
+       rdf:type gwsw:BreedteBouwwerk ;
+       gwsw:hasValue ?BreedteBouwwerk ;
    ] .}
-   optional {?bwk :hasAspect 
+   optional {?bwk gwsw:hasAspect 
    [
-       rdf:type :LengteBouwwerk ;
-       :hasValue ?LengteBouwwerk ;
+       rdf:type gwsw:LengteBouwwerk ;
+       gwsw:hasValue ?LengteBouwwerk ;
+   ] .}
+   optional {?bwk gwsw:hasAspect 
+   [
+       rdf:type gwsw:HoogteBouwwerk ;
+       gwsw:hasValue ?HoogteBouwwerk ;
    ] .}
     BIND (strafter(str(?bwk), "#") AS ?uri)
 }
