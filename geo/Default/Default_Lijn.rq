@@ -1,4 +1,6 @@
 # Geo-thema Default (20210521)
+
+# 20261020/mv: Doorzoeken naar stelsel bij object-groep Infiltratievoorziening
 # 20261013/mv: Filter op alleen functionele types
 # 20261013/mv: Selecteer op datum inwinning, alleen meest recente waarde gebruiken (SPARQL-bug? opgelost)
 # 20261012/mv: Datum inwinning toevoegen aan BobB en BobE (dubbele geo-objecten blijven, samenvoegen is te traag - zie default_punt)
@@ -40,21 +42,27 @@ WHERE
   ] .
   optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
   
-  optional
+  optional # Het stelsel erbij 
   {
     ?obj gwsw:isPartOf ?cps .
     {
-      ?cps rdf:type gwsw:Stelsel ;
-           rdfs:label ?Stelsel ;
-           sesame:directType ?stelseltype .
-    } UNION { # (20261011)
-      ?cps rdf:type gwsw:Aansluiting .
-      ?cps gwsw:isPartOf [
-           rdf:type gwsw:Stelsel ;
-           rdfs:label ?Stelsel ;
-           sesame:directType ?stelseltype ;
-      ] .
+      ?cps rdf:type gwsw:Stelsel .
+      BIND (?cps as ?st)
+    } 
+    UNION { # (20261011)
+      ?cps rdf:type gwsw:Aansluiting ;
+           gwsw:isPartOf ?cps2 .
+      ?cps2 rdf:type gwsw:Stelsel ;
+      BIND (?cps2 as ?st)
     }
+    UNION { # (20261020)
+      ?cps rdf:type gwsw:Infiltratievoorziening ;
+           gwsw:isPartOf ?cps2 .
+      ?cps2 rdf:type gwsw:Stelsel ;
+      BIND (?cps2 as ?st)
+    }
+    ?st rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype .
   }
   # Bijgewerkt: ?ori en ?lijn werden dubbel bepaald (20210521)
   #?obj gwsw:hasAspect ?ori .

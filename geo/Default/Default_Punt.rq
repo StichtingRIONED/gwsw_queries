@@ -1,5 +1,6 @@
 # Alle punt-objecten
 # 
+# 20261020/mv: Doorzoeken naar stelsel bij object-groepen Aansluiting en Infiltratievoorziening
 # 20261016/mv: Voor 3D weergave: contouren (put en bouwwerk) en hoogte-bouwwerk erbij (?Buitengrens, ?HoogteBouwwerk)
 #              Buitengrens alleen voor 3D nabewerking (export CityGML), niet in GML/XSD
 # 20261015/mv: Ook zelfstandige compartimenten meenemen (LET OP: dataset-fout!! Water bij de wijn)
@@ -54,14 +55,36 @@ WHERE
 
   optional { ?obj rdfs:label ?naam . } # niet meer verplicht (alleen geometrie moet kloppen) (20220518)   
  
-  optional
-   {
-      ?obj gwsw:isPartOf 
-      [ rdf:type gwsw:Stelsel ;
-        rdfs:label ?Stelsel ;
-        sesame:directType ?stelseltype ;
-     ] .
-   }
+  #optional
+  # {
+  #    ?obj gwsw:isPartOf 
+  #    [ rdf:type gwsw:Stelsel ;
+  #      rdfs:label ?Stelsel ;
+  #      sesame:directType ?stelseltype ;
+  #   ] .
+  # }
+  optional # Het stelsel erbij 
+  {
+    ?obj gwsw:isPartOf ?cps .
+    {
+      ?cps rdf:type gwsw:Stelsel .
+      BIND (?cps as ?st)
+    } 
+    UNION { # (20261020)
+      ?cps rdf:type gwsw:Aansluiting ;
+           gwsw:isPartOf ?cps2 .
+      ?cps2 rdf:type gwsw:Stelsel ;
+      BIND (?cps2 as ?st)
+    }
+    UNION { # (20261020)
+      ?cps rdf:type gwsw:Infiltratievoorziening ;
+           gwsw:isPartOf ?cps2 .
+      ?cps2 rdf:type gwsw:Stelsel ;
+      BIND (?cps2 as ?st)
+    }
+    ?st rdfs:label ?Stelsel ;
+        sesame:directType ?stelseltype .
+  }
   optional { # Meest recente maaiveldhoogte
 
     ?ori gwsw:hasConnection ?oriMvd .

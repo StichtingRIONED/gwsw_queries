@@ -1,5 +1,6 @@
-# Aansluiting_Punt.rq (was Aansluiting_Put, gewijzigd 20220511)
+# Objecten in Aansluiting met punt-geometrie
 
+# 20220511/mv: Query-naam gewijzigd, was Aansluiting_Put
 # Zoek alle putten/hulpstukken als deel van de aansluiting (20200501)
 # Vervalt (20200501): Zoek de putten en hulpstukken die op aansluitleidingen koppelen
 # Putten bij geo-thema Aansluiting (20190318-20190501)
