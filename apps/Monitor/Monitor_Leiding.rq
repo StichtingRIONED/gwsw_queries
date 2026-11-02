@@ -1,42 +1,55 @@
-# Tbv RIONED Monitor 2028 (20250809) (20240208)
-
+# Tbv RIONED Monitor 2028 (20240208)
 # ?Stelsel ?type bevatten de URI-naam (om wille van snelheid)
 # Om het consequent te houden: ook voor ?groep de URI-naam gebruiken
 
+# 20261102/mv: compacte weergave voor GWSW Apps via subquery hergebruiken (kopiëren)
+# 20250812/mv: alleen functionele types
+
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
 SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar ?Lining (SUM (?LengteLeiding) AS ?somLengte) ?somBergendVermogen ?somInfiltrerendOppervlak
 WHERE
 { 
-  { ?obj rdf:type gwsw:MechanischeRioolleiding .
-    BIND ("MechanischeRioolleiding" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:VrijvervalRioolleiding .
-    BIND ("VrijvervalRioolleiding" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:MechanischeTransportleiding .
-    BIND ("MechanischeTransportleiding" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:VrijvervalTransportleiding .
-    BIND ("VrijvervalTransportleiding" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:OpenLeiding .
-    BIND ("OpenLeiding" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:Drain .
-    BIND ("Drain" as ?groep) }
+  { # Hergebruik deze subquery voor de compacte weergave [sync]
+    SELECT ?aft ?obj ?Stelsel ?groep ?type ?LengteLeiding 
+    WHERE {
+      { ?obj rdf:type gwsw:MechanischeRioolleiding .
+        BIND ("MechanischeRioolleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:VrijvervalRioolleiding .
+        BIND ("VrijvervalRioolleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:MechanischeTransportleiding .
+        BIND ("MechanischeTransportleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:VrijvervalTransportleiding .
+        BIND ("VrijvervalTransportleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:OpenLeiding .
+        BIND ("OpenLeiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:Drain .
+        BIND ("Drain" as ?groep) }
 
-  #FILTER NOT EXISTS {?obj rdf:type gwsw:Aansluitleiding .}
+      #FILTER NOT EXISTS {?obj rdf:type gwsw:Aansluitleiding .}
 
-  ?obj sesame:directType ?type1 .
-  FILTER (!(isBlank(?type1)))
-  FILTER NOT EXISTS { ?type1 rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20250812)
+      ?obj sesame:directType ?type1 .
+      FILTER (!(isBlank(?type1)))
+      FILTER NOT EXISTS { ?type1 rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20250812)
 
-  BIND (str(iri(gwsw:)) AS ?aft)
-  BIND ( strafter(str(?type1), ?aft) as ?type)
+      BIND (str(iri(gwsw:)) AS ?aft)
+      BIND ( strafter(str(?type1), ?aft) as ?type)
 
+      OPTIONAL {
+        ?obj gwsw:hasAspect [
+        rdf:type gwsw:LengteLeiding ;
+        gwsw:hasValue ?LengteLeiding ;
+        ] .
+      }
+    }
+  }
   BIND ("{{&repository}}" AS ?dataset )
   
   # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
@@ -80,12 +93,6 @@ WHERE
   }
   BIND (COALESCE(?eig2, "") as ?Eigenaar)
 
-  OPTIONAL {
-    ?obj gwsw:hasAspect [
-      rdf:type gwsw:LengteLeiding ;
-      gwsw:hasValue ?LengteLeiding ;
-    ] .
-  }
   OPTIONAL {?obj gwsw:hasPart 
     [
       rdf:type gwsw:Lining ;

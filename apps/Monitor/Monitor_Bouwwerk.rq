@@ -1,39 +1,48 @@
-# Tbv RIONED Monitor 2028 (20250809) (20240214) (20240208)
-# Bouwwerken apart (analoog aan status) (20250814)
-
+# Tbv RIONED Monitor 2028 (20240208)
 # ?Stelsel ?type bevatten de URI-naam (om wille van snelheid)
 # Om het consequent te houden: ook voor ?groep de URI-naam gebruiken
 
+# 20261102/mv: compacte weergave voor GWSW Apps via subquery hergebruiken (kopiëren)
+# 20250814/mv: Bouwwerken apart (analoog aan status)
+# 20250812/mv: alleen functionele types
+
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-#PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
 SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar (SUM (?BergendVermogen) AS ?somBergendVermogen) (SUM (?InfiltrerendOppervlak) AS ?somInfiltrerendOppervlak)
 WHERE
 { 
-  { ?obj rdf:type gwsw:Gemaal ; 
-    BIND ("Gemaal" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:Reservoir ; 
-    BIND ("Reservoir" as ?groep) }
-  UNION {
-    ?obj rdf:type gwsw:Uitlaatconstructie ;
-    # duurt te lang:
-    #?obj1 rdf:type gwsw:Uitlaatpunt ;
-    #OPTIONAL { # Gebruik bij voorkeur de constructie
-    #  ?obj1 gwsw:isPartOf ?obj2 .
-    #  ?obj2 rdf:type gwsw:Uitlaatconstructie .
-    #}
-    #BIND (COALESCE(?obj2, ?obj1) AS ?obj) 
-    BIND ("Uitlaatconstructie" as ?groep) }
+  { # Hergebruik deze subquery voor de compacte weergave [sync]
+    SELECT ?aft ?obj ?Stelsel ?groep ?type
+    WHERE {
 
-  ?obj sesame:directType ?type1 .
-  FILTER (!(isBlank(?type1)))
-  FILTER NOT EXISTS { ?type1 rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20250812)
+      { ?obj rdf:type gwsw:Gemaal ; 
+        BIND ("Gemaal" as ?groep) 
+      }
+      UNION {
+        ?obj rdf:type gwsw:Reservoir ; 
+        BIND ("Reservoir" as ?groep) 
+      }
+      UNION {
+        ?obj rdf:type gwsw:Uitlaatconstructie ;
+        # duurt te lang:
+        #?obj1 rdf:type gwsw:Uitlaatpunt ;
+        #OPTIONAL { # Gebruik bij voorkeur de constructie
+        #  ?obj1 gwsw:isPartOf ?obj2 .
+        #  ?obj2 rdf:type gwsw:Uitlaatconstructie .
+        #}
+        #BIND (COALESCE(?obj2, ?obj1) AS ?obj) 
+        BIND ("Uitlaatconstructie" as ?groep) 
+      }
+      ?obj sesame:directType ?type1 .
+      FILTER (!(isBlank(?type1)))
+      FILTER NOT EXISTS { ?type1 rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20250812)
 
-  BIND (str(iri(gwsw:)) AS ?aft)
-  BIND ( strafter(str(?type1), ?aft) as ?type)
-
+      BIND (str(iri(gwsw:)) AS ?aft)
+      BIND ( strafter(str(?type1), ?aft) as ?type)
+    }
+  }
   BIND ("{{&repository}}" AS ?dataset )
 
   # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
