@@ -1,0 +1,55 @@
+# Tbv RIONED Monitor 2028 (20261103)
+
+# 20261103/mv: compacte weergave voor monitor-page [sync]
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
+PREFIX gwsw: <{{&version}}>
+
+SELECT ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) (SUM (?LengteLeiding) AS ?somLengte)
+    WHERE { # Hergebruik deze subquery [sync]
+      { 
+        ?obj rdf:type gwsw:MechanischeRioolleiding .
+        BIND ("MechanischeRioolleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:VrijvervalRioolleiding .
+        BIND ("VrijvervalRioolleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:MechanischeTransportleiding .
+        BIND ("MechanischeTransportleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:VrijvervalTransportleiding .
+        BIND ("VrijvervalTransportleiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:OpenLeiding .
+        BIND ("OpenLeiding" as ?groep) }
+      UNION {
+        ?obj rdf:type gwsw:Drain .
+        BIND ("Drain" as ?groep) }
+
+      #FILTER NOT EXISTS {?obj rdf:type gwsw:Aansluitleiding .}
+
+      ?obj sesame:directType ?type1 .
+      FILTER (!(isBlank(?type1)))
+      FILTER NOT EXISTS { ?type1 rdfs:subClassOf gwsw:ExtraObjecttype } # Alleen functionele types (20250812)
+
+      BIND (str(iri(gwsw:)) AS ?aft)
+      BIND ( strafter(str(?type1), ?aft) as ?type)
+
+      OPTIONAL {
+        ?obj gwsw:hasAspect [
+        rdf:type gwsw:LengteLeiding ;
+        gwsw:hasValue ?lengteLeiding ;
+        ] .
+      }
+      BIND (COALESCE(?lengteLeiding, 0) as ?LengteLeiding) # Altijd de kolom in rapport
+
+      OPTIONAL {
+        ?obj gwsw:isPartOf [
+          rdf:type gwsw:Stelsel ;
+   	      sesame:directType ?stelsel ;
+        ] .
+      }
+      BIND (COALESCE(strafter(str(?stelsel), ?aft), "") as ?Stelsel) # Altijd de kolom in rapport
+    }
+GROUP BY ?Stelsel ?groep ?type

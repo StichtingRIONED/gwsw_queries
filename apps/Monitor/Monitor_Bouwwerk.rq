@@ -2,7 +2,7 @@
 # ?Stelsel ?type bevatten de URI-naam (om wille van snelheid)
 # Om het consequent te houden: ook voor ?groep de URI-naam gebruiken
 
-# 20261102/mv: compacte weergave voor GWSW Apps via subquery hergebruiken (kopiëren)
+# 20261102/mv: compacte weergave voor GWSW Apps-rapport via subquery [sync]
 # 20250814/mv: Bouwwerken apart (analoog aan status)
 # 20250812/mv: alleen functionele types
 
@@ -13,11 +13,11 @@ PREFIX gwsw: <{{&version}}>
 SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar (SUM (?BergendVermogen) AS ?somBergendVermogen) (SUM (?InfiltrerendOppervlak) AS ?somInfiltrerendOppervlak)
 WHERE
 { 
-  { # Hergebruik deze subquery voor de compacte weergave [sync]
+  {
     SELECT ?aft ?obj ?Stelsel ?groep ?type
-    WHERE {
-
-      { ?obj rdf:type gwsw:Gemaal ; 
+    WHERE { # Hergebruik deze subquery [sync]
+      { 
+        ?obj rdf:type gwsw:Gemaal ; 
         BIND ("Gemaal" as ?groep) 
       }
       UNION {
@@ -41,6 +41,14 @@ WHERE
 
       BIND (str(iri(gwsw:)) AS ?aft)
       BIND ( strafter(str(?type1), ?aft) as ?type)
+      
+      OPTIONAL {
+        ?obj gwsw:isPartOf [
+          rdf:type gwsw:Stelsel ;
+   	      sesame:directType ?stelsel ;
+        ] .
+      }
+      BIND (COALESCE(strafter(str(?stelsel), ?aft), "") as ?Stelsel) # Altijd de kolom in rapport
     }
   }
   BIND ("{{&repository}}" AS ?dataset )
@@ -54,29 +62,13 @@ WHERE
   #BIND (COALESCE(?nType, ?mType, "") AS ?type)
 
   OPTIONAL {
-    ?obj gwsw:isPartOf [
-      rdf:type gwsw:Stelsel ;
-   	  sesame:directType ?stelsel1 ;
-    ]
- 	  BIND ( strafter(str(?stelsel1), ?aft) as ?Stelsel)
-
-    # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
- 	  #BIND ( strafter(str(?stelsel1), ?aft) as ?mStelsel)
-    #OPTIONAL { 
-    #  ?stelsel1 rdfs:label ?nStelsel . 
-    #  FILTER(lang(?nStelsel) = "nl")
-    #}
-  }
-  #BIND (COALESCE(?nStelsel, ?mStelsel, "") as ?Stelsel)
-
-  OPTIONAL {
     ?obj gwsw:hasAspect [
       rdf:type gwsw:Begindatum ;
       gwsw:hasValue ?datum ;
     ] .
  	  BIND (SUBSTR(str(?datum), 1, 4) as ?jaar1)
   }
-  BIND (COALESCE(?jaar1, "") as ?jaar)
+  BIND (COALESCE(?jaar1, "") as ?jaar) # Altijd de kolom in rapport
 
   # De query loopt niet met ?Eigenaar als die bovenaan staat! (20240208)
   OPTIONAL {

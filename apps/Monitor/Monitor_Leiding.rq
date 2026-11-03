@@ -2,7 +2,7 @@
 # ?Stelsel ?type bevatten de URI-naam (om wille van snelheid)
 # Om het consequent te houden: ook voor ?groep de URI-naam gebruiken
 
-# 20261102/mv: compacte weergave voor GWSW Apps via subquery hergebruiken (kopiëren)
+# 20261102/mv: compacte weergave voor GWSW Apps-rapport via subquery [sync]
 # 20250812/mv: alleen functionele types
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -12,10 +12,11 @@ PREFIX gwsw: <{{&version}}>
 SELECT ?dataset ?Eigenaar ?Stelsel ?groep ?type (COUNT (?type) AS ?aantal) ?jaar ?Lining (SUM (?LengteLeiding) AS ?somLengte) ?somBergendVermogen ?somInfiltrerendOppervlak
 WHERE
 { 
-  { # Hergebruik deze subquery voor de compacte weergave [sync]
+  {
     SELECT ?aft ?obj ?Stelsel ?groep ?type ?LengteLeiding 
-    WHERE {
-      { ?obj rdf:type gwsw:MechanischeRioolleiding .
+    WHERE { # Hergebruik deze subquery [sync]
+      { 
+        ?obj rdf:type gwsw:MechanischeRioolleiding .
         BIND ("MechanischeRioolleiding" as ?groep) }
       UNION {
         ?obj rdf:type gwsw:VrijvervalRioolleiding .
@@ -45,9 +46,18 @@ WHERE
       OPTIONAL {
         ?obj gwsw:hasAspect [
         rdf:type gwsw:LengteLeiding ;
-        gwsw:hasValue ?LengteLeiding ;
+        gwsw:hasValue ?lengteLeiding ;
         ] .
       }
+      BIND (COALESCE(?lengteLeiding, 0) as ?LengteLeiding) # Altijd de kolom in rapport
+
+      OPTIONAL {
+        ?obj gwsw:isPartOf [
+          rdf:type gwsw:Stelsel ;
+   	      sesame:directType ?stelsel ;
+        ] .
+      }
+      BIND (COALESCE(strafter(str(?stelsel), ?aft), "") as ?Stelsel) # Altijd de kolom in rapport
     }
   }
   BIND ("{{&repository}}" AS ?dataset )
@@ -59,22 +69,6 @@ WHERE
   #  FILTER(lang(?nType) = "nl")
   #}
   #BIND (COALESCE(?nType, ?mType, "") AS ?type)
-
-  OPTIONAL {
-    ?obj gwsw:isPartOf [
-      rdf:type gwsw:Stelsel ;
-   	  sesame:directType ?stelsel1 ;
-    ]
- 	  BIND ( strafter(str(?stelsel1), ?aft) as ?Stelsel)
-    
-    # Doe geen nl-labels, vertraagt enorm [langzaam] (20250809)
- 	  #BIND ( strafter(str(?stelsel1), ?aft) as ?mStelsel)
-    #OPTIONAL { 
-    #  ?stelsel1 rdfs:label ?nStelsel . 
-    #  FILTER(lang(?nStelsel) = "nl")
-    #}
-  }
-  #BIND (COALESCE(?nStelsel, ?mStelsel, "") as ?Stelsel)
 
   OPTIONAL {
     ?obj gwsw:hasAspect [
