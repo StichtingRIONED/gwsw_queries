@@ -1,3 +1,4 @@
+# 20261116/mv: WIBONThema ipv WIONThema
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -5,7 +6,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.6/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?DiameterLeiding ?Begindatum ?Beheerder ?Rioleringsbeheerder ?Eigenaar ?Verbindingstype ?SDR_waarde ?SysteemdId ?TheoretischeLevensduur ?Doorlaatbaarheid ?Einddatum ?Fabrikant ?Leverancier ?GebiedId ?Gegevensbeheerder ?Grondsoort ?Kleur ?Buurt ?Kern ?Wijk ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Fundering ?Revisietekening ?Straatnaam ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
+SELECT DISTINCT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?DiameterLeiding ?Begindatum ?Beheerder ?Rioleringsbeheerder ?Eigenaar ?Verbindingstype ?SDR_waarde ?SysteemdId ?TheoretischeLevensduur ?Doorlaatbaarheid ?Einddatum ?Fabrikant ?Leverancier ?GebiedId ?Gegevensbeheerder ?Grondsoort ?Kleur ?Buurt ?Kern ?Wijk ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Fundering ?Revisietekening ?Straatnaam ?WIBONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
 
 WHERE
 {
@@ -73,7 +74,7 @@ WHERE
   optional {?obj gwsw:hasAspect [rdf:type gwsw:VormLeiding; gwsw:hasReference ?VormLeiding] .}
   optional {?obj gwsw:hasAspect [rdf:type gwsw:StatusFunctioneren; gwsw:hasReference ?StatusFunctioneren] .}
   optional {?obj gwsw:hasAspect [rdf:type gwsw:Verbindingstype; gwsw:hasReference ?Verbindingstype] .}
-  optional {?obj gwsw:hasAspect [rdf:type gwsw:WIONThema; gwsw:hasReference ?WIONThema] .}
+  optional {?obj gwsw:hasAspect [rdf:type gwsw:WIBONThema; gwsw:hasReference ?WIBONThema] .}
 
   optional {?obj gwsw:hasAspect [rdf:type gwsw:DiameterLeiding; gwsw:hasValue ?DiameterLeiding] .}
   optional {?obj gwsw:hasAspect [rdf:type gwsw:BreedteLeiding; gwsw:hasValue ?BreedteLeiding] .}

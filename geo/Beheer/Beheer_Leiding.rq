@@ -1,5 +1,6 @@
 # Beheer_Leiding.rq (20170930)
 
+# 20261116/mv: WIBONThema ipv WIONThema, WION wel in de query-kolomnaam laten staan ivm PDOK-uitlevering
 # 20261016/mv: Selecteer op datum inwinning bobB bobE, alleen meest recente waarde gebruiken
 # 20260416/mv: Alleen meest recente datum Inspecteren en Reinigen (voorkom dubbele geo-objecten)
 
@@ -240,7 +241,12 @@ WHERE
    optional {?lei gwsw:hasAspect 
    [
        rdf:type gwsw:WIONThema ;
-       gwsw:hasReference ?WIONThema ;
+       gwsw:hasReference ?wion ;
+   ] .}
+   optional {?lei gwsw:hasAspect 
+   [
+       rdf:type gwsw:WIBONThema ;
+       gwsw:hasReference ?wibon ;
    ] .}
    optional {?lei gwsw:hasAspect 
    [
@@ -274,4 +280,5 @@ WHERE
   BIND (IF (BOUND(?_uriB), strafter(str(?_uriB), "#"), "") AS ?uriB)
   BIND (IF (BOUND(?_uriE), strafter(str(?_uriE), "#"), "") AS ?uriE)
   BIND (COALESCE (?br, ?dia) as ?BreedteLeiding) # de eerst geldende doet mee (20210521)
+  BIND (COALESCE (?wibon, ?wion) as ?WIONThema) # (20261116)
 }

@@ -1,5 +1,6 @@
 # Geo-thema Default (20210521)
 
+# 20261116/mv: WIBONThema ipv WIONThema
 # 20261020/mv: Doorzoeken naar stelsel bij object-groep Infiltratievoorziening
 # 20261013/mv: Filter op alleen functionele types
 # 20261013/mv: Selecteer op datum inwinning, alleen meest recente waarde gebruiken (SPARQL-bug? opgelost)
@@ -14,7 +15,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 #PREFIX gwsw: <http://data.gwsw.nl/1.7/totaal/>
 PREFIX gwsw: <{{&version}}>
 
-SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?DatumInspectie ?DatumReiniging ?WIONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
+SELECT ?Stelsel ?stelseltype ?naam ?uri ?type ?Lijn ?beginpunt ?uriB ?eindpunt ?uriE ?Begindatum ?Einddatum ?BobBeginpuntLeiding ?BobEindpuntLeiding ?MateriaalLeiding ?VormLeiding ?BreedteLeiding ?HoogteLeiding ?LengteLeiding ?Wanddikte ?Verbindingstype ?Fundering ?DatumInspectie ?DatumReiniging ?WIBONThema ?AantalWoningen ?Aantal_ieBedrijven ?Aantal_ieRecreatie ?AfvoerendOppervlak ?LateraalDebietDWA ?LateraalDebietHWA ?LateraalAfvoerendOppervlak
 #SELECT ?Stelsel ?Naam ?Type ?TypeNaam ?Geometrie
 
 WHERE
@@ -234,8 +235,8 @@ WHERE
   #] .}
   optional {?obj gwsw:hasAspect 
   [
-      rdf:type gwsw:WIONThema ;
-      gwsw:hasReference ?WIONThema ;
+      rdf:type gwsw:WIBONThema ;
+      gwsw:hasReference ?WIBONThema ;
   ] .}
   optional {?obj gwsw:hasAspect 
   [
